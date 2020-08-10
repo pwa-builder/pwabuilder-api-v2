@@ -8,56 +8,66 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   const site = req.query.site;
 
-  const browser = await puppeteer.launch(
-    {
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    }
-  );
-  const page1 = await browser.newPage();
+  try {
+    const browser = await puppeteer.launch(
+      {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      }
+    );
+    const page1 = await browser.newPage();
 
-  await page1.goto(site);
+    await page1.goto(site);
 
-  const manifestHref = await page1.$eval('link[rel=manifest]', (el: HTMLAnchorElement) => el.href);
+    const manifestHref = await page1.$eval('link[rel=manifest]', (el: HTMLAnchorElement) => el.href);
 
-  await page1.close();
+    await page1.close();
 
-  if (manifestHref) {
-    const page = await browser.newPage();
+    if (manifestHref) {
+      const page = await browser.newPage();
 
-    await page.goto(manifestHref);
+      await page.goto(manifestHref);
 
-    const maniData = await page.evaluate(() => {
-      return JSON.parse(document.querySelector("body").innerText);
-    });
+      const maniData = await page.evaluate(() => {
+        return JSON.parse(document.querySelector("body").innerText);
+      });
 
-    const results = {
-      "required": {
-        "short_name": checkShortName(maniData),
-        "description": checkDesc(maniData),
-        "name": checkName(maniData),
-        "display": checkDisplay(maniData),
-        "start_url": checkStartUrl(maniData),
-        "icons": checkIcons(maniData),
-        "screenshots": checkScreenshots(maniData)
-      },
-      "optional": {
+      const results = {
+        "required": {
+          "short_name": checkShortName(maniData),
+          "description": checkDesc(maniData),
+          "name": checkName(maniData),
+          "display": checkDisplay(maniData),
+          "start_url": checkStartUrl(maniData),
+          "icons": checkIcons(maniData),
+          "screenshots": checkScreenshots(maniData)
+        },
+        "optional": {
 
+        }
+      }
+
+      context.res = {
+        status: 200,
+        body: {
+          "data": results
+        }
       }
     }
-
-    context.res = {
-      status: 200,
-      body: {
-        "data": results
+    else {
+      context.res = {
+        status: 200,
+        body: {
+          "data": null
+        }
       }
     }
   }
-  else {
+  catch (err) {
     context.res = {
-      status: 200,
+      status: 500,
       body: {
-        "data": null
+        "error": err
       }
     }
   }
