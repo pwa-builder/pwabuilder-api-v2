@@ -54,7 +54,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     swInfo['scope'] = serviceWorkerScope;
 
     // checking push reg
-    var pushReg = await page.evaluate(
+    let pushReg: boolean | PushSubscription = await page.evaluate(
       () => {
         return navigator.serviceWorker.getRegistration().then((reg) => {
           return reg.pushManager.getSubscription().then((sub) => sub);
