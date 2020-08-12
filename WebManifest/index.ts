@@ -7,9 +7,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   context.log('HTTP trigger function processed a request.');
 
   const site = req.query.site;
-
+  
+  let browser;
   try {
-    const browser = await puppeteer.launch(
+    browser = await puppeteer.launch(
       {
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -70,6 +71,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "error": err
       }
     }
+  }
+  finally {
+    await browser.close();
   }
 };
 
