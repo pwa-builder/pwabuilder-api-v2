@@ -4,11 +4,11 @@ import * as puppeteer from 'puppeteer';
 import { checkShortName, checkDesc, checkName, checkDisplay, checkStartUrl, checkIcons, checkScreenshots } from './mani-tests';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log('HTTP trigger function processed a request.');
+  context.log('Web Manifest function processed a request.');
 
   const site = req.query.site;
   
-  let browser;
+  let browser: puppeteer.Browser;
   try {
     browser = await puppeteer.launch(
       {
