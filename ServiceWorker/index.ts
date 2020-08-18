@@ -117,8 +117,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
   } finally {
-    await page.close();
-    await browser.close();
+    if (page) {
+      await page.close();
+    }
+    if (browser) {
+      await browser.close();
 
   }
 };
