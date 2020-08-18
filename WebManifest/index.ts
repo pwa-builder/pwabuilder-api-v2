@@ -68,10 +68,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     context.res = {
       status: 400,
       body: {
-        "error": err
-      }
+        error: err,
+      },
+    };
+  } finally {
+    if (browser) {
+      await browser.close();
     }
-  }
   finally {
     await browser.close();
   }
