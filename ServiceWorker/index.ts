@@ -122,7 +122,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
     if (browser) {
       await browser.close();
-
+    }
   }
 };
 
