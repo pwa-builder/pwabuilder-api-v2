@@ -10,6 +10,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   });
   const page = await browser.newPage();
 
+  await page.setDefaultNavigationTimeout(120000);
+
   // empty object that we fill with data below
   let swInfo: any = {};
 
