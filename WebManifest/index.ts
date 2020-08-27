@@ -1,13 +1,13 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from 'puppeteer';
 
-import { checkShortName, checkDesc, checkName, checkDisplay, checkStartUrl, checkIcons, checkScreenshots } from './mani-tests';
+import { checkShortName, checkDesc, checkName, checkDisplay, checkStartUrl, checkIcons, checkScreenshots, checkCategories, checkOrientation, checkBackgroundColor, checkRating, checkRelatedApps, checkRelatedPref, checkThemeColor } from './mani-tests';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log('Web Manifest function processed a request.');
 
   const site = req.query.site;
-  
+
   let browser: puppeteer.Browser;
   try {
     browser = await puppeteer.launch(
@@ -36,12 +36,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       const results = {
         "required": {
           "short_name": checkShortName(maniData),
-          "description": checkDesc(maniData),
           "name": checkName(maniData),
           "display": checkDisplay(maniData),
           "start_url": checkStartUrl(maniData),
-          "icons": checkIcons(maniData),
-          "screenshots": checkScreenshots(maniData)
+          "icons": checkIcons(maniData)
+        },
+        "recommended": {
+          "screenshots": checkScreenshots(maniData),
+          "description": checkDesc(maniData),
+          "categories": checkCategories(maniData),
+          "iarc_rating": checkRating(maniData),
+          "related_applications": checkRelatedApps(maniData),
+          "prefer_related_applications": checkRelatedPref(maniData),
+          "background_color": checkBackgroundColor(maniData),
+          "theme_color": checkThemeColor(maniData),
+          "orientation": checkOrientation(maniData)
         },
         "optional": {
 
