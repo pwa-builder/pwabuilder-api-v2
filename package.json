@@ -18,6 +18,7 @@
     "typescript": "^3.3.3"
   },
   "dependencies": {
+    "node-fetch": "^2.6.0",
     "puppeteer": "^5.2.1"
   }
 }

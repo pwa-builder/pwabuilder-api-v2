@@ -1,6 +1,8 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from 'puppeteer';
 
+import fetch from 'node-fetch';
+
 import { checkShortName, checkDesc, checkName, checkDisplay, checkStartUrl, checkIcons, checkScreenshots, checkCategories, checkOrientation, checkBackgroundColor, checkRating, checkRelatedApps, checkRelatedPref, checkThemeColor } from './mani-tests';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -25,13 +27,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     await page1.close();
 
     if (manifestHref) {
-      const page = await browser.newPage();
 
-      await page.goto(manifestHref);
+      const response = await fetch(manifestHref);
+      const maniData = await response.json();
 
-      const maniData = await page.evaluate(() => {
-        return JSON.parse(document.querySelector("body").innerText);
-      });
+      context.res = {
+        status: 200,
+        body: {
+          "data": maniData
+        }
+      }
 
       const results = {
         "required": {
@@ -77,7 +82,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     context.res = {
       status: 400,
       body: {
-        error: err,
+        "error": { error: err, message: err.message }
       },
     };
   } finally {
