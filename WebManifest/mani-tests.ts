@@ -60,3 +60,66 @@ export const checkScreenshots = (data) => {
     return false;
   }
 }
+
+export const checkCategories = (data) => {
+  if (data.categories && data.categories.length > 0) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+export const checkRating = (data) => {
+  if (data.iarc_rating) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+export const checkRelatedApps = (data) => {
+  if (data.related_applications) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+export const checkRelatedPref = (data) => {
+  if (data.prefer_related_applications) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+export const checkBackgroundColor = (data) => {
+  if (data.background_color) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+export const checkThemeColor = (data) => {
+  if (data.theme_color) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+export const checkOrientation = (data) => {
+  if (data.orientation) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
