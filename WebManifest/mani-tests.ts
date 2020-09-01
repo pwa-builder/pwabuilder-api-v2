@@ -89,7 +89,7 @@ export const checkRelatedApps = (data) => {
 }
 
 export const checkRelatedPref = (data) => {
-  if (data.prefer_related_applications !== undefined && data.prefer_related_applications !== null) {
+  if (data.prefer_related_applications && data.prefer_related_applications !== undefined && data.prefer_related_applications !== null) {
     return true;
   }
   else {
