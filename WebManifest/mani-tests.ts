@@ -52,6 +52,25 @@ export const checkIcons = (data) => {
   }
 }
 
+export const checkMaskableIcon = (data) => {
+  const hasIcons = checkIcons(data);
+  
+  if (hasIcons) {
+    let hasMask = false;
+
+    data.icons.forEach((icon) => {
+      if (icon.purpose && icon.purpose.includes('maskable')) {
+        hasMask = true;
+      }
+    })
+
+    return hasMask;
+  }
+  else {
+    return false;
+  }
+}
+
 export const checkScreenshots = (data) => {
   if (data.screenshots && data.screenshots.length > 0) {
     return true;
