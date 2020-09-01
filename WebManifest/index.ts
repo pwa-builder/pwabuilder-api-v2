@@ -71,9 +71,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
     else {
       context.res = {
-        status: 200,
+        status: 400,
         body: {
-          "data": null
+          "error": "Manifest could not be found"
         }
       }
     }
