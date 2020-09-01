@@ -1,9 +1,9 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from 'puppeteer';
-
 import fetch from 'node-fetch';
+import * as puppeteer from 'puppeteer';
+import { checkBackgroundColor, checkCategories, checkDesc, checkDisplay, checkIcons, checkMaskableIcon, checkName, checkOrientation, checkRating, checkRelatedApps, checkRelatedPref, checkScreenshots, checkShortName, checkStartUrl, checkThemeColor } from './mani-tests';
 
-import { checkShortName, checkDesc, checkName, checkDisplay, checkStartUrl, checkIcons, checkScreenshots, checkCategories, checkOrientation, checkBackgroundColor, checkRating, checkRelatedApps, checkRelatedPref, checkThemeColor } from './mani-tests';
+
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log('Web Manifest function processed a request.');
@@ -50,6 +50,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           "screenshots": checkScreenshots(maniData),
           "description": checkDesc(maniData),
           "categories": checkCategories(maniData),
+          "maskable_icon": checkMaskableIcon(maniData),
           "iarc_rating": checkRating(maniData),
           "related_applications": checkRelatedApps(maniData),
           "prefer_related_applications": checkRelatedPref(maniData),
