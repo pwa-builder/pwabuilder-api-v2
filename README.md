@@ -40,5 +40,6 @@ If a PWA has these then it is a store ready PWA, such as for the Microsoft or Go
 ## Development
 
 https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference
+https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference-node
 
 
