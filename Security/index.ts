@@ -23,7 +23,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     if (securityDetails) {
       const results = {
         "isHTTPS": site.includes('https'),
-        "validProtocol": true,
+        "validProtocol": securityDetails.protocol() === "TLS 1.3" || securityDetails.protocol() === "TLS 1.2" || securityDetails.protocol() === "_TSL 1.2" || securityDetails.protocol() === "_TSL 1.3",
         "valid": securityDetails.validTo() <= new Date().getTime()
       };
   
