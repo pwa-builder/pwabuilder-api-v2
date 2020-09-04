@@ -30,10 +30,10 @@ If a site has these things then it is a PWA.
 - Theme color 
 - Description 
 - Orientation 
-- At least one maskable icon - modern Androids like Pixel use this. I'd suggest it's a Recommended field.
-- At least one monochrome icon - I understand this has both accessibility implications and user theme/customization implications. Probably either Recommended or Optional.
-- At least one 512x512 or larger square icon - recommended
-  Offline support - something more than a generic 404 error? Given Android's quality bars, I think we could say "recommended" here.
+- At least one maskable icon
+- At least one monochrome icon\
+- At least one 512x512 or larger square icon]
+  Offline support
 
 If a PWA has these then it is a store ready PWA, such as for the Microsoft or Google Play store.
 
