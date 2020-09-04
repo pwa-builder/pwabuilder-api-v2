@@ -75,7 +75,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.res = {
         status: 500,
         body: {
-          "error": err || err.message
+          "error": "site does not load offline"
         }
       }
     }
