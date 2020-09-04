@@ -25,7 +25,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   try {
     page.goto(url, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'domcontentloaded',
     });
 
     await page.waitForFunction(
