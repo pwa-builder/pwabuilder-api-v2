@@ -75,32 +75,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       });
     }
     swInfo['pushReg'] = pushReg;
-
-    // Checking cache
-    // Capture requests during 2nd load.
-    const allRequests = new Map();
-    page.on('request', (req) => {
-      allRequests.set(req.url(), req);
-    });
-
-    // Reload page to pick up any runtime caching done by the service worker.
-    await page.reload({ waitUntil: ['domcontentloaded'] });
-
-    const swRequests = Array.from(allRequests.values());
-
-    let requestChecks = [];
-    swRequests.forEach((req) => {
-      const fromSW =
-        req.response() != null ? req.response().fromServiceWorker() : null;
-      const requestURL = req.response() != null ? req.response().url() : null;
-
-      requestChecks.push({
-        fromSW,
-        requestURL,
-      });
-    });
-
-    swInfo['cache'] = requestChecks;
     
     context.res = {
       status: 200,
