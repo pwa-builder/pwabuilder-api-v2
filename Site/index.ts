@@ -20,6 +20,7 @@ const httpTrigger: AzureFunction = async function (
         message: "not supported yet",
       },
     };
+    return;
   }
 
   // Handle Site
