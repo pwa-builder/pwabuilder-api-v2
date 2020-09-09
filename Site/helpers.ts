@@ -1,5 +1,13 @@
 import { HttpRequest } from "@azure/functions"
 
+export interface ManifestInfo {
+  format: ManifestFormat
+  content: {
+    start_url: string
+    [name: string]: any
+  }
+}
+
 export enum ValidContentType {
   webmanifest = "application/manifest+json",
   json = "application/json",
@@ -14,9 +22,8 @@ export enum ManifestFormat {
   firefox = "firefox"
 }
 
-// TODO need to implement
-export function validManifest(manifest: any): boolean {
-  return false;
+export enum Error {
+  MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND"
 }
 
 export function ifFile(req: HttpRequest): boolean {
@@ -30,10 +37,4 @@ export function ifFile(req: HttpRequest): boolean {
       // handle binary later
       return false
   }
-}
-
-export async function addToClient(manifest: any): Promise<void> {
-  return new Promise((res, rej) => {
-    res();
-  });
 }
