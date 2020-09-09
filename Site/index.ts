@@ -1,6 +1,7 @@
+import uuid from "uuid";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
-import { ifFile, ManifestFormat } from "./helpers";
+import { ifFile, ManifestFormat, validManifest, addToClient } from "./helpers";
 import * as site from "./site";
 import manifestTools from "pwabuilder-lib/lib/manifestTools";
 
@@ -37,23 +38,42 @@ const httpTrigger: AzureFunction = async function (
     manifestTools.convertTo(
       { format: detectedFormat, content: manifest },
       ManifestFormat.w3c,
-      (err, resultManifestInfo) => {
+      async (err, resultManifestInfo) => {
         if (err) {
+          context.log(err);
           context.res = {
             status: 400,
-            body: {
-
-            }
-          }
+            body: {},
+          };
           return;
         }
 
-        context.res = {
-          body: {
-            content: resultManifestInfo,
-            format: ManifestFormat.w3c
+        manifestTools.validateAndNormalizeStartUrl(
+          siteUrl,
+          resultManifestInfo,
+          async (err, validatedManifestInfo) => {
+            if (err) {
+              context.log(err);
+              context.res = {
+                status: 400,
+                body: {},
+              };
+              return;
+            }
+            validatedManifestInfo.id = uuid.v4().slice(0, 8);
+
+            if (!validManifest(validatedManifestInfo)) {
+              // log err and return error response
+              return;
+            }
+
+            await addToClient(validatedManifestInfo);
+
+            context.res = {
+              body: validatedManifestInfo,
+            };
           }
-        };
+        );
       }
     );
 
@@ -63,7 +83,7 @@ const httpTrigger: AzureFunction = async function (
   } catch (e) {
     // if (e.message === site.Errors.)
 
-    console.log(e);
+    context.log(e);
   } finally {
     if (browser) {
       browser.close();
