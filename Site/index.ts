@@ -32,12 +32,30 @@ const httpTrigger: AzureFunction = async function (
 
     const siteUrl = req.query.site;
     const manifest = await site.getManifest(browser, siteUrl);
-    const detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
+    let detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
 
-    let manifestInfo = {
-      format: detectedFormat,
-      content: manifest,
-    };
+    manifestTools.convertTo(
+      { format: detectedFormat, content: manifest },
+      ManifestFormat.w3c,
+      (err, resultManifestInfo) => {
+        if (err) {
+          context.res = {
+            status: 400,
+            body: {
+
+            }
+          }
+          return;
+        }
+
+        context.res = {
+          body: {
+            content: resultManifestInfo,
+            format: ManifestFormat.w3c
+          }
+        };
+      }
+    );
 
     context.res = {
       body: {},
