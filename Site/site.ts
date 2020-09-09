@@ -3,18 +3,17 @@ import fetch from "node-fetch";
 
 export type Manifest = any;
 export enum Error {
-  NotFound = "notfound"
+  NotFound = "notfound",
 }
 export interface ManifestInformation {
-  json: Manifest
-  url: string
+  json: Manifest;
+  url: string;
 }
 
 export async function getManifest(
   browser: Browser,
   site: string
 ): Promise<ManifestInformation> {
-
   const sitePage = await browser.newPage();
 
   await sitePage.goto(site);
@@ -28,8 +27,8 @@ export async function getManifest(
     const response = await fetch(manifestUrl);
     return {
       json: await response.json(),
-      url: manifestUrl
-    }
+      url: manifestUrl,
+    };
   }
 
   return null;

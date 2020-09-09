@@ -1,17 +1,26 @@
-import { HttpRequest } from "@azure/functions"
+import { HttpRequest } from "@azure/functions";
 
 export interface ManifestInfo {
-  format: ManifestFormat
+  id: number;
+  format: ManifestFormat;
+  generatedUrl: string;
   content: {
-    start_url: string
-    [name: string]: any
-  }
+    start_url: string;
+    [name: string]: any;
+  };
+  default: {
+    short_name: string;
+    [name: string]: any;
+  };
+  errors: [];
+  suggestions: Array<{ code: string; description: string; platform: string }>;
+  warnings: Array<{ code: string; description: string; platform: string }>;
 }
 
 export enum ValidContentType {
   webmanifest = "application/manifest+json",
   json = "application/json",
-  binary = "application/octet-stream"
+  binary = "application/octet-stream",
 }
 
 export enum ManifestFormat {
@@ -19,22 +28,22 @@ export enum ManifestFormat {
   chromeos = "chromeos",
   edgeextension = "edgeextension",
   windows10 = "windows10",
-  firefox = "firefox"
+  firefox = "firefox",
 }
 
 export enum Error {
-  MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND"
+  MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND",
 }
 
 export function ifFile(req: HttpRequest): boolean {
-  switch (req.headers['content-type']) {
+  switch (req.headers["content-type"]) {
     case ValidContentType.webmanifest:
     case ValidContentType.json:
-      return true
+      return true;
 
     case ValidContentType.binary:
     default:
       // handle binary later
-      return false
+      return false;
   }
 }
