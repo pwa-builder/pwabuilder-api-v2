@@ -1,7 +1,7 @@
 import uuid from "uuid";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
-import { ifFile, ManifestFormat, validManifest, addToClient } from "./helpers";
+import { ifFile, ManifestFormat, validManifest, addToClient, normalizeStartUrl } from "./helpers";
 import * as site from "./site";
 import manifestTools from "pwabuilder-lib/lib/manifestTools";
 
@@ -32,7 +32,7 @@ const httpTrigger: AzureFunction = async function (
     });
 
     const siteUrl = req.query.site;
-    const manifest = await site.getManifest(browser, siteUrl);
+    const { json: manifest, url: manifestUrl } = await site.getManifest(browser, siteUrl);
     let detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
 
     manifestTools.convertTo(
@@ -61,13 +61,17 @@ const httpTrigger: AzureFunction = async function (
               return;
             }
             validatedManifestInfo.id = uuid.v4().slice(0, 8);
+            validatedManifestInfo.generatedUrl = manifestUrl;
+            normalizeStartUrl(validatedManifestInfo);
 
             if (!validManifest(validatedManifestInfo)) {
               // log err and return error response
+
+
               return;
             }
 
-            await addToClient(validatedManifestInfo);
+            //await addToClient(validatedManifestInfo);
 
             context.res = {
               body: validatedManifestInfo,
@@ -76,10 +80,6 @@ const httpTrigger: AzureFunction = async function (
         );
       }
     );
-
-    context.res = {
-      body: {},
-    };
   } catch (e) {
     // if (e.message === site.Errors.)
 
