@@ -1,9 +1,8 @@
-import uuid from "uuid";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
 import { ifFile, ManifestFormat } from "./helpers";
 import * as site from "./site";
-import manifestTools from "pwabuilder-lib/lib/manifestTools";
+const manifestTools = require('pwabuilder-lib').manifestTools;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -64,7 +63,6 @@ const httpTrigger: AzureFunction = async function (
               };
               return;
             }
-            validatedManifestInfo.id = uuid.v4().slice(0, 8);
             validatedManifestInfo.generatedUrl = manifestUrl;
 
             context.res = {
