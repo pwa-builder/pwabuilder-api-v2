@@ -1,7 +1,7 @@
 import uuid from "uuid";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
-import { ifFile, ManifestFormat, validManifest, addToClient, normalizeStartUrl } from "./helpers";
+import { ifFile, ManifestFormat } from "./helpers";
 import * as site from "./site";
 import manifestTools from "pwabuilder-lib/lib/manifestTools";
 
@@ -43,7 +43,9 @@ const httpTrigger: AzureFunction = async function (
           context.log(err);
           context.res = {
             status: 400,
-            body: {},
+            body: {
+              message: "Failed to convert to a w3c standard format"
+            },
           };
           return;
         }
@@ -51,31 +53,23 @@ const httpTrigger: AzureFunction = async function (
         manifestTools.validateAndNormalizeStartUrl(
           siteUrl,
           resultManifestInfo,
-          async (err, validatedManifestInfo) => {
+          (err, validatedManifestInfo) => {
             if (err) {
               context.log(err);
               context.res = {
                 status: 400,
-                body: {},
+                body: {
+                  message: "Failed to validate and normalize the manifest"
+                },
               };
               return;
             }
             validatedManifestInfo.id = uuid.v4().slice(0, 8);
             validatedManifestInfo.generatedUrl = manifestUrl;
-            normalizeStartUrl(validatedManifestInfo);
-
-            if (!validManifest(validatedManifestInfo)) {
-              // log err and return error response
-
-
-              return;
-            }
-
-            //await addToClient(validatedManifestInfo);
 
             context.res = {
-              body: validatedManifestInfo,
-            };
+              body: validatedManifestInfo
+            }
           }
         );
       }
@@ -89,13 +83,6 @@ const httpTrigger: AzureFunction = async function (
       browser.close();
     }
   }
-
-  context.res = {
-    // status: 200, /* Defaults to 200 */
-    body: {
-      a: true,
-    },
-  };
 };
 
 export default httpTrigger;
