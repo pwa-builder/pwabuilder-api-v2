@@ -5,11 +5,15 @@ export type Manifest = any;
 export enum Error {
   NotFound = "notfound"
 }
+export interface ManifestInformation {
+  json: Manifest
+  url: string
+}
 
 export async function getManifest(
   browser: Browser,
   site: string
-): Promise<Manifest> {
+): Promise<ManifestInformation> {
 
   const sitePage = await browser.newPage();
 
@@ -22,7 +26,10 @@ export async function getManifest(
 
   if (manifestUrl) {
     const response = await fetch(manifestUrl);
-    return await response.json();
+    return {
+      json: await response.json(),
+      url: manifestUrl
+    }
   }
 
   return null;
