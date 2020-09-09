@@ -31,13 +31,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       const response = await fetch(manifestHref);
       const maniData = await response.json();
 
-      context.res = {
-        status: 200,
-        body: {
-          "data": maniData
-        }
-      }
-
       const results = {
         "required": {
           "short_name": checkShortName(maniData),
@@ -66,7 +59,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.res = {
         status: 200,
         body: {
-          "data": results
+          "data": results,
+          "content": maniData
         }
       }
     }
