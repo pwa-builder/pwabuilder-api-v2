@@ -31,10 +31,6 @@ export enum ManifestFormat {
   firefox = "firefox",
 }
 
-export enum Error {
-  MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND",
-}
-
 export function ifSupportedFile(req: HttpRequest): boolean {
   switch (req.headers["content-type"]) {
     case ValidContentType.webmanifest:
