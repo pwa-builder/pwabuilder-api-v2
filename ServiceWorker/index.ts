@@ -4,28 +4,18 @@ import * as puppeteer from 'puppeteer';
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   const url = req.query.site;
 
+  const timeout = 120000;
+
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
 
-  await page.setDefaultNavigationTimeout(120000);
+  await page.setDefaultNavigationTimeout(timeout);
 
   // empty object that we fill with data below
   let swInfo: any = {};
-
-  await page.setRequestInterception(true);
-
-  let whiteList = ['document', 'plain', 'script', 'javascript'];
-  page.on('request', (req) => {
-    const type = req.resourceType();
-    if (whiteList.some((el) => type.indexOf(el) >= 0)) {
-      req.continue();
-    } else {
-      req.abort();
-    }
-  });
 
   await page.goto(url, { waitUntil: ['domcontentloaded'] });
 
@@ -37,7 +27,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           (res) => res.active.scriptURL
         );
       },
-      { timeout: 6500 }
+      { timeout }
     );
 
     swInfo['hasSW'] =
@@ -50,7 +40,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           .getRegistration()
           .then((res) => res.scope);
       },
-      { timeout: 6500 }
+      { timeout }
     );
 
     swInfo['scope'] = serviceWorkerScope;
@@ -62,18 +52,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           return reg.pushManager.getSubscription().then((sub) => sub);
         });
       },
-      { timeout: 6500 }
+      { timeout }
     );
 
-    if (!pushReg && swInfo.hasSW) {
-      await page.goto(swInfo.hasSW, { waitUntil: ['domcontentloaded'] });
-      pushReg = await page.content().then((content) => {
-        return (
-          content.indexOf('self.addEventListener("push"') >= 0 ||
-          content.indexOf("self.addEventListener('push'") >= 0
-        );
-      });
-    }
     swInfo['pushReg'] = pushReg;
     
     context.res = {
