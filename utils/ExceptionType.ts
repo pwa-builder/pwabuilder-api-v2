@@ -19,6 +19,10 @@ export class ExceptionWrap {
     this.error = error;
   }
 
+  get name(): string {
+    return this.error.name;
+  }
+
   get message(): string {
     return this.error.message;
   }
