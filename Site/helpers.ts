@@ -1,9 +1,12 @@
 import { HttpRequest } from "@azure/functions";
 
+// Remapping of TV4 schema validation errors
 export interface ManifestGuidance {
-  code: string;
-  description: string;
-  platform: string;
+  code: string; // w3c-schema-${tv4.errorCodes[number]}
+  description: string; // tv4 error message
+  platform: string; // is going to be 'all', unless overridden by underlying
+  level: "warning" | "error"; // if code is not found then 'warning'
+  member: string; // tv4 dataPath
 }
 
 export interface ManifestInfo {
@@ -18,7 +21,7 @@ export interface ManifestInfo {
     short_name: string;
     [name: string]: any;
   };
-  errors: [];
+  errors: Array<ManifestGuidance>;
   suggestions: Array<ManifestGuidance>;
   warnings: Array<ManifestGuidance>;
 }
