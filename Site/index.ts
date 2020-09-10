@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
-import { ifFile, ManifestFormat } from "./helpers";
+import { ifSupportedFile, ManifestFormat } from "./helpers";
 import getManifest from "../utils/getManifest";
 const manifestTools = require('pwabuilder-lib').manifestTools;
 
@@ -9,10 +9,9 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   let browser: puppeteer.Browser;
-  const isFile = req.method === "POST" && ifFile(req);
 
   // Handle File
-  if (isFile) {
+  if (req.method === "POST" && ifSupportedFile(req)) {
     // const file = req.body;
     context.res = {
       status: 400,

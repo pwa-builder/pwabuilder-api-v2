@@ -35,7 +35,7 @@ export enum Error {
   MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND",
 }
 
-export function ifFile(req: HttpRequest): boolean {
+export function ifSupportedFile(req: HttpRequest): boolean {
   switch (req.headers["content-type"]) {
     case ValidContentType.webmanifest:
     case ValidContentType.json:
