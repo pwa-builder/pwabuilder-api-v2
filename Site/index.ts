@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
 import { ifSupportedFile, ManifestFormat } from "./helpers";
 import getManifest from "../utils/getManifest";
+import { ExceptionWrap, ExceptionMessage } from "../utils/ExceptionType";
 const manifestTools = require('pwabuilder-lib').manifestTools;
 
 const httpTrigger: AzureFunction = async function (
@@ -71,10 +72,17 @@ const httpTrigger: AzureFunction = async function (
         );
       }
     );
-  } catch (e) {
-    // if (e.message === site.Errors.)
-
-    context.log(e);
+  } catch (exception) {
+    if (exception instanceof ExceptionWrap) {
+      context.res = {
+        status: 400,
+        body: {
+          message: ExceptionMessage[exception.type]
+        }
+      }
+    } else {
+      context.log(exception);
+    }
   } finally {
     if (browser) {
       browser.close();
