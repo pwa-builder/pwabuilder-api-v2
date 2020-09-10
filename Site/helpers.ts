@@ -1,5 +1,11 @@
 import { HttpRequest } from "@azure/functions";
 
+export interface ManifestGuidance {
+  code: string;
+  description: string;
+  platform: string;
+}
+
 export interface ManifestInfo {
   id: number;
   format: ManifestFormat;
@@ -13,8 +19,8 @@ export interface ManifestInfo {
     [name: string]: any;
   };
   errors: [];
-  suggestions: Array<{ code: string; description: string; platform: string }>;
-  warnings: Array<{ code: string; description: string; platform: string }>;
+  suggestions: Array<ManifestGuidance>;
+  warnings: Array<ManifestGuidance>;
 }
 
 export enum ValidContentType {
