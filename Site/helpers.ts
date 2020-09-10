@@ -13,11 +13,11 @@ export interface ManifestInfo {
   id: number;
   format: ManifestFormat;
   generatedUrl: string;
-  content: {
+  content: { // w3c manifest
     start_url: string;
     [name: string]: any;
   };
-  default: {
+  default: { // subset of the w3c manifest
     short_name: string;
     [name: string]: any;
   };
