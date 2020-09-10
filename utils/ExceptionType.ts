@@ -31,7 +31,8 @@ export class ExceptionWrap {
     return this.error?.stack;
   }
 
-  instanceOf(type: ExceptionType): boolean {
+  // Use to differentiate Exception wrap types easily, or use switch (exception.type) {}.
+  isOf(type: ExceptionType): boolean {
     return this.type === type;
   }
 }
