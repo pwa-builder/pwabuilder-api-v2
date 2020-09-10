@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
 import { ifSupportedFile, ManifestFormat } from "./helpers";
 import getManifest from "../utils/getManifest";
-import { ExceptionWrap, ExceptionMessage } from "../utils/ExceptionType";
+import { ExceptionWrap, ExceptionMessage } from "../utils/Exception";
 const manifestTools = require('pwabuilder-lib').manifestTools;
 
 const httpTrigger: AzureFunction = async function (

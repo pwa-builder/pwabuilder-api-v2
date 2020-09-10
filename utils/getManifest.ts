@@ -1,6 +1,6 @@
 import { Browser } from "puppeteer";
 import fetch from "node-fetch";
-import ExceptionOf, { ExceptionType } from "./ExceptionType";
+import ExceptionOf, { ExceptionType } from "./Exception";
 
 export type Manifest = any;
 export interface ManifestInformation {
