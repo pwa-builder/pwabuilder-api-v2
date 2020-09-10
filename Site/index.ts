@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
 import { ifFile, ManifestFormat } from "./helpers";
-import * as site from "./site";
+import getManifest from "../utils/getManifest";
 const manifestTools = require('pwabuilder-lib').manifestTools;
 
 const httpTrigger: AzureFunction = async function (
@@ -31,7 +31,7 @@ const httpTrigger: AzureFunction = async function (
     });
 
     const siteUrl = req.query.site;
-    const { json: manifest, url: manifestUrl } = await site.getManifest(browser, siteUrl);
+    const { json: manifest, url: manifestUrl } = await getManifest(browser, siteUrl);
     let detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
 
     manifestTools.convertTo(

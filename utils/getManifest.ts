@@ -2,15 +2,12 @@ import { Browser } from "puppeteer";
 import fetch from "node-fetch";
 
 export type Manifest = any;
-export enum Error {
-  NotFound = "notfound",
-}
 export interface ManifestInformation {
   json: Manifest;
   url: string;
 }
 
-export async function getManifest(
+export default async function getManifest(
   browser: Browser,
   site: string
 ): Promise<ManifestInformation> {
