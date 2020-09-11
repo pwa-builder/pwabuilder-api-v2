@@ -31,7 +31,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.res = {
         status: 400,
         body: {
-          "error": err
+          "error": { error: err, message: err.message }
         }
       }
     }
@@ -66,7 +66,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     context.res = {
       status: 400,
       body: {
-        "error": err
+        "error": { error: err, message: err.message }
       }
     }
   }
