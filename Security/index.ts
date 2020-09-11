@@ -6,6 +6,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   const site = req.query.site;
 
+  const timeout = 120000;
+
   let browser: puppeteer.Browser;
   try {
     browser = await puppeteer.launch(
@@ -15,8 +17,24 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     );
 
-    const page = await browser.newPage();
-    const pageResponse = await page.goto(site);
+    let page;
+    let pageResponse;
+
+    try {
+      page = await browser.newPage();
+
+      await page.setDefaultNavigationTimeout(timeout);
+
+      pageResponse = await page.goto(site);
+    }
+    catch (err) {
+      context.res = {
+        status: 400,
+        body: {
+          "error": err
+        }
+      }
+    }
 
     const securityDetails = pageResponse.securityDetails();
 
@@ -26,7 +44,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "validProtocol": securityDetails.protocol() === "TLS 1.3" || securityDetails.protocol() === "TLS 1.2" || securityDetails.protocol() === "_TSL 1.2" || securityDetails.protocol() === "_TSL 1.3",
         "valid": securityDetails.validTo() <= new Date().getTime()
       };
-  
+
       context.res = {
         status: 200,
         body: {
@@ -38,7 +56,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.res = {
         status: 400,
         body: {
-          "error": "not valid"
+          "error": "Security Details could not be retrieved from the site"
         }
       }
     }
