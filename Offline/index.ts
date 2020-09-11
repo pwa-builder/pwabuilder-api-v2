@@ -26,15 +26,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       waitUntil: 'domcontentloaded',
     });
 
-    /*await page.waitForFunction(
-      () => {
-        return navigator.serviceWorker.ready.then(
-          (res) => res.active.scriptURL
-        );
-      },
-      { timeout: 6500 }
-    );*/
-
     await page.setOfflineMode(true);
     const targets = await pageData.browser.targets();
 
