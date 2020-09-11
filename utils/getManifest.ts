@@ -1,6 +1,6 @@
-import { Browser } from "puppeteer";
 import fetch from "node-fetch";
 import ExceptionOf, { ExceptionType } from "./Exception";
+import loadPage from "./loadPage";
 
 export type Manifest = any;
 export interface ManifestInformation {
@@ -9,15 +9,12 @@ export interface ManifestInformation {
 }
 
 export default async function getManifest(
-  browser: Browser,
   site: string
 ): Promise<ManifestInformation> {
   try {
-    const sitePage = await browser.newPage();
+    const siteData = await loadPage(site);
 
-    await sitePage.goto(site);
-
-    const manifestUrl = await sitePage.$eval(
+    const manifestUrl = await siteData.sitePage.$eval(
       "link[rel=manifest]",
       (el: HTMLAnchorElement) => el.href
     );

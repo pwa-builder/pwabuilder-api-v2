@@ -1,5 +1,4 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from 'puppeteer';
 import { checkBackgroundColor, checkCategories, checkDesc, checkDisplay, checkIcons, checkMaskableIcon, checkName, checkOrientation, checkRating, checkRelatedApps, checkRelatedPref, checkScreenshots, checkShortName, checkStartUrl, checkThemeColor } from './mani-tests';
 import getManifest from "../utils/getManifest";
 
@@ -9,17 +8,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   context.log('Web Manifest function processed a request.');
 
   const site = req.query.site;
-
-  let browser: puppeteer.Browser;
   try {
-    browser = await puppeteer.launch(
-      {
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      }
-    );
 
-    const maniData = await getManifest(browser, site);
+    const maniData = await getManifest(site);
 
     if (maniData) {
       const results = {
@@ -63,10 +54,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "error": { error: err, message: err.message }
       },
     };
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
   }
 };
 

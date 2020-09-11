@@ -31,7 +31,7 @@ const httpTrigger: AzureFunction = async function (
     });
 
     const siteUrl = req.query.site;
-    const { json: manifest, url: manifestUrl } = await getManifest(browser, siteUrl);
+    const { json: manifest, url: manifestUrl } = await getManifest(siteUrl);
     let detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
 
     manifestTools.convertTo(
