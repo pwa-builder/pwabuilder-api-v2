@@ -1,23 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from 'puppeteer';
+import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   const url = req.query.site;
 
   const timeout = 120000;
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  const page = await browser.newPage();
+  const pageData = await loadPage(url);
 
-  await page.setDefaultNavigationTimeout(timeout);
+  const page = pageData.sitePage;
 
   // empty object that we fill with data below
   let swInfo: any = {};
-
-  await page.goto(url, { waitUntil: ['domcontentloaded'] });
 
   try {
     // Check to see if there is a service worker
@@ -72,13 +66,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           error: error
         }
       }
-    }
-  } finally {
-    if (page) {
-      await page.close();
-    }
-    if (browser) {
-      await browser.close();
     }
   }
 };

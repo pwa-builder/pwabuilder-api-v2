@@ -1,17 +1,13 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from 'puppeteer';
+import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
   const url = req.query.site;
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  const page = await browser.newPage();
+  const pageData = await loadPage(url);
 
-  await page.setRequestInterception(true);
+  const page = pageData.sitePage;
 
   let whiteList = ['document', 'plain', 'script', 'javascript'];
   page.on('request', (req) => {
@@ -38,7 +34,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     );
 
     await page.setOfflineMode(true);
-    const targets = await browser.targets();
+    const targets = await pageData.browser.targets();
 
     const serviceWorker = targets.find((t) => t.type() === 'service_worker');
     const serviceWorkerConnection = await serviceWorker.createCDPSession();
@@ -90,9 +86,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
   }
-
-  await browser.close()
-
 };
 
 export default httpTrigger;

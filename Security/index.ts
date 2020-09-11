@@ -1,31 +1,20 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from 'puppeteer';
+import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log('Security function processed a request.');
 
   const site = req.query.site;
 
-  const timeout = 120000;
-
-  let browser: puppeteer.Browser;
   try {
-    browser = await puppeteer.launch(
-      {
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      }
-    );
-
     let page;
     let pageResponse;
 
     try {
-      page = await browser.newPage();
+      const siteData = await loadPage(site);
 
-      await page.setDefaultNavigationTimeout(timeout);
-
-      pageResponse = await page.goto(site);
+      page = siteData.sitePage;
+      pageResponse = siteData.pageResponse;
     }
     catch (err) {
       context.res = {
@@ -68,11 +57,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       body: {
         "error": { error: err, message: err.message }
       }
-    }
-  }
-  finally {
-    if (browser) {
-      await browser.close();
     }
   }
 };
