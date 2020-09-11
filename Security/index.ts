@@ -15,6 +15,18 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
       page = siteData.sitePage;
       pageResponse = siteData.pageResponse;
+
+      page.setRequestInterception(true);
+
+      let whiteList = ['document', 'plain', 'script', 'javascript'];
+      page.on('request', (req) => {
+        const type = req.resourceType();
+        if (whiteList.some((el) => type.indexOf(el) >= 0)) {
+          req.continue();
+        } else {
+          req.abort();
+        }
+      });
     }
     catch (err) {
       context.res = {

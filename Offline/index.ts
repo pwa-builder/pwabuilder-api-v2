@@ -9,6 +9,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   const page = pageData.sitePage;
 
+  page.setRequestInterception(true);
+
   let whiteList = ['document', 'plain', 'script', 'javascript'];
   page.on('request', (req) => {
     const type = req.resourceType();
@@ -24,14 +26,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       waitUntil: 'domcontentloaded',
     });
 
-    await page.waitForFunction(
+    /*await page.waitForFunction(
       () => {
         return navigator.serviceWorker.ready.then(
           (res) => res.active.scriptURL
         );
       },
       { timeout: 6500 }
-    );
+    );*/
 
     await page.setOfflineMode(true);
     const targets = await pageData.browser.targets();
@@ -54,7 +56,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         visible: true,
       });
 
-      await page.reload({ waitUntil: 'networkidle0' });
+      await page.reload({ waitUntil: 'domcontentloaded' });
 
       if (bodySelector) {
         context.res = {
