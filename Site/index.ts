@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
-import { ifSupportedFile, ManifestFormat } from "./helpers";
+import { ManifestFormat } from "./helpers";
+import getManifestFromFile, { ifSupportedFile } from "../utils/getManifestFromFile"
 import getManifest from "../utils/getManifest";
 import { ExceptionWrap, ExceptionMessage } from "../utils/Exception";
 const manifestTools = require('pwabuilder-lib').manifestTools;
@@ -11,28 +12,31 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   let browser: puppeteer.Browser;
 
-  // Handle File
-  if (req.method === "POST" && ifSupportedFile(req)) {
-    // const file = req.body;
-    context.res = {
-      status: 400,
-      body: {
-        message: "not supported yet",
-      },
-    };
-    return;
-  }
-
-  // Handle Site
   try {
     browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
+    let manifest, manifestUrl
     const siteUrl = req.query.site;
-    const { json: manifest, url: manifestUrl } = await getManifest(siteUrl);
-    let detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
+
+      // Handle File
+      if (req.method === "POST" && ifSupportedFile(req)) {
+        manifest = await getManifestFromFile(context, req)
+      context.res = {
+        status: 400,
+        body: {
+          message: "not supported yet",
+        },
+      };
+      return;
+    } else {
+        // Handle Site
+        ({ json: manifest, url: manifestUrl } = await getManifest(siteUrl));
+    }
+
+    const detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
 
     manifestTools.convertTo(
       { format: detectedFormat, content: manifest },
