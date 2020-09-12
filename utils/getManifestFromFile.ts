@@ -1,4 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import * as fs from 'fs/promises';
 import ExceptionOf, { ExceptionType } from "./Exception";
 
 export type Manifest = any;
@@ -9,11 +10,16 @@ export enum ValidContentType {
 }
 
 
-export default function getManifestFromFile(context: Context, req: HttpRequest): Manifest {
+export default async function getManifestFromFile(context: Context, req: HttpRequest): Manifest {
   try {
-    const jsonData = req.body
 
-    
+    // if () {}
+    const base64Json = req.body
+    const fileBuffer = new Buffer(base64Json, 'base64')
+    const jsonFileString = await fs.readFile(fileBuffer, { encoding: 'base64' });
+    return JSON.parse(jsonFileString);
+
+
 
 
   } catch (e) {
