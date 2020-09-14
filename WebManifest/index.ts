@@ -1,62 +1,35 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import fetch from 'node-fetch';
-import * as puppeteer from 'puppeteer';
 import { checkBackgroundColor, checkCategories, checkDesc, checkDisplay, checkIcons, checkMaskableIcon, checkName, checkOrientation, checkRating, checkRelatedApps, checkRelatedPref, checkScreenshots, checkShortName, checkStartUrl, checkThemeColor } from './mani-tests';
-
-
+import getManifest from "../utils/getManifest";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log('Web Manifest function processed a request.');
 
   const site = req.query.site;
-
-  let browser: puppeteer.Browser;
   try {
-    browser = await puppeteer.launch(
-      {
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      }
-    );
-    const page1 = await browser.newPage();
 
-    await page1.goto(site);
+    const maniData = await getManifest(site);
 
-    const manifestHref = await page1.$eval('link[rel=manifest]', (el: HTMLAnchorElement) => el.href);
-
-    await page1.close();
-
-    if (manifestHref) {
-
-      const response = await fetch(manifestHref);
-      const maniData = await response.json();
-
-      context.res = {
-        status: 200,
-        body: {
-          "data": maniData
-        }
-      }
-
+    if (maniData) {
       const results = {
         "required": {
-          "short_name": checkShortName(maniData),
-          "name": checkName(maniData),
-          "display": checkDisplay(maniData),
-          "start_url": checkStartUrl(maniData),
-          "icons": checkIcons(maniData)
+          "short_name": checkShortName(maniData.json),
+          "name": checkName(maniData.json),
+          "display": checkDisplay(maniData.json),
+          "start_url": checkStartUrl(maniData.json),
+          "icons": checkIcons(maniData.json)
         },
         "recommended": {
-          "screenshots": checkScreenshots(maniData),
-          "description": checkDesc(maniData),
-          "categories": checkCategories(maniData),
-          "maskable_icon": checkMaskableIcon(maniData),
-          "iarc_rating": checkRating(maniData),
-          "related_applications": checkRelatedApps(maniData),
-          "prefer_related_applications": checkRelatedPref(maniData),
-          "background_color": checkBackgroundColor(maniData),
-          "theme_color": checkThemeColor(maniData),
-          "orientation": checkOrientation(maniData)
+          "screenshots": checkScreenshots(maniData.json),
+          "description": checkDesc(maniData.json),
+          "categories": checkCategories(maniData.json),
+          "maskable_icon": checkMaskableIcon(maniData.json),
+          "iarc_rating": checkRating(maniData.json),
+          "related_applications": checkRelatedApps(maniData.json),
+          "prefer_related_applications": checkRelatedPref(maniData.json),
+          "background_color": checkBackgroundColor(maniData.json),
+          "theme_color": checkThemeColor(maniData.json),
+          "orientation": checkOrientation(maniData.json)
         },
         "optional": {
 
@@ -66,15 +39,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.res = {
         status: 200,
         body: {
-          "data": results
-        }
-      }
-    }
-    else {
-      context.res = {
-        status: 400,
-        body: {
-          "error": "Manifest could not be found"
+          "data": results,
+          "content": maniData
         }
       }
     }
@@ -86,10 +52,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "error": { error: err, message: err.message }
       },
     };
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
   }
 };
 

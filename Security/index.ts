@@ -1,32 +1,51 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from 'puppeteer';
+import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log('Security function processed a request.');
 
   const site = req.query.site;
 
-  let browser: puppeteer.Browser;
   try {
-    browser = await puppeteer.launch(
-      {
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      }
-    );
+    let page;
+    let pageResponse;
 
-    const page = await browser.newPage();
-    const pageResponse = await page.goto(site);
+    try {
+      const siteData = await loadPage(site);
+
+      page = siteData.sitePage;
+      pageResponse = siteData.pageResponse;
+
+      page.setRequestInterception(true);
+
+      let whiteList = ['document', 'plain', 'script', 'javascript'];
+      page.on('request', (req) => {
+        const type = req.resourceType();
+        if (whiteList.some((el) => type.indexOf(el) >= 0)) {
+          req.continue();
+        } else {
+          req.abort();
+        }
+      });
+    }
+    catch (err) {
+      context.res = {
+        status: 400,
+        body: {
+          "error": { error: err, message: err.message }
+        }
+      }
+    }
 
     const securityDetails = pageResponse.securityDetails();
 
     if (securityDetails) {
       const results = {
         "isHTTPS": site.includes('https'),
-        "validProtocol": true,
+        "validProtocol": securityDetails.protocol() === "TLS 1.3" || securityDetails.protocol() === "TLS 1.2" || securityDetails.protocol() === "_TSL 1.2" || securityDetails.protocol() === "_TSL 1.3",
         "valid": securityDetails.validTo() <= new Date().getTime()
       };
-  
+
       context.res = {
         status: 200,
         body: {
@@ -38,7 +57,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.res = {
         status: 400,
         body: {
-          "error": "not valid"
+          "error": "Security Details could not be retrieved from the site"
         }
       }
     }
@@ -48,13 +67,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     context.res = {
       status: 400,
       body: {
-        "error": err
+        "error": { error: err, message: err.message }
       }
-    }
-  }
-  finally {
-    if (browser) {
-      await browser.close();
     }
   }
 };

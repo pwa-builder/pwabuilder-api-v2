@@ -1,21 +1,16 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from 'puppeteer';
+import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   const url = req.query.site;
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  const page = await browser.newPage();
+  const timeout = 120000;
 
-  await page.setDefaultNavigationTimeout(120000);
+  const pageData = await loadPage(url);
 
-  // empty object that we fill with data below
-  let swInfo: any = {};
+  const page = pageData.sitePage;
 
-  await page.setRequestInterception(true);
+  page.setRequestInterception(true);
 
   let whiteList = ['document', 'plain', 'script', 'javascript'];
   page.on('request', (req) => {
@@ -27,7 +22,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
   });
 
-  await page.goto(url, { waitUntil: ['domcontentloaded'] });
+  // empty object that we fill with data below
+  let swInfo: any = {};
 
   try {
     // Check to see if there is a service worker
@@ -37,7 +33,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           (res) => res.active.scriptURL
         );
       },
-      { timeout: 6500 }
+      { timeout }
     );
 
     swInfo['hasSW'] =
@@ -50,7 +46,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           .getRegistration()
           .then((res) => res.scope);
       },
-      { timeout: 6500 }
+      { timeout }
     );
 
     swInfo['scope'] = serviceWorkerScope;
@@ -62,45 +58,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           return reg.pushManager.getSubscription().then((sub) => sub);
         });
       },
-      { timeout: 6500 }
+      { timeout }
     );
 
-    if (!pushReg && swInfo.hasSW) {
-      await page.goto(swInfo.hasSW, { waitUntil: ['domcontentloaded'] });
-      pushReg = await page.content().then((content) => {
-        return (
-          content.indexOf('self.addEventListener("push"') >= 0 ||
-          content.indexOf("self.addEventListener('push'") >= 0
-        );
-      });
-    }
     swInfo['pushReg'] = pushReg;
-
-    // Checking cache
-    // Capture requests during 2nd load.
-    const allRequests = new Map();
-    page.on('request', (req) => {
-      allRequests.set(req.url(), req);
-    });
-
-    // Reload page to pick up any runtime caching done by the service worker.
-    await page.reload({ waitUntil: ['domcontentloaded'] });
-
-    const swRequests = Array.from(allRequests.values());
-
-    let requestChecks = [];
-    swRequests.forEach((req) => {
-      const fromSW =
-        req.response() != null ? req.response().fromServiceWorker() : null;
-      const requestURL = req.response() != null ? req.response().url() : null;
-
-      requestChecks.push({
-        fromSW,
-        requestURL,
-      });
-    });
-
-    swInfo['cache'] = requestChecks;
     
     context.res = {
       status: 200,
@@ -117,13 +78,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           error: error
         }
       }
-    }
-  } finally {
-    if (page) {
-      await page.close();
-    }
-    if (browser) {
-      await browser.close();
     }
   }
 };
