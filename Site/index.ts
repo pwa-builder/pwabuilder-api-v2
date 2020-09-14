@@ -1,10 +1,12 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
 import { ManifestFormat } from "./helpers";
-import getManifestFromFile, { ifSupportedFile } from "../utils/getManifestFromFile"
+import getManifestFromFile, {
+  ifSupportedFile,
+} from "../utils/getManifestFromFile";
 import getManifest from "../utils/getManifest";
 import { ExceptionWrap, ExceptionMessage } from "../utils/Exception";
-const manifestTools = require('pwabuilder-lib').manifestTools;
+const manifestTools = require("pwabuilder-lib").manifestTools;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -18,22 +20,15 @@ const httpTrigger: AzureFunction = async function (
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
-    let manifest, manifestUrl
+    let manifest, manifestUrl;
     const siteUrl = req.query.site;
 
-      // Handle File
-      if (req.method === "POST" && ifSupportedFile(req)) {
-        manifest = await getManifestFromFile(context, req)
-      context.res = {
-        status: 400,
-        body: {
-          message: "not supported yet",
-        },
-      };
-      return;
+    // Handle File
+    if (req.method === "POST" && ifSupportedFile(req)) {
+      manifest = await getManifestFromFile(req);
     } else {
-        // Handle Site
-        ({ json: manifest, url: manifestUrl } = await getManifest(siteUrl));
+      // Handle Site
+      ({ json: manifest, url: manifestUrl } = await getManifest(siteUrl));
     }
 
     const detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
@@ -47,7 +42,7 @@ const httpTrigger: AzureFunction = async function (
           context.res = {
             status: 400,
             body: {
-              message: "Failed to convert to a w3c standard format"
+              message: "Failed to convert to a w3c standard format",
             },
           };
           return;
@@ -62,7 +57,7 @@ const httpTrigger: AzureFunction = async function (
               context.res = {
                 status: 400,
                 body: {
-                  message: "Failed to validate and normalize the manifest"
+                  message: "Failed to validate and normalize the manifest",
                 },
               };
               return;
@@ -70,26 +65,27 @@ const httpTrigger: AzureFunction = async function (
             validatedManifestInfo.generatedUrl = manifestUrl;
 
             context.res = {
-              body: validatedManifestInfo
-            }
+              body: validatedManifestInfo,
+            };
           }
         );
       }
     );
   } catch (exception) {
     if (exception instanceof ExceptionWrap) {
+      context.log(exception);
       context.res = {
         status: 400,
         body: {
-          message: ExceptionMessage[exception.type]
-        }
-      }
+          message: ExceptionMessage[exception.type],
+        },
+      };
     } else {
       context.log(exception);
 
       context.res = {
-        status: 400
-      }
+        status: 400,
+      };
     }
   } finally {
     if (browser) {

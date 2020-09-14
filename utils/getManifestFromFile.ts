@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as fs from 'fs/promises';
+import * as fs from "fs";
 import ExceptionOf, { ExceptionType } from "./Exception";
 
 export type Manifest = any;
@@ -9,19 +9,19 @@ export enum ValidContentType {
   binary = "application/octet-stream",
 }
 
-
-export default async function getManifestFromFile(context: Context, req: HttpRequest): Manifest {
+export default async function getManifestFromFile(
+  req: HttpRequest
+): Promise<Manifest> {
   try {
-
-    // if () {}
-    const base64Json = req.body
-    const fileBuffer = new Buffer(base64Json, 'base64')
-    const jsonFileString = await fs.readFile(fileBuffer, { encoding: 'base64' });
-    return JSON.parse(jsonFileString);
-
-
-
-
+    switch (req.headers["content-type"]) {
+      case ValidContentType.json:
+      case ValidContentType.webmanifest:
+        return handleJson(req);
+      case ValidContentType.binary:
+        return handleBinary(req);
+      default:
+        throw TypeError("unsupported file type");
+    }
   } catch (e) {
     throw ExceptionOf(ExceptionType.MANIFEST_FILE_UNSUPPORTED, e);
   }
@@ -31,15 +31,21 @@ export function ifSupportedFile(req: HttpRequest): boolean {
   switch (req.headers["content-type"]) {
     case ValidContentType.webmanifest:
     case ValidContentType.json:
+    case ValidContentType.binary:
       return true;
 
-    case ValidContentType.binary:
     default:
-      // handle binary later
       return false;
   }
 }
 
-function convertToJson() {
+// conversion is automatic!
+function handleJson(req: HttpRequest) {
+  return req.body;
+}
 
+// Azure wraps in a files in a buffer by default!
+async function handleBinary(req: HttpRequest) {
+  const jsonFileString = req.body.toString("utf-8");
+  return JSON.parse(jsonFileString);
 }
