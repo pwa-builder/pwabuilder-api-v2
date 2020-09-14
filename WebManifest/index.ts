@@ -2,8 +2,6 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { checkBackgroundColor, checkCategories, checkDesc, checkDisplay, checkIcons, checkMaskableIcon, checkName, checkOrientation, checkRating, checkRelatedApps, checkRelatedPref, checkScreenshots, checkShortName, checkStartUrl, checkThemeColor } from './mani-tests';
 import getManifest from "../utils/getManifest";
 
-
-
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log('Web Manifest function processed a request.');
 
