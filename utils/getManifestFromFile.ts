@@ -1,5 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as fs from "fs";
+import { HttpRequest } from "@azure/functions";
 import ExceptionOf, { ExceptionType } from "./Exception";
 
 export type Manifest = any;
