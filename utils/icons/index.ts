@@ -1,8 +1,7 @@
-
-
-export default downloadIcons(storageId: number, manifest: WebManifest): void {
-
-}
+export default function downloadIcons(
+  storageId: number,
+  manifest: WebManifest
+): void {}
 
 export function isDataUri(uri: string): boolean {
   return (
@@ -10,4 +9,3 @@ export function isDataUri(uri: string): boolean {
       ?.length === 1
   );
 }
-
