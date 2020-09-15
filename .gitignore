@@ -41,3 +41,9 @@ venv.bak/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Azurite files
+__azurite_db_blob__.json
+__azurite_db_blob_extent__.json
+__blobstorage__
+__queuestorage__
