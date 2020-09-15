@@ -1,6 +1,6 @@
 export default function downloadIcons(
   storageId: number,
-  manifest: WebManifest
+  manifest: Manifest.w3c
 ): void {}
 
 export function isDataUri(uri: string): boolean {
