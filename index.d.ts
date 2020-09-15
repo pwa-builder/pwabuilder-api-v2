@@ -1,8 +1,12 @@
-declare global {
-  type Manifest = any;
+declare namespace Manifest {
+  // w3c manifest
+  interface w3c {
+    start_url: string;
+    [name: string]: any;
+  }
 
   // Remapping of TV4 schema validation errors
-  interface ManifestGuidance {
+  interface Guidance {
     code: string; // w3c-schema-${tv4.errorCodes[number]}
     description: string; // tv4 error message
     platform: string; // is going to be 'all', unless overridden by underlying
@@ -10,26 +14,22 @@ declare global {
     member: string; // tv4 dataPath
   }
 
-  interface ManifestInfo {
+  interface Info {
     id: number;
-    format: ManifestFormat;
+    format: Format;
     generatedUrl: string;
-    content: {
-      // w3c manifest
-      start_url: string;
-      [name: string]: any;
-    };
+    content: w3c;
     default: {
       // subset of the w3c manifest
       short_name: string;
       [name: string]: any;
     };
-    errors: Array<ManifestGuidance>;
-    suggestions: Array<ManifestGuidance>;
-    warnings: Array<ManifestGuidance>;
+    errors: Array<Manifest.Guidance>;
+    suggestions: Array<Manifest.Guidance>;
+    warnings: Array<Manifest.Guidance>;
   }
 
-  enum ManifestFormat {
+  enum Format {
     w3c = "w3c",
     chromeos = "chromeos",
     edgeextension = "edgeextension",
@@ -37,5 +37,3 @@ declare global {
     firefox = "firefox",
   }
 }
-
-export {};
