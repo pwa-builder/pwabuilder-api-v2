@@ -1,25 +1,16 @@
 {
   "bindings": [
     {
-      "queueName": "platform-queue",
-      "connection": "FUNCTIONS_WORKER_RUNTIME",
-      "name": "platformQueueItem",
-      "type": "queueTrigger",
-      "direction": "in"
+      "authLevel": "function",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": ["get", "post"]
     },
     {
-      "name": "platformRead",
-      "type": "blob",
-      "path": "samples-workitems/{queueTrigger}-Read",
-      "connection": "FUNCTIONS_WORKER_RUNTIME",
-      "direction": "in"
-    },
-    {
-      "name": "platformWrite",
-      "type": "blob",
-      "path": "samples-workitems/{queueTrigger}-Copy",
-      "connection": "FUNCTIONS_WORKER_RUNTIME",
-      "direction": "out"
+      "type": "http",
+      "direction": "out",
+      "name": "res"
     }
   ],
   "scriptFile": "../dist/Platform/index.js"

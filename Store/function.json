@@ -1,19 +1,25 @@
 {
   "bindings": [
     {
-      "authLevel": "function",
-      "type": "httpTrigger",
-      "direction": "in",
-      "name": "req",
-      "methods": [
-        "get",
-        "post"
-      ]
+      "queueName": "store-queue",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "name": "queueItem",
+      "type": "queueTrigger",
+      "direction": "in"
     },
     {
-      "type": "http",
-      "direction": "out",
-      "name": "res"
+      "name": "storeRead",
+      "type": "blob",
+      "path": "samples-workitems/{queueTrigger}",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "direction": "in"
+    },
+    {
+      "name": "storeWrite",
+      "type": "blob",
+      "path": "samples-workitems/{queueTrigger}-Write",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "direction": "out"
     }
   ],
   "scriptFile": "../dist/Store/index.js"
