@@ -1,9 +1,9 @@
 export as namespace global;
 
 declare global {
-  // Remapping of TV4 schema validation errors
   type Manifest = any;
 
+  // Remapping of TV4 schema validation errors
   interface ManifestGuidance {
     code: string; // w3c-schema-${tv4.errorCodes[number]}
     description: string; // tv4 error message
