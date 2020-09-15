@@ -1,5 +1,5 @@
 import { HttpRequest } from "@azure/functions";
-import ExceptionOf, { ExceptionType } from "./Exception";
+import ExceptionOf from "./Exception";
 
 export type Manifest = any;
 export enum ValidContentType {
@@ -22,7 +22,7 @@ export default async function getManifestFromFile(
         throw TypeError("unsupported file type");
     }
   } catch (e) {
-    throw ExceptionOf(ExceptionType.MANIFEST_FILE_UNSUPPORTED, e);
+    throw ExceptionOf(Exception.Type.MANIFEST_FILE_UNSUPPORTED, e);
   }
 }
 

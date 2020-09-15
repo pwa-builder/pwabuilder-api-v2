@@ -1,11 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
-import { ManifestFormat } from "./helpers";
 import getManifestFromFile, {
   ifSupportedFile,
 } from "../utils/getManifestFromFile";
 import getManifest from "../utils/getManifest";
-import { ExceptionWrap, ExceptionMessage } from "../utils/Exception";
+import { ExceptionWrap } from "../utils/Exception";
 const manifestTools = require("pwabuilder-lib").manifestTools;
 
 const httpTrigger: AzureFunction = async function (
@@ -31,11 +30,11 @@ const httpTrigger: AzureFunction = async function (
       ({ json: manifest, url: manifestUrl } = await getManifest(siteUrl));
     }
 
-    const detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
+    const detectedFormat = <Manifest.Format>manifestTools.detect(manifest);
 
     manifestTools.convertTo(
       { format: detectedFormat, content: manifest },
-      ManifestFormat.w3c,
+      Manifest.Format.w3c,
       async (err, resultManifestInfo) => {
         if (err) {
           context.log(err);
@@ -77,7 +76,7 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 400,
         body: {
-          message: ExceptionMessage[exception.type],
+          message: Exception.Message[exception.type],
         },
       };
     } else {

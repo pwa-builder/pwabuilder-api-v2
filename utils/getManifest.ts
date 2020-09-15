@@ -1,10 +1,9 @@
 import fetch from "node-fetch";
-import ExceptionOf, { ExceptionType } from "./Exception";
+import ExceptionOf from "./Exception";
 import loadPage from "./loadPage";
 
-export type Manifest = any;
 export interface ManifestInformation {
-  json: Manifest;
+  json: Manifest.w3c;
   url: string;
 }
 
@@ -16,8 +15,8 @@ export default async function getManifest(
 
     siteData.sitePage.setRequestInterception(true);
 
-    let whiteList = ['document', 'plain', 'script', 'javascript'];
-    siteData.sitePage.on('request', (req) => {
+    let whiteList = ["document", "plain", "script", "javascript"];
+    siteData.sitePage.on("request", (req) => {
       const type = req.resourceType();
       if (whiteList.some((el) => type.indexOf(el) >= 0)) {
         req.continue();
@@ -41,6 +40,6 @@ export default async function getManifest(
 
     return null;
   } catch (e) {
-    throw ExceptionOf(ExceptionType.MANIFEST_NOT_FOUND, e);
+    throw ExceptionOf(Exception.Type.MANIFEST_NOT_FOUND, e);
   }
 }

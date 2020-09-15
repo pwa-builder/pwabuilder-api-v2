@@ -1,0 +1,26 @@
+{
+  "bindings": [
+    {
+      "queueName": "store-queue",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "name": "queueItem",
+      "type": "queueTrigger",
+      "direction": "in"
+    },
+    {
+      "name": "storeRead",
+      "type": "blob",
+      "path": "samples-workitems/{queueTrigger}",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "direction": "in"
+    },
+    {
+      "name": "storeWrite",
+      "type": "blob",
+      "path": "samples-workitems/{queueTrigger}-Write",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "direction": "out"
+    }
+  ],
+  "scriptFile": "../dist/Store/index.js"
+}
