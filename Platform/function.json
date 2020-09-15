@@ -3,15 +3,22 @@
     {
       "queueName": "platform-queue",
       "connection": "FUNCTIONS_WORKER_RUNTIME",
-      "name": "myQueueItem",
+      "name": "platformQueueItem",
       "type": "queueTrigger",
       "direction": "in"
     },
     {
-      "name": "platform",
+      "name": "platformRead",
+      "type": "blob",
+      "path": "samples-workitems/{queueTrigger}-Read",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "direction": "in"
+    },
+    {
+      "name": "platformWrite",
       "type": "blob",
       "path": "samples-workitems/{queueTrigger}-Copy",
-      "connection": "MyStorageConnectionAppSetting",
+      "connection": "FUNCTIONS_WORKER_RUNTIME",
       "direction": "out"
     }
   ],
