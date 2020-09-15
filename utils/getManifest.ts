@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import ExceptionOf, { ExceptionType } from "./Exception";
+import ExceptionOf from "./Exception";
 import loadPage from "./loadPage";
 
 export type Manifest = any;
@@ -41,6 +41,6 @@ export default async function getManifest(
 
     return null;
   } catch (e) {
-    throw ExceptionOf(ExceptionType.MANIFEST_NOT_FOUND, e);
+    throw ExceptionOf(Exception.Type.MANIFEST_NOT_FOUND, e);
   }
 }
