@@ -2,7 +2,7 @@
   "bindings": [
     {
       "queueName": "store-queue",
-      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "connection": "pwabuilderstore",
       "name": "queueItem",
       "type": "queueTrigger",
       "direction": "in"
@@ -10,15 +10,15 @@
     {
       "name": "storeRead",
       "type": "blob",
-      "path": "samples-workitems/{queueTrigger}",
-      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "path": "pwabuilder-api/{queueTrigger}-Download",
+      "connection": "pwabuilderstore",
       "direction": "in"
     },
     {
       "name": "storeWrite",
       "type": "blob",
-      "path": "samples-workitems/{queueTrigger}-Write",
-      "connection": "FUNCTIONS_WORKER_RUNTIME",
+      "path": "pwabuilder-api/{queueTrigger}",
+      "connection": "pwabuilderstore",
       "direction": "out"
     }
   ],
