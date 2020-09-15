@@ -1,5 +1,3 @@
-export as namespace global;
-
 declare global {
   type Manifest = any;
 
