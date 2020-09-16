@@ -1,7 +1,7 @@
-export default function downloadIcons(
+export default async function downloadIcons(
   storageId: number,
   manifest: Manifest.w3c
-): void {}
+): Promise<void> {}
 
 export function isDataUri(uri: string): boolean {
   return (
