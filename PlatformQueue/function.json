@@ -1,7 +1,7 @@
 {
   "bindings": [
     {
-      "queueName": "store-queue",
+      "queueName": "platform-queue",
       "connection": "pwabuilderstore",
       "name": "queueItem",
       "type": "queueTrigger",
