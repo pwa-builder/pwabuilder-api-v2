@@ -1,7 +1,28 @@
-import { AzureFunction, Context } from "@azure/functions"
+import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import getManifest from "../utils/getManifest";
+import { createId, messageQueue } from "../utils/storage";
+import config from "../config";
 
-const blobTrigger: AzureFunction = async function (context: Context, myBlob: any): Promise<void> {
-    context.log("Blob trigger function processed blob \n Name:", context.bindingData.name, "\n Blob Size:", myBlob.length, "Bytes");
+const httpTrigger: AzureFunction = async function (
+  context: Context,
+  req: HttpRequest
+): Promise<void> {
+  try {
+    const { siteUrl, platform } = req.query;
+    const id = createId(siteUrl);
+    const manifest = req.body; // pass body as manifest
+
+    await messageQueue(id, manifest, {
+      storageAccount: config.azure.account_name,
+      queueName: "platform-queue",
+    });
+
+    context.res = {
+      body: {
+        id,
+      },
+    };
+  } catch (exception) {}
 };
 
-export default blobTrigger;
+export default httpTrigger;
