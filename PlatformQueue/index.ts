@@ -4,6 +4,8 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   manifest: Manifest.w3c
 ): Promise<void> {
+  context.log(arguments);
+  context.log(context.bindings);
   context.log("Queue Item: " + context.bindings.queueItem);
   context.log("Manifest Additional Input: " + manifest);
   context.log("Manifest Binding: " + context.bindings.manifest);
