@@ -22,5 +22,5 @@
       "direction": "out"
     }
   ],
-  "scriptFile": "../dist/Store/index.js"
+  "scriptFile": "../dist/PlatformQueue/index.js"
 }
