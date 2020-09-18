@@ -11,6 +11,13 @@
       "type": "http",
       "direction": "out",
       "name": "res"
+    },
+    {
+      "queueName": "platform-queue",
+      "connection": "pwabuilderstore",
+      "name": "queueItem",
+      "type": "queue",
+      "direction": "out"
     }
   ],
   "scriptFile": "../dist/Platform/index.js"

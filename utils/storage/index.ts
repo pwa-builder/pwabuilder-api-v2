@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
-import { DefaultAzureCredential } from "@azure/identity";
+import { VisualStudioCodeCredential } from "@azure/identity";
 import { QueueServiceClient } from "@azure/storage-queue";
+import { Manifest } from "../getManifestFromFile";
 
 export interface MessageQueueConfig {
   storageAccount: string;
@@ -18,12 +19,12 @@ export async function createContainer(id: string): Promise<void> {}
 */
 export async function messageQueue(
   id: string,
-  manifest: Manifest.w3c,
+  manifest: Manifest,
   { storageAccount, queueName }: MessageQueueConfig
 ): Promise<string> {
   const client = new QueueServiceClient(
     `${storageAccount}.queue.core.windows.net/`,
-    new DefaultAzureCredential()
+    new VisualStudioCodeCredential()
   );
   const response = await client.getQueueClient(queueName).sendMessage(
     JSON.stringify({

@@ -1,3 +1,13 @@
+export enum ExceptionType {
+  MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND",
+  MANIFEST_FILE_UNSUPPORTED = "MANIFEST_FILE_UNSUPPORTED",
+}
+
+export enum ExceptionMessage {
+  MANIFEST_NOT_FOUND = "failed to find the manifest",
+  MANIFEST_FILE_UNSUPPORTED = "failed to read the json of the submitted manifest file",
+}
+
 /*
   Top Level exception wrapper for better error handling based on ExceptionTypes.
   Message and stack are the parents, just provides syntactic sugar on the name field for easier comparison.
@@ -29,6 +39,6 @@ export class ExceptionWrap {
   }
 }
 
-export default function ExceptionOf(type: Exception.Type, error: Error) {
+export default function ExceptionOf(type: ExceptionType, error: Error) {
   return new ExceptionWrap(Exception.Type[type], error);
 }

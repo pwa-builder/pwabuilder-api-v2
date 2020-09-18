@@ -4,7 +4,8 @@ import getManifestFromFile, {
   ifSupportedFile,
 } from "../utils/getManifestFromFile";
 import getManifest from "../utils/getManifest";
-import { ExceptionWrap } from "../utils/Exception";
+import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
+import { ManifestFormat } from "../utils/interfaces";
 const manifestTools = require("pwabuilder-lib").manifestTools;
 
 const httpTrigger: AzureFunction = async function (
@@ -30,11 +31,11 @@ const httpTrigger: AzureFunction = async function (
       ({ json: manifest, url: manifestUrl } = await getManifest(siteUrl));
     }
 
-    const detectedFormat = <Manifest.Format>manifestTools.detect(manifest);
+    const detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
 
     manifestTools.convertTo(
       { format: detectedFormat, content: manifest },
-      Manifest.Format.w3c,
+      ManifestFormat.w3c,
       async (err, resultManifestInfo) => {
         if (err) {
           context.log(err);
@@ -76,7 +77,7 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 400,
         body: {
-          message: Exception.Message[exception.type],
+          message: ExceptionMessage[exception.type],
         },
       };
     } else {
