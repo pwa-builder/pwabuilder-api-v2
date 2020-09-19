@@ -19,7 +19,7 @@ export async function createContainer(
   id: string,
   context?: Context
 ): Promise<void> {
-  const blobServiceClient = createBlobServiceClient();
+  const blobServiceClient = getBlobServiceClient();
   const containerClient = blobServiceClient.getContainerClient(id);
   context.log(containerClient);
 
@@ -32,7 +32,12 @@ export async function createContainer(
     );
   }
 
-  const createRes = await containerClient.create();
+  const createRes = await containerClient.create({
+    metadata: {
+      id,
+      isSiteData: "true",
+    },
+  });
   if (createRes.errorCode) {
     throw ExceptionOf(
       ExceptionType.BLOB_STORAGE_FAILURE,
@@ -48,7 +53,7 @@ export async function addManifestToContainer(
 ) {
   const manifestStr = JSON.stringify(manifest);
 
-  const blobServiceClient = createBlobServiceClient();
+  const blobServiceClient = getBlobServiceClient();
   const containerClient = blobServiceClient.getContainerClient(id);
   const manifestBlobClient = containerClient.getBlockBlobClient(
     "manifest.json"
@@ -65,13 +70,7 @@ export async function addManifestToContainer(
   }
 }
 
-export async function deleteContainer(id: string) {
-  const blobServiceClient = createBlobServiceClient();
-  const containerClient = blobServiceClient.getContainerClient(id);
-  return containerClient.deleteIfExists();
-}
-
-function createBlobServiceClient(): BlobServiceClient {
+export function getBlobServiceClient(): BlobServiceClient {
   const credential = new DefaultAzureCredential();
   return new BlobServiceClient(
     `https://${config.azure.account_name}.blob.core.windows.net`,
