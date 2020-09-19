@@ -1,9 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import {
-  createContainer,
-  addManifestToContainer,
-  queueContainerDeletion,
-} from "../utils/storage";
+import { createContainer, addManifestToContainer } from "../utils/storage";
 import { createId } from "../utils/storage";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
 
@@ -45,8 +41,6 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
-  } finally {
-    await queueContainerDeletion(id, context);
   }
 };
 
