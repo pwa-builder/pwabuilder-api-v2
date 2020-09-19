@@ -1,5 +1,9 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { createContainer } from "../utils/storage";
+import {
+  createContainer,
+  addManifestToContainer,
+  queueContainerDeletion,
+} from "../utils/storage";
 import { createId } from "../utils/storage";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
 
@@ -7,13 +11,15 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  let id;
   try {
     const { site, platform } = req.query;
 
-    const id = createId(site);
+    id = createId(site);
     const manifest = req.body; // pass body as manifest
 
-    await createContainer(id, manifest, context);
+    await createContainer(id, context);
+    await addManifestToContainer(id, manifest, context);
 
     context.bindings.queueItem = id;
 
@@ -39,6 +45,8 @@ const httpTrigger: AzureFunction = async function (
         },
       };
     }
+  } finally {
+    await queueContainerDeletion(id, context);
   }
 };
 

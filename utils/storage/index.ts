@@ -17,22 +17,12 @@ export function createId(siteUrl: string): string {
 
 export async function createContainer(
   id: string,
-  manifest: Manifest,
   context?: Context
 ): Promise<void> {
-  const credential = new DefaultAzureCredential();
-  const blobServiceClient = new BlobServiceClient(
-    `https://${config.azure.account_name}.blob.core.windows.net`,
-    credential
-  );
-
-  const apiContainerClient = blobServiceClient.getContainerClient(
-    "pwabuilder-api"
-  );
-  console.log(apiContainerClient);
-
+  const blobServiceClient = createBlobServiceClient();
   const containerClient = blobServiceClient.getContainerClient(id);
   context.log(containerClient);
+
   const deleteRes = await containerClient.deleteIfExists();
 
   if (deleteRes.errorCode) {
@@ -49,4 +39,42 @@ export async function createContainer(
       new Error(`azure blob storage error code: ${deleteRes.errorCode}`)
     );
   }
+}
+
+export async function addManifestToContainer(
+  id: string,
+  manifest: Manifest,
+  context?: Context
+) {
+  const manifestStr = JSON.stringify(manifest);
+
+  const blobServiceClient = createBlobServiceClient();
+  const containerClient = blobServiceClient.getContainerClient(id);
+  const manifestBlobClient = containerClient.getBlockBlobClient(
+    "manifest.json"
+  );
+  const response = await manifestBlobClient.upload(
+    manifestStr,
+    manifestStr.length
+  );
+  if (response.errorCode) {
+    throw ExceptionOf(
+      ExceptionType.BLOB_STORAGE_FAILURE,
+      new Error("failed to upload blob with error code: " + response.errorCode)
+    );
+  }
+}
+
+export async function deleteContainer(id: string) {
+  const blobServiceClient = createBlobServiceClient();
+  const containerClient = blobServiceClient.getContainerClient(id);
+  return containerClient.deleteIfExists();
+}
+
+function createBlobServiceClient(): BlobServiceClient {
+  const credential = new DefaultAzureCredential();
+  return new BlobServiceClient(
+    `https://${config.azure.account_name}.blob.core.windows.net`,
+    credential
+  );
 }
