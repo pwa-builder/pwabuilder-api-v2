@@ -3,12 +3,14 @@ import { Manifest } from "../utils/getManifestFromFile";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
+  id: string,
   manifest: Manifest
 ): Promise<void> {
   context.log("\n\n\nplatform queue\n\n\n");
   context.log(arguments);
   context.log(context.bindings);
   context.log("Queue Item: " + context.bindings.queueItem);
+  context.log("Queue Item: " + id);
   context.log("Manifest Additional Input: " + manifest);
   context.log("Manifest Binding: " + context.bindings.manifest);
   context.log("Store Read: " + context.bindings.storeRead);
