@@ -1,10 +1,12 @@
 import * as crypto from "crypto";
+import * as path from "path";
 import { DefaultAzureCredential } from "@azure/identity";
 import { BlobServiceClient } from "@azure/storage-blob";
-import { Manifest } from "../getManifestFromFile";
 import config from "../../config";
 import ExceptionOf, { ExceptionMessage, ExceptionType } from "../Exception";
 import { Context } from "@azure/functions";
+import { Manifest } from "../interfaces";
+import { checkIcons } from "../../WebManifest/mani-tests";
 
 export interface MessageQueueConfig {
   storageAccount: string;
@@ -76,4 +78,21 @@ export function getBlobServiceClient(): BlobServiceClient {
     `https://${config.azure.account_name}.blob.core.windows.net`,
     credential
   );
+}
+
+export function addImagesToContainer(
+  id: string,
+  manifest: Manifest,
+  context?: Context
+) {
+  const containerClient = getBlobServiceClient().getContainerClient(id);
+
+  for (const icon of manifest.icons) {
+    const parsedUrl = path.parse(icon);
+
+    containerClient.getBlobClient(icon);
+  }
+
+  for (const screenshot of manifest.screenshots) {
+  }
 }
