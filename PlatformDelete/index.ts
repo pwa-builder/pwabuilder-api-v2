@@ -4,7 +4,7 @@ import { getBlobServiceClient } from "../utils/storage";
 const timerTrigger: AzureFunction = async function (
   context: Context,
   myTimer: any
-): Promise<void> {\
+): Promise<void> {
   if (myTimer.isPastDue) {
     const blobServiceClient = getBlobServiceClient();
     const promiseList = [];

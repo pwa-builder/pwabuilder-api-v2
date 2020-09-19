@@ -1,4 +1,4 @@
-import { Manifest } from "../getManifestFromFile";
+import { Manifest } from "../interfaces";
 
 export default async function downloadIcons(
   storageId: number,

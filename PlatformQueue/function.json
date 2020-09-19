@@ -10,14 +10,14 @@
     {
       "name": "storeRead",
       "type": "blob",
-      "path": "pwabuilder-api/{queueTrigger}-Download",
+      "path": "{queueTrigger}",
       "connection": "pwabuilderstore",
       "direction": "in"
     },
     {
       "name": "storeWrite",
       "type": "blob",
-      "path": "pwabuilder-api/{queueTrigger}",
+      "path": "{queueTrigger}",
       "connection": "pwabuilderstore",
       "direction": "out"
     }
