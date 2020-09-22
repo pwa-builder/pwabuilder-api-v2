@@ -71,8 +71,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "data": swInfo
       }
     }
+
+    context.log(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
   } catch (error) {
-    context.log(error);
     if (error.name && error.name.indexOf('TimeoutError') > -1) {
 
       context.res = {
@@ -81,6 +82,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           error: error
         }
       }
+
+      context.log(`Service Worker function TIMED OUT processing a request for site: ${req.query.site}`);
     }
   }
 };
