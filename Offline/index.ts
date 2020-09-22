@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+  context.log(`Offline function is processing a request for site: ${req.query.site}`);
 
   const url = req.query.site;
 
@@ -59,25 +60,25 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
     catch (err) {
-      console.error(err);
-
       context.res = {
-        status: 500,
+        status: 400,
         body: {
           "error": "site does not load offline"
         }
       }
+
+      context.log(`Offline function determined ${req.query.site} does not load offline`);
     }
   }
   catch (err) {
-    context.log('error', err);
-
     context.res = {
       status: 500,
       body: {
         "error": err || err.message
       }
     }
+
+    context.log(`Offline function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`);
   }
 };
 

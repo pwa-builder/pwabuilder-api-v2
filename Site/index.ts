@@ -11,6 +11,8 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  context.log(`Site function is processing a request for site: ${req.query.site}`);
+
   let browser: puppeteer.Browser;
 
   try {
@@ -24,9 +26,13 @@ const httpTrigger: AzureFunction = async function (
 
     // Handle File
     if (req.method === "POST" && ifSupportedFile(req)) {
+      context.log(`Site function is getting the manifest from a file for site: ${req.query.site}`);
+
       manifest = await getManifestFromFile(req);
     } else {
       // Handle Site
+      context.log(`Site function is loading the manifest from the URL for site: ${req.query.site}`);
+
       ({ json: manifest, url: manifestUrl } = await getManifest(siteUrl));
     }
 
@@ -72,19 +78,20 @@ const httpTrigger: AzureFunction = async function (
     );
   } catch (exception) {
     if (exception instanceof ExceptionWrap) {
-      context.log(exception);
       context.res = {
         status: 400,
         body: {
           message: Exception.Message[exception.type],
         },
       };
-    } else {
-      context.log(exception);
 
+      context.log(`Site function errored getting the manifest for site: ${req.query.site} with error: ${exception}`);
+    } else {
       context.res = {
         status: 400,
       };
+
+      context.log(`Site function errored getting the manifest for site: ${req.query.site}`);
     }
   } finally {
     if (browser) {

@@ -3,7 +3,7 @@ import { checkBackgroundColor, checkCategories, checkDesc, checkDisplay, checkIc
 import getManifest from "../utils/getManifest";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log('Web Manifest function processed a request.');
+  context.log(`Web Manifest function is processing a request for site: ${req.query.site}`);
 
   const site = req.query.site;
   
@@ -13,6 +13,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   try {
 
     if (maniObject) {
+      context.log(`Web Manifest function has a raw manifest object for site: ${req.query.site}`);
+
       const results = {
         "required": {
           "short_name": checkShortName(maniObject),
@@ -48,8 +50,11 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           }
         }
       }
+
+      context.log(`Web Manifest function is DONE processing for site: ${req.query.site}`);
     }
     else {
+      context.log(`Web Manifest function is grabbing manifest object for site: ${req.query.site}`);
       const maniData = await getManifest(site);
 
       if (maniData) {
@@ -85,6 +90,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
             "content": maniData
           }
         }
+
+        context.log(`Web Manifest function is DONE processing for site: ${req.query.site}`);
       }
     }
   }
@@ -95,6 +102,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "error": { error: err, message: err.message }
       },
     };
+
+    context.log(`Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${err.message}`);
   }
 };
 
