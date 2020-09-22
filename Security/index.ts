@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log('Security function processed a request.');
+  context.log(`Security function is processing a request for site: ${req.query.site}`);
 
   const site = req.query.site;
 

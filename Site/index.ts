@@ -11,6 +11,8 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  context.log(`Site function is processing a request for site: ${req.query.site}`);
+
   let browser: puppeteer.Browser;
 
   try {
