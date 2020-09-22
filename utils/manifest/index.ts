@@ -21,3 +21,10 @@ export function sanitizeName(manifest: Manifest) {
   manifest.short_name = sanitizedName;
 }
 
+export function readManifestBlob(
+  response: BlobDownloadResponseParsed
+): Manifest {
+  return (JSON.stringify(
+    response.readableStreamBody?.setEncoding("utf8").read()
+  ) as unknown) as Manifest;
+}
