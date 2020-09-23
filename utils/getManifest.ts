@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import ExceptionOf, { ExceptionType as Type } from "./Exception";
-import { Manifest } from "./getManifestFromFile";
+import { Manifest } from "./interfaces";
 import loadPage from "./loadPage";
 
 export interface ManifestInformation {
