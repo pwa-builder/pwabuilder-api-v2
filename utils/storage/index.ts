@@ -1,12 +1,9 @@
 import * as crypto from "crypto";
 import * as path from "path";
-import { DefaultAzureCredential } from "@azure/identity";
 import { BlobServiceClient } from "@azure/storage-blob";
-import config from "../../config";
-import ExceptionOf, { ExceptionMessage, ExceptionType } from "../Exception";
+import ExceptionOf, { ExceptionType } from "../Exception";
 import { Context } from "@azure/functions";
 import { Manifest } from "../interfaces";
-import { checkIcons } from "../../WebManifest/mani-tests";
 
 export interface MessageQueueConfig {
   storageAccount: string;
@@ -23,11 +20,10 @@ export async function createContainer(
 ): Promise<void> {
   const blobServiceClient = getBlobServiceClient();
   const containerClient = blobServiceClient.getContainerClient(id);
-  context.log(containerClient);
-
   const deleteRes = await containerClient.deleteIfExists();
 
-  if (deleteRes.errorCode) {
+  if (deleteRes.errorCode && deleteRes.errorCode !== "ContainerNotFound") {
+    context.log(deleteRes);
     throw ExceptionOf(
       ExceptionType.BLOB_STORAGE_FAILURE,
       new Error(`azure blob storage error code: ${deleteRes.errorCode}`)
@@ -73,10 +69,8 @@ export async function addManifestToContainer(
 }
 
 export function getBlobServiceClient(): BlobServiceClient {
-  const credential = new DefaultAzureCredential();
-  return new BlobServiceClient(
-    `https://${config.azure.account_name}.blob.core.windows.net`,
-    credential
+  return BlobServiceClient.fromConnectionString(
+    process.env.AzureWebJobsStorage
   );
 }
 
