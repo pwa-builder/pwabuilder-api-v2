@@ -14,7 +14,7 @@
     },
     {
       "queueName": "platform-queue",
-      "connection": "pwabuilderstore",
+      "connection": "AzureWebJobsStorage",
       "name": "queueItem",
       "type": "queue",
       "direction": "out"

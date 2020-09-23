@@ -2,7 +2,7 @@
   "bindings": [
     {
       "queueName": "platform-queue",
-      "connection": "pwabuilderstore",
+      "connection": "AzureWebJobsStorage",
       "name": "queueItem",
       "type": "queueTrigger",
       "direction": "in"
@@ -11,14 +11,14 @@
       "name": "storeRead",
       "type": "blob",
       "path": "{queueTrigger}",
-      "connection": "pwabuilderstore",
+      "connection": "AzureWebJobsStorage",
       "direction": "in"
     },
     {
       "name": "storeWrite",
       "type": "blob",
       "path": "{queueTrigger}",
-      "connection": "pwabuilderstore",
+      "connection": "AzureWebJobsStorage",
       "direction": "out"
     }
   ],
