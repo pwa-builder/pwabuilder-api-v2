@@ -19,27 +19,23 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   let id;
   try {
-    const { site, platform } = req.query;
-
-    id = createId(site);
-    // context.log("id: " + id);
-    const manifest = req.body; // pass body as manifest
-    // context.log(manifest);
-
     const client = df.getClient(context);
 
-    // build path - TODO
-    if (req.params.containerId && platform) {
+    // build path
+    if (req.params.containerId && req.query.platform) {
       // df.startNew();
       return;
     }
 
-    // prepare path
+    id = createId(req.query.site);
+    // context.log("id: " + id);
+    const manifest = req.body; // pass body as manifest
+    // context.log(manifest);
+
+    // prepare container and add manifest to container
     await createContainer(id, context);
     await addManifestToContainer(id, manifest, context);
-
-    // since id is passed, can ignore here.
-    await client.startNew("PlatformOrchestrator", id);
+    await client.startNew("PlatformOrchestrator", id); // since id is passed, can ignore return
     const statusQueryResponse = client.createCheckStatusResponse(
       context.bindingData.req,
       id
