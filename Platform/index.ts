@@ -1,3 +1,4 @@
+import * as df from "durable-functions";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createContainer, addManifestToContainer } from "../utils/storage";
 import { createId } from "../utils/storage";
@@ -12,12 +13,22 @@ const httpTrigger: AzureFunction = async function (
     const { site, platform } = req.query;
 
     id = createId(site);
+    // context.log("id: " + id);
     const manifest = req.body; // pass body as manifest
+    // context.log(manifest);
 
+    const client = df.getClient(context);
+
+    // build path - TODO
+    if (context.bindings.id && platform) {
+      // df.startNew();
+      return;
+    }
+
+    // prepare path
     await createContainer(id, context);
     await addManifestToContainer(id, manifest, context);
-
-    context.bindings.queueItem = id;
+    await client.startNew("PlatformOrchestrator", id);
 
     context.res = {
       body: {
