@@ -20,7 +20,7 @@ const httpTrigger: AzureFunction = async function (
     const client = df.getClient(context);
 
     // build path - TODO
-    if (context.bindings.id && platform) {
+    if (req.params.id && platform) {
       // df.startNew();
       return;
     }
