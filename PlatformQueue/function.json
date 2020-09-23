@@ -10,16 +10,9 @@
     {
       "name": "storeRead",
       "type": "blob",
-      "path": "{queueTrigger}",
+      "path": "{queueTrigger}/manifest.json",
       "connection": "AzureWebJobsStorage",
       "direction": "in"
-    },
-    {
-      "name": "storeWrite",
-      "type": "blob",
-      "path": "{queueTrigger}",
-      "connection": "AzureWebJobsStorage",
-      "direction": "out"
     }
   ],
   "scriptFile": "../dist/PlatformQueue/index.js"
