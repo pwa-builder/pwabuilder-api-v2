@@ -14,7 +14,7 @@ export interface MessageQueueConfig {
 }
 
 export function createId(siteUrl: string): string {
-  return crypto.createHmac("sha512", siteUrl).digest("hex");
+  return crypto.createHmac("md5", siteUrl).digest("hex");
 }
 
 export async function createContainer(
