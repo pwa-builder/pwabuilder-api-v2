@@ -1,4 +1,5 @@
-import { Manifest } from "../getManifestFromFile";
+import { BlobDownloadResponseParsed } from "@azure/storage-blob";
+import { Manifest } from "../interfaces";
 
 export function sanitizeName(manifest: Manifest) {
   let sanitizedName = manifest.short_name;
@@ -25,6 +26,19 @@ export function readManifestBlob(
   response: BlobDownloadResponseParsed
 ): Manifest {
   return (JSON.stringify(
-    response.readableStreamBody?.setEncoding("utf8").read()
+    streamToBuffer(response.readableStreamBody)
   ) as unknown) as Manifest;
+}
+
+async function streamToBuffer(readableStream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    readableStream.on("data", (data) => {
+      chunks.push(data instanceof Buffer ? data : Buffer.from(data));
+    });
+    readableStream.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
+    readableStream.on("error", reject);
+  });
 }
