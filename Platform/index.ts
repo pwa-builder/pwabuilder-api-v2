@@ -4,6 +4,15 @@ import { createContainer, addManifestToContainer } from "../utils/storage";
 import { createId } from "../utils/storage";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
 
+/*
+  Platform HTTP Trigger
+    Route: <url>/platform/{id: string?}?site={site: string}platform={PlatformEnum: string?}
+    - id: if passed with the platform will try to invoke the platform build path.
+    - site: the url, used to create the id.
+    - platform: determines what kind of app to build
+
+  This function will all upon
+*/
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -20,7 +29,7 @@ const httpTrigger: AzureFunction = async function (
     const client = df.getClient(context);
 
     // build path - TODO
-    if (req.params.id && platform) {
+    if (req.params.containerId && platform) {
       // df.startNew();
       return;
     }
@@ -28,11 +37,18 @@ const httpTrigger: AzureFunction = async function (
     // prepare path
     await createContainer(id, context);
     await addManifestToContainer(id, manifest, context);
+
+    // since id is passed, can ignore here.
     await client.startNew("PlatformOrchestrator", id);
+    const statusQueryResponse = client.createCheckStatusResponse(
+      context.bindingData.req,
+      id
+    );
 
     context.res = {
       body: {
         id,
+        clientStatusQueryUrl: statusQueryResponse.body["statusQueryGetUri"],
       },
     };
   } catch (exception) {
