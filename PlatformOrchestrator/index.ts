@@ -28,6 +28,7 @@ const orchestrator = df.orchestrator(function* (context) {
       tags: ["icons", icon.sizes, icon.type, icon.purpose],
     })
   );
+  outputs.concat(iconActivities);
 
   const screenshotActivities = manifest.screenshots.map((screenshot) =>
     context.df.callActivity("PlatformDownloadImage", {
@@ -41,8 +42,9 @@ const orchestrator = df.orchestrator(function* (context) {
       ],
     })
   );
+  outputs.concat(screenshotActivities);
 
-  yield context.df.Task.all(iconActivities.concat(screenshotActivities));
+  yield context.df.Task.all(outputs);
   return outputs;
 });
 
