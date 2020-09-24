@@ -25,7 +25,7 @@ const orchestrator = df.orchestrator(function* (context) {
     context.df.callActivity("PlatformDownloadImage", {
       containerId: context.df.instanceId,
       imageUrl: new url.URL(icon.src, manifest.start_url),
-      tags: ["icons", icon.sizes, icon.type],
+      tags: ["icons", icon.sizes, icon.type, icon.purpose],
     })
   );
 
@@ -33,7 +33,12 @@ const orchestrator = df.orchestrator(function* (context) {
     context.df.callActivity("PlatformDownloadImage", {
       containerId: context.df.instanceId,
       imageUrl: new url.URL(screenshot.src, manifest.start_url),
-      tags: ["screenshots", screenshot.sizes, screenshot.type],
+      tags: [
+        "screenshots",
+        screenshot.sizes,
+        screenshot.type,
+        screenshot.purpose,
+      ],
     })
   );
 
