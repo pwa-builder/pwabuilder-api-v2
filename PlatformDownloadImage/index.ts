@@ -19,6 +19,7 @@ import { BlockBlobUploadResponse } from "@azure/storage-blob";
 
 interface PlatformImageData {
   containerId: string;
+  siteUrl: string;
   imageUrl: string;
   tags: Array<string>;
 }
@@ -62,6 +63,7 @@ const activityFunction: AzureFunction = async function (
       success: true,
     };
   } catch (exception) {
+    context.log(error);
     error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
   }
 

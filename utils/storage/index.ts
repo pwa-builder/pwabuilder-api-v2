@@ -20,26 +20,17 @@ export async function createContainer(
 ): Promise<void> {
   const blobServiceClient = getBlobServiceClient();
   const containerClient = blobServiceClient.getContainerClient(id);
-  const deleteRes = await containerClient.deleteIfExists();
-
-  if (deleteRes.errorCode && deleteRes.errorCode !== "ContainerNotFound") {
-    context.log(deleteRes);
-    throw ExceptionOf(
-      ExceptionType.BLOB_STORAGE_FAILURE,
-      new Error(`azure blob storage error code: ${deleteRes.errorCode}`)
-    );
-  }
-
-  const createRes = await containerClient.create({
+  const createRes = await containerClient.createIfNotExists({
     metadata: {
       id,
       isSiteData: "true",
     },
   });
-  if (createRes.errorCode) {
+
+  if (createRes.errorCode !== "ContainerAlreadyExists") {
     throw ExceptionOf(
       ExceptionType.BLOB_STORAGE_FAILURE,
-      new Error(`azure blob storage error code: ${deleteRes.errorCode}`)
+      new Error(`azure blob storage error code: ${createRes.errorCode}`)
     );
   }
 }

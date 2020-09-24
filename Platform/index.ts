@@ -35,7 +35,10 @@ const httpTrigger: AzureFunction = async function (
     // prepare container and add manifest to container
     await createContainer(id, context);
     await addManifestToContainer(id, manifest, context);
-    await client.startNew("PlatformOrchestrator", id, manifest); // since id is passed, can ignore return
+    await client.startNew("PlatformOrchestrator", id, {
+      siteUrl: req.query.site,
+      manifest,
+    }); // since id is passed, can ignore return
     const statusQueryResponse = client.createCheckStatusResponse(
       context.bindingData.req,
       id

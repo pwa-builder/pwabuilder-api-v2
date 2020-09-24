@@ -15,36 +15,49 @@ import * as url from "url";
 import * as df from "durable-functions";
 import { Manifest } from "../utils/interfaces";
 
+interface PlatformOrchestratorInput {
+  siteUrl: string;
+  manifest: Manifest;
+}
+
 const orchestrator = df.orchestrator(function* (context) {
-  const outputs = [];
+  let outputs = [];
+  const input = context.df.getInput() as PlatformOrchestratorInput;
+  const manifest = input.manifest;
 
-  context.log(context.df.instanceId);
-  const manifest = context.df.getInput() as Manifest;
+  if (manifest.icons) {
+    const iconActivities = manifest.icons.map((icon) =>
+      context.df.callActivity("PlatformDownloadImage", {
+        containerId: context.df.instanceId,
+        siteUrl: input.siteUrl,
+        imageUrl: new url.URL(icon.src, input.siteUrl),
+        tags: ["icons", icon.sizes, icon.type, icon.purpose],
+      })
+    );
+    outputs = outputs.concat(iconActivities);
+  }
 
-  const iconActivities = manifest.icons.map((icon) =>
-    context.df.callActivity("PlatformDownloadImage", {
-      containerId: context.df.instanceId,
-      imageUrl: new url.URL(icon.src, manifest.start_url),
-      tags: ["icons", icon.sizes, icon.type, icon.purpose],
-    })
-  );
-  outputs.concat(iconActivities);
+  if (manifest.screenshots) {
+    const screenshotActivities = manifest.screenshots.map((screenshot) =>
+      context.df.callActivity("PlatformDownloadImage", {
+        containerId: context.df.instanceId,
+        siteUrl: input.siteUrl,
+        imageUrl: new url.URL(screenshot.src, input.siteUrl),
+        tags: [
+          "screenshots",
+          screenshot.sizes,
+          screenshot.type,
+          screenshot.purpose,
+        ],
+      })
+    );
+    outputs = outputs.concat(screenshotActivities);
+  }
 
-  const screenshotActivities = manifest.screenshots.map((screenshot) =>
-    context.df.callActivity("PlatformDownloadImage", {
-      containerId: context.df.instanceId,
-      imageUrl: new url.URL(screenshot.src, manifest.start_url),
-      tags: [
-        "screenshots",
-        screenshot.sizes,
-        screenshot.type,
-        screenshot.purpose,
-      ],
-    })
-  );
-  outputs.concat(screenshotActivities);
-
+  context.log("start the sub jobs");
   yield context.df.Task.all(outputs);
+  context.log(outputs);
+  // outputs.reduce((prev, cur) => prev + cur )
   return outputs;
 });
 
