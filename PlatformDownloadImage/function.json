@@ -1,7 +1,7 @@
 {
   "bindings": [
     {
-      "name": "name",
+      "name": "imageData",
       "type": "activityTrigger",
       "direction": "in"
     }
