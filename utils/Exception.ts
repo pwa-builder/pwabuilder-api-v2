@@ -1,12 +1,26 @@
+export enum ExceptionType {
+  MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND",
+  MANIFEST_FILE_UNSUPPORTED = "MANIFEST_FILE_UNSUPPORTED",
+  BLOB_STORAGE_FAILURE = "BLOB_STORAGE_FAILURE",
+  BLOB_STORAGE_FAILURE_IMAGE = "BLOB_STORAGE_FAILURE_IMAGE",
+}
+
+export enum ExceptionMessage {
+  MANIFEST_NOT_FOUND = "failed to find the manifest",
+  MANIFEST_FILE_UNSUPPORTED = "failed to read the json of the submitted manifest file",
+  BLOB_STORAGE_FAILURE = "failed to create the azure resources for generating the app",
+  BLOB_STORAGE_FAILURE_IMAGE = "failed to upload image to blob storage",
+}
+
 /*
   Top Level exception wrapper for better error handling based on ExceptionTypes.
   Message and stack are the parents, just provides syntactic sugar on the name field for easier comparison.
  */
 export class ExceptionWrap {
-  type: Exception.Type;
+  type: ExceptionType;
   error: Error;
 
-  constructor(type: Exception.Type, error: Error) {
+  constructor(type: ExceptionType, error: Error) {
     this.type = type;
     this.error = error;
   }
@@ -24,11 +38,11 @@ export class ExceptionWrap {
   }
 
   // Use to differentiate Exception wrap types easily, or use switch (exception.type) {}.
-  isOf(type: Exception.Type): boolean {
+  isOf(type: ExceptionType): boolean {
     return this.type === type;
   }
 }
 
-export default function ExceptionOf(type: Exception.Type, error: Error) {
-  return new ExceptionWrap(Exception.Type[type], error);
+export default function ExceptionOf(type: ExceptionType, error: Error) {
+  return new ExceptionWrap(ExceptionType[type], error);
 }

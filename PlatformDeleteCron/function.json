@@ -1,0 +1,11 @@
+{
+  "bindings": [
+    {
+      "name": "myTimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "* * * 1 * *"
+    }
+  ],
+  "scriptFile": "../dist/PlatformDelete/index.js"
+}

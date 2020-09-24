@@ -1,9 +1,10 @@
 import fetch from "node-fetch";
-import ExceptionOf from "./Exception";
+import ExceptionOf, { ExceptionType as Type } from "./Exception";
+import { Manifest } from "./interfaces";
 import loadPage from "./loadPage";
 
 export interface ManifestInformation {
-  json: Manifest.w3c;
+  json: Manifest;
   url: string;
 }
 
@@ -40,6 +41,6 @@ export default async function getManifest(
 
     return null;
   } catch (e) {
-    throw ExceptionOf(Exception.Type.MANIFEST_NOT_FOUND, e);
+    throw ExceptionOf(Type.MANIFEST_NOT_FOUND, e);
   }
 }

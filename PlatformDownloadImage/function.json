@@ -1,0 +1,10 @@
+{
+  "bindings": [
+    {
+      "name": "imageData",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+  ],
+  "scriptFile": "../dist/PlatformDownloadImage/index.js"
+}
