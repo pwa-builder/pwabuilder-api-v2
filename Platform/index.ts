@@ -24,7 +24,16 @@ const httpTrigger: AzureFunction = async function (
 
     // build path
     if (req.params.containerId && req.query.platform) {
-      // df.startNew();
+      const orchestratorId = await client.startNew("PlatformBuildOrchestrator", undefined, {
+        clientId: req.params.containerId,
+        platform: req.query.platform,
+      });
+
+      // TODO status check stuff, figure out here
+      context.res = {
+        body: {
+        }
+      }
       return;
     }
 
