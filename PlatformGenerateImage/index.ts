@@ -4,25 +4,25 @@ import * as Jimp from "jimp/es";
 import atob from "../utils/base64/atob";
 import { getBlobServiceClient } from "../utils/storage";
 
-interface PlatformGenerateImageResponse {
+export interface PlatformGenerateImageOutput {
   uploadRes?: BlockBlobUploadResponse;
   success: boolean;
   error?: Error;
 }
 
-interface PlatformGenerateImageInput {
+export interface PlatformGenerateImageInput {
   containerId: string;
   imageUrl: string;
   imageBlobName: string;
   size: string; // 512x512
-  category: string;
+  category?: string;
   format: string;
 }
 
 const activityFunction: AzureFunction = async function (
   context: Context,
   imageData: PlatformGenerateImageInput
-): Promise<PlatformGenerateImageResponse> {
+): Promise<PlatformGenerateImageOutput> {
   let error;
   try {
     const containerClient = getBlobServiceClient().getContainerClient(
@@ -35,7 +35,9 @@ const activityFunction: AzureFunction = async function (
     const imageBuffer = await image.getBufferAsync(Jimp.MIME_PNG);
     const imageBase64 = atob(imageBuffer);
     const uploadRes = await containerClient.uploadBlockBlob(
-      `${imageData.size}-generated`,
+      `${imageData.size}${
+        imageData.category ? `-${imageData.category}` : ""
+      }-generated`,
       imageBase64,
       imageBase64.length,
       {

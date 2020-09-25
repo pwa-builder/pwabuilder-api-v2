@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -17,14 +17,14 @@ import * as path from "path";
 import fetch from "node-fetch";
 import { BlockBlobUploadResponse } from "@azure/storage-blob";
 
-interface PlatformImageData {
+interface PlatformImageInput {
   containerId: string;
   siteUrl: string;
   imageUrl: string;
   tags: Array<string>;
 }
 
-interface PlatformImageTaskResponse {
+interface PlatformImageTaskOutput {
   blobRes?: BlockBlobUploadResponse;
   success: boolean;
   error?: ExceptionWrap;
@@ -32,8 +32,8 @@ interface PlatformImageTaskResponse {
 
 const activityFunction: AzureFunction = async function (
   context: Context,
-  imageData: PlatformImageData
-): Promise<PlatformImageTaskResponse> {
+  imageData: PlatformImageInput
+): Promise<PlatformImageTaskOutput> {
   let error;
   try {
     const blobServiceClient = getBlobServiceClient();
@@ -59,8 +59,8 @@ const activityFunction: AzureFunction = async function (
         tags: {
           category,
           sizes,
-          type
-        }
+          type,
+        },
       }
     );
     return {

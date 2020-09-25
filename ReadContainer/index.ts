@@ -14,7 +14,7 @@ import { BlobItem } from "@azure/storage-blob";
 import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
 
-interface ReadContainerInput {
+export interface ReadContainerInput {
   containerId: string;
 }
 
