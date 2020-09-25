@@ -1,4 +1,4 @@
-import { Image } from "svgjs";
+type ImageKey = string;
 
 interface ImageProperties {
   width: number;
@@ -17,8 +17,16 @@ interface PlatformImageSizes {
 
 export function requiredPlatformImages(
   platformId: string | PlatformId
-): Array<ImageProperties> {
-  return ImageSizes[platformId];
+): Map<ImageKey, ImageProperties> {
+  return new Map(
+    ImageSizes[platformId].map((entry: ImageProperties) => {
+      return [ImageKey(entry), entry];
+    })
+  );
+}
+
+export function ImageKey(properties: ImageProperties): ImageKey {
+  return "";
 }
 
 // JSON object that correlates the PWABuilder Image Sizes for the platform
