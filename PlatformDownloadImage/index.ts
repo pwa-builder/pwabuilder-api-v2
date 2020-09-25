@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -56,6 +56,11 @@ const activityFunction: AzureFunction = async function (
           sizes,
           type,
         },
+        tags: {
+          category,
+          sizes,
+          type
+        }
       }
     );
     return {
