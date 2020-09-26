@@ -41,6 +41,7 @@ const activityFunction: AzureFunction = async function (
       imageData.containerId
     );
     const [category, sizes, type, ...rest] = imageData.tags;
+    let purpose = rest[0];
     const fileName = path.parse(imageData.imageUrl).base;
 
     const imageResponse = await fetch(imageData.imageUrl);
@@ -55,11 +56,13 @@ const activityFunction: AzureFunction = async function (
           category,
           sizes,
           type,
+          purpose,
         },
         tags: {
           category,
           sizes,
           type,
+          purpose,
         },
       }
     );

@@ -2,6 +2,7 @@
 import { BlockBlobUploadResponse } from "@azure/storage-blob";
 import * as Jimp from "jimp/es";
 import atob from "../utils/base64/atob";
+import { ImageKey } from "../utils/platform";
 import { getBlobServiceClient } from "../utils/storage";
 
 export interface PlatformGenerateImageOutput {
@@ -15,7 +16,8 @@ export interface PlatformGenerateImageInput {
   imageUrl: string;
   imageBlobName: string;
   size: string; // 512x512
-  category?: string;
+  category?: string; // "icons" | "screenshots"
+  purpose?: string;
   format: string;
 }
 
@@ -29,28 +31,34 @@ const activityFunction: AzureFunction = async function (
       imageData.containerId
     );
     const image = await Jimp.read(imageData.imageUrl);
-    const [width, height] = imageData.size.split("x");
-    image.resize(Number(width), Number(height));
+    const [widthStr, heightStr] = imageData.size.split("x");
+    const width = Number(widthStr);
+    const height = Number(heightStr);
+    image.resize(width, height);
 
     const imageBuffer = await image.getBufferAsync(Jimp.MIME_PNG);
     const imageBase64 = atob(imageBuffer);
     const uploadRes = await containerClient.uploadBlockBlob(
-      `${imageData.size}${
-        imageData.category ? `-${imageData.category}` : ""
-      }-generated`,
+      ImageKey({
+        width,
+        height,
+        purpose: imageData.purpose,
+      }) + "-generated",
       imageBase64,
       imageBase64.length,
       {
         tags: {
+          category: imageData.category,
           size: imageData.size,
           type: imageData.format,
-          category: imageData.category,
+          purpose: imageData.purpose,
           generated: "true",
         },
         metadata: {
+          category: imageData.category,
           size: imageData.size,
           type: imageData.format,
-          category: imageData.category,
+          purpose: imageData.purpose,
           generated: "true",
         },
       }

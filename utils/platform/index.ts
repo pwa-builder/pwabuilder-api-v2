@@ -3,7 +3,7 @@ type ImageKey = string;
 interface ImageProperties {
   width: number;
   height: number;
-  path: string;
+  path?: string;
   purpose?: string;
 }
 
@@ -26,7 +26,9 @@ export function requiredPlatformImages(
 }
 
 export function ImageKey(properties: ImageProperties): ImageKey {
-  return "";
+  return `${properties.width}x${properties.height}${
+    properties.purpose ? "-" + properties.purpose : ""
+  }`;
 }
 
 // JSON object that correlates the PWABuilder Image Sizes for the platform
