@@ -10,17 +10,16 @@
  */
 
 import { AzureFunction, Context } from "@azure/functions";
+import * as Jimp from "jimp/es";
 import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
-import { imageSize } from "image-size";
-import atob from "../utils/base64/atob";
-import * as path from "path";
 import fetch from "node-fetch";
 import { BlockBlobUploadResponse } from "@azure/storage-blob";
 import { ImageKey } from "../utils/platform";
 
 interface PlatformImageInput {
   containerId: string;
+  category: string;
   siteUrl: string;
   imageUrl: string;
   tags: Array<string>;
@@ -43,17 +42,18 @@ const activityFunction: AzureFunction = async function (
       imageData.containerId
     );
     const [category, sizes, type, ...rest] = imageData.tags;
-    let purpose = rest[0];
-
+    const purpose = rest[0] || "none";
     const imageResponse = await fetch(imageData.imageUrl);
     const imageBuffer = imageResponse.body.read();
-    const { width, height } = imageSize(imageBuffer);
-    const imageBase64 = atob(imageBuffer);
-
+    const image = await Jimp.read(imageBuffer as Buffer);
+    const width = image.getWidth();
+    const height = image.getHeight();
+    const imageBase64 = await image.getBase64Async(Jimp.MIME_PNG);
     const uploadResponse = await containerClient.uploadBlockBlob(
       ImageKey({
         width,
         height,
+        size: `${width}x${height}`,
         purpose,
       }),
       imageBase64,

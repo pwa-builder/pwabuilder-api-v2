@@ -1,10 +1,12 @@
 type ImageKey = string;
+type SpaceSeparatedList = string;
 
-interface ImageProperties {
+export interface ImageProperties {
   width: number;
   height: number;
+  size: string;
   path?: string;
-  purpose?: string;
+  purpose?: "monochrome" | "maskable" | "any" | SpaceSeparatedList | "none";
 }
 
 export enum PlatformId {

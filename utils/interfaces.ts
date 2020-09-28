@@ -46,6 +46,11 @@ export interface Screenshot {
   generated: boolean;
 }
 
+export enum BlobCategory {
+  icons = "icons",
+  screenshots = "screenshots",
+}
+
 export enum ManifestFormat {
   w3c = "w3c",
   chromeos = "chromeos",
