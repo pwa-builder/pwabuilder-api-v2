@@ -13,7 +13,7 @@
 
 import * as url from "url";
 import * as df from "durable-functions";
-import { Manifest } from "../utils/interfaces";
+import { Icon, Manifest, ManifestInfo, Screenshot } from "../utils/interfaces";
 
 interface PlatformOrchestratorInput {
   siteUrl: string;
@@ -21,12 +21,12 @@ interface PlatformOrchestratorInput {
 }
 
 const orchestrator = df.orchestrator(function* (context) {
-  let outputs = [];
+  let outputs: Array<any> = [];
   const input = context.df.getInput() as PlatformOrchestratorInput;
   const manifest = input.manifest;
 
   if (manifest.icons) {
-    const iconActivities = manifest.icons.map((icon) =>
+    const iconActivities = manifest.icons.map((icon: Icon) =>
       context.df.callActivity("PlatformDownloadImage", {
         containerId: context.df.instanceId,
         siteUrl: input.siteUrl,
@@ -38,7 +38,7 @@ const orchestrator = df.orchestrator(function* (context) {
   }
 
   if (manifest.screenshots) {
-    const screenshotActivities = manifest.screenshots.map((screenshot) =>
+    const screenshotActivities = manifest.screenshots.map((screenshot: Screenshot) =>
       context.df.callActivity("PlatformDownloadImage", {
         containerId: context.df.instanceId,
         siteUrl: input.siteUrl,

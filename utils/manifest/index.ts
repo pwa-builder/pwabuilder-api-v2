@@ -25,15 +25,17 @@ export function sanitizeName(manifest: Manifest) {
 export function readManifestBlob(
   response: BlobDownloadResponseParsed
 ): Manifest {
+  const streamBody: ReadableStream<any> | any = response.readableStreamBody;
+
   return (JSON.stringify(
-    streamToBuffer(response.readableStreamBody)
+    streamToBuffer(streamBody)
   ) as unknown) as Manifest;
 }
 
-async function streamToBuffer(readableStream) {
+async function streamToBuffer(readableStream: any) {
   return new Promise((resolve, reject) => {
-    const chunks = [];
-    readableStream.on("data", (data) => {
+    const chunks: Array<Uint8Array> = [];
+    readableStream.on("data", (data: Buffer) => {
       chunks.push(data instanceof Buffer ? data : Buffer.from(data));
     });
     readableStream.on("end", () => {

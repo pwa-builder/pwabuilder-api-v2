@@ -39,7 +39,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.log(`Security function ERRORED loading a request for site: ${req.query.site}`);
     }
 
-    const securityDetails = pageResponse.securityDetails();
+    const securityDetails = pageResponse?.securityDetails();
 
     if (securityDetails) {
       const results = {

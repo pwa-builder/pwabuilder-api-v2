@@ -1,4 +1,4 @@
-import { Manifest } from "../interfaces";
+import { Icon, Manifest } from "../interfaces";
 
 export default async function downloadIcons(
   storageId: number,
@@ -13,8 +13,8 @@ export function isDataUri(uri: string): boolean {
 }
 
 export function removeGeneratedImageEntries(manifest: Manifest) {
-  manifest.icons = (manifest.icons || []).filter((icon) => !icon.generated);
+  manifest.icons = (manifest.icons || []).filter((icon: Icon) => !icon.generated);
   manifest.screenshots = (manifest.screenshots || []).filter(
-    (icon) => !icon.generated
+    (icon: Icon) => !icon.generated
   );
 }

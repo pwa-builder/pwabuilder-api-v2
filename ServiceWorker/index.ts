@@ -32,7 +32,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     let serviceWorkerHandle = await page.waitForFunction(
       () => {
         return navigator.serviceWorker.ready.then(
-          (res) => res.active.scriptURL
+          (res) => res.active?.scriptURL
         );
       },
       { timeout }
@@ -46,7 +46,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       () => {
         return navigator.serviceWorker
           .getRegistration()
-          .then((res) => res.scope);
+          .then((res) => res?.scope);
       },
       { timeout }
     );
@@ -54,10 +54,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     swInfo['scope'] = serviceWorkerScope;
 
     // checking push reg
-    let pushReg: boolean | PushSubscription = await page.evaluate(
+    let pushReg: boolean | PushSubscription | undefined | null = await page.evaluate(
       () => {
         return navigator.serviceWorker.getRegistration().then((reg) => {
-          return reg.pushManager.getSubscription().then((sub) => sub);
+          return reg?.pushManager.getSubscription().then((sub) => sub);
         });
       },
       { timeout }

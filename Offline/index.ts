@@ -31,9 +31,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const targets = await pageData.browser.targets();
 
     const serviceWorker = targets.find((t) => t.type() === 'service_worker');
-    const serviceWorkerConnection = await serviceWorker.createCDPSession();
-    await serviceWorkerConnection.send('Network.enable');
-    await serviceWorkerConnection.send('Network.emulateNetworkConditions', {
+    const serviceWorkerConnection = await serviceWorker?.createCDPSession();
+    await serviceWorkerConnection?.send('Network.enable');
+    await serviceWorkerConnection?.send('Network.emulateNetworkConditions', {
       offline: true,
       latency: 0,
       downloadThroughput: 0,

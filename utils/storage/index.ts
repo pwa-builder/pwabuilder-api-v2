@@ -60,9 +60,16 @@ export async function addManifestToContainer(
 }
 
 export function getBlobServiceClient(): BlobServiceClient {
-  return BlobServiceClient.fromConnectionString(
-    process.env.AzureWebJobsStorage
-  );
+  const connectionString = process.env.AzureWebJobsStorage;
+
+  if (connectionString) {
+    return BlobServiceClient.fromConnectionString(
+      connectionString
+    );
+  }
+  else {
+    throw new Error("Connection string for AzureWebJobsStorage could not be found");
+  }
 }
 
 export function addImagesToContainer(
