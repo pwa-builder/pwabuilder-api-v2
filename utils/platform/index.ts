@@ -27,10 +27,20 @@ export function requiredPlatformImages(
   );
 }
 
-export function ImageKey(properties: ImageProperties): ImageKey {
-  return `${properties.width}x${properties.height}${
-    properties.purpose ? "-" + properties.purpose : ""
-  }`;
+export function ImageKey(properties: Partial<ImageProperties>): ImageKey {
+  let size = "";
+  let purpose = "";
+  if (properties.size) {
+    size = properties.size;
+  } else {
+    size = properties.width + "x" + properties.height;
+  }
+
+  if (properties.purpose) {
+    purpose = "-" + properties.purpose;
+  }
+
+  return `${size}${purpose}`;
 }
 
 // JSON object that correlates the PWABuilder Image Sizes for the platform
