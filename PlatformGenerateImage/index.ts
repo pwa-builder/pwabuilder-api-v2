@@ -43,7 +43,7 @@ const activityFunction: AzureFunction = async function (
         width,
         height,
         purpose: imageData.purpose,
-      }) + "-generated",
+      }),
       imageBase64,
       imageBase64.length,
       {
