@@ -47,13 +47,14 @@ const activityFunction: AzureFunction = async function (
 
     const imageResponse = await fetch(imageData.imageUrl);
     const imageBuffer = imageResponse.body.read();
-    const imgSize = imageSize(imageBuffer);
+    const { width, height } = imageSize(imageBuffer);
     const imageBase64 = atob(imageBuffer);
 
     const uploadResponse = await containerClient.uploadBlockBlob(
       ImageKey({
-        width: imgSize.width,
-        height: imgSize.height,
+        width,
+        height,
+        purpose,
       }),
       imageBase64,
       imageBase64.length,
