@@ -64,12 +64,14 @@ const activityFunction: AzureFunction = async function (
           sizes,
           type,
           purpose,
+          originalUrl: imageData.imageUrl,
         },
         tags: {
           category,
           sizes,
           type,
           purpose,
+          originalUrl: imageData.imageUrl,
         },
       }
     );
