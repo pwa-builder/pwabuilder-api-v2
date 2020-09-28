@@ -5,7 +5,7 @@ import getManifestFromFile, {
 } from "../utils/getManifestFromFile";
 import getManifest from "../utils/getManifest";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
-import { ManifestFormat } from "../utils/interfaces";
+import { Manifest, ManifestFormat, ManifestInfo } from "../utils/interfaces";
 const manifestTools = require("pwabuilder-lib").manifestTools;
 
 const httpTrigger: AzureFunction = async function (
@@ -14,7 +14,7 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   context.log(`Site function is processing a request for site: ${req.query.site}`);
 
-  let browser: puppeteer.Browser;
+  let browser: puppeteer.Browser | null = null;
 
   try {
     browser = await puppeteer.launch({
@@ -22,7 +22,8 @@ const httpTrigger: AzureFunction = async function (
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
-    let manifest, manifestUrl;
+    let manifestUrl: string;
+    let manifest: Manifest | null = null;
     const siteUrl = req.query.site;
 
     // Handle File
@@ -34,7 +35,12 @@ const httpTrigger: AzureFunction = async function (
       // Handle Site
       context.log(`Site function is loading the manifest from the URL for site: ${req.query.site}`);
 
-      ({ json: manifest, url: manifestUrl } = await getManifest(siteUrl));
+      const manifestData = await getManifest(siteUrl);
+
+      if (manifestData) {
+        manifest = manifestData.json;
+        manifestUrl = manifestData.url;
+      }
     }
 
     const detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
@@ -42,7 +48,7 @@ const httpTrigger: AzureFunction = async function (
     manifestTools.convertTo(
       { format: detectedFormat, content: manifest },
       ManifestFormat.w3c,
-      async (err, resultManifestInfo) => {
+      async (err: Error, resultManifestInfo: ManifestInfo) => {
         if (err) {
           context.log(err);
           context.res = {
@@ -57,7 +63,7 @@ const httpTrigger: AzureFunction = async function (
         manifestTools.validateAndNormalizeStartUrl(
           siteUrl,
           resultManifestInfo,
-          (err, validatedManifestInfo) => {
+          (err: Error, validatedManifestInfo: ManifestInfo) => {
             if (err) {
               context.log(err);
               context.res = {

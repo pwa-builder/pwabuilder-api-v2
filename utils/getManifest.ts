@@ -10,7 +10,7 @@ export interface ManifestInformation {
 
 export default async function getManifest(
   site: string
-): Promise<ManifestInformation> {
+): Promise<ManifestInformation | null> {
   try {
     const siteData = await loadPage(site);
 
@@ -28,7 +28,10 @@ export default async function getManifest(
 
     const manifestUrl = await siteData.sitePage.$eval(
       "link[rel=manifest]",
-      (el: HTMLAnchorElement) => el.href
+      (el: Element) => {
+        const anchorEl = (el as HTMLAnchorElement);
+        return anchorEl.href
+      }
     );
 
     if (manifestUrl) {

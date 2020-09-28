@@ -3,6 +3,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createContainer, addManifestToContainer } from "../utils/storage";
 import { createId } from "../utils/storage";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
+import { IHttpResponse } from "durable-functions/lib/src/classes";
 
 /*
   Platform HTTP Trigger
@@ -44,10 +45,12 @@ const httpTrigger: AzureFunction = async function (
       id
     );
 
+    const statusQueryResponseBody = (statusQueryResponse.body as any);
+
     context.res = {
       body: {
         id,
-        clientStatusQueryUrl: statusQueryResponse.body["statusQueryGetUri"],
+        clientStatusQueryUrl: statusQueryResponseBody["statusQueryGetUri"],
       },
     };
   } catch (exception) {

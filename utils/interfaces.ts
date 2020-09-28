@@ -22,12 +22,27 @@ export interface ManifestInfo {
     // subset of the w3c manifest
     short_name: string;
     [name: string]: any;
-    icons: Array<string>;
-    screenshots: Array<string>;
+    icons: Array<Icon>;
+    screenshots: Array<Screenshot>;
   };
   errors: Array<ManifestGuidance>;
   suggestions: Array<ManifestGuidance>;
   warnings: Array<ManifestGuidance>;
+}
+
+export interface Icon {
+  src: string,
+  sizes: string,
+  purpose: string,
+  type: string,
+  generated?: boolean
+}
+
+export interface Screenshot {
+  src: string,
+  sizes: string,
+  purpose: string,
+  type: string
 }
 
 export enum ManifestFormat {

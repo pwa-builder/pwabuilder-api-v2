@@ -11,6 +11,7 @@ const timerTrigger: AzureFunction = async function (
       if (
         new Date(container.properties.lastModified).getTime() <
           new Date(myTimer.Last).getTime() &&
+          container.metadata && 
         container.metadata["isSiteData"]
       ) {
         await blobServiceClient.deleteContainer(container.name);
