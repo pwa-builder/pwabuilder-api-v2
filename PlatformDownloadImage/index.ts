@@ -12,10 +12,12 @@
 import { AzureFunction, Context } from "@azure/functions";
 import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
+import { imageSize } from "image-size";
 import atob from "../utils/base64/atob";
 import * as path from "path";
 import fetch from "node-fetch";
 import { BlockBlobUploadResponse } from "@azure/storage-blob";
+import { ImageKey } from "../utils/platform";
 
 interface PlatformImageInput {
   containerId: string;
@@ -42,13 +44,17 @@ const activityFunction: AzureFunction = async function (
     );
     const [category, sizes, type, ...rest] = imageData.tags;
     let purpose = rest[0];
-    const fileName = path.parse(imageData.imageUrl).base;
 
     const imageResponse = await fetch(imageData.imageUrl);
-    const imageBase64 = atob(imageResponse.body.read());
+    const imageBuffer = imageResponse.body.read();
+    const imgSize = imageSize(imageBuffer);
+    const imageBase64 = atob(imageBuffer);
 
     const uploadResponse = await containerClient.uploadBlockBlob(
-      fileName,
+      ImageKey({
+        width: imgSize.width,
+        height: imgSize.height,
+      }),
       imageBase64,
       imageBase64.length,
       {
