@@ -31,18 +31,19 @@ export interface ManifestInfo {
 }
 
 export interface Icon {
-  src: string,
-  sizes: string,
-  purpose: string,
-  type: string,
-  generated?: boolean
+  src: string;
+  sizes: string;
+  purpose: string;
+  type: string;
+  generated?: boolean;
 }
 
 export interface Screenshot {
-  src: string,
-  sizes: string,
-  purpose: string,
-  type: string
+  src: string;
+  sizes: string;
+  purpose: string;
+  type: string;
+  generated: boolean;
 }
 
 export enum ManifestFormat {
