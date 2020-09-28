@@ -1,4 +1,4 @@
-﻿import { AzureFunction, Context } from "@azure/functions";
+import { AzureFunction, Context } from "@azure/functions";
 import { BlockBlobUploadResponse } from "@azure/storage-blob";
 import * as Jimp from "jimp/es";
 import atob from "../utils/base64/atob";
@@ -36,8 +36,7 @@ const activityFunction: AzureFunction = async function (
     const height = Number(heightStr);
     image.resize(width, height);
 
-    const imageBuffer = await image.getBufferAsync(Jimp.MIME_PNG);
-    const imageBase64 = atob(imageBuffer);
+    const imageBase64 = await image.getBase64Async(Jimp.MIME_PNG);
     const uploadRes = await containerClient.uploadBlockBlob(
       ImageKey({
         width,
