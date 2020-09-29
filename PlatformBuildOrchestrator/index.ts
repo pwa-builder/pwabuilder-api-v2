@@ -15,6 +15,7 @@ import * as df from "durable-functions";
 import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
 import { MIME_PNG } from "jimp/es";
 import { PlatformGenerateImageInput } from "../PlatformGenerateImage";
+import { PlatformGenerateZipInput } from "../PlatformGenerateZip";
 import { ReadContainerInput, ReadContainerOutput } from "../ReadContainer";
 import { isBigger } from "../utils/icons";
 import { PlatformId, requiredPlatformImages } from "../utils/platform";
@@ -75,8 +76,11 @@ const orchestrator = df.orchestrator(function* (
   yield context.df.Task.all(missingImages);
 
   // Create zip and get zip link
-  yield context.df.callActivity("PlatformCreateZip", {});
-  // TODO figure this out
+  const zipLink = yield context.df.callActivity("PlatformCreateZip", {
+    ...input,
+  } as PlatformGenerateZipInput);
+
+  return zipLink;
 });
 
 export default orchestrator;
