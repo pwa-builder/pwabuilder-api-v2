@@ -45,7 +45,7 @@ export function ImageKey(properties: Partial<ImageProperties>): ImageKey {
     size = properties.width + "x" + properties.height;
   }
 
-  if (properties.purpose) {
+  if (properties.purpose && properties.purpose !== "none") {
     purpose = "-" + properties.purpose;
   }
 
