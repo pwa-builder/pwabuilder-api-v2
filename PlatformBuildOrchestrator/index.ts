@@ -12,16 +12,21 @@
  */
 
 import * as df from "durable-functions";
+import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
+import { MIME_PNG } from "jimp/es";
+import { PlatformGenerateImageInput } from "../PlatformGenerateImage";
 import { ReadContainerInput, ReadContainerOutput } from "../ReadContainer";
+import { isBigger } from "../utils/icons";
 import { PlatformId, requiredPlatformImages } from "../utils/platform";
-import { getBlobServiceClient } from "../utils/storage";
 
 interface PlatformBuilderOrchestratorInput {
   containerId: string;
   platform: PlatformId;
 }
 
-const orchestrator = df.orchestrator(function* (context) {
+const orchestrator = df.orchestrator(function* (
+  context: IOrchestrationFunctionContext
+): Generator<any, any, any> {
   const outputs = [];
   /*
     1. validate step (skipped atm, not 100% sure if necessary not CLI).
@@ -40,22 +45,38 @@ const orchestrator = df.orchestrator(function* (context) {
 
   // Generate Missing Images
   const missingImages = [];
+  let largestImage: string = "";
   const imagesInContainerMap = new Map(
     container.contents.map((entry) => {
+      if (!largestImage || !isBigger(largestImage, entry.name)) {
+        largestImage = entry.name;
+      }
+
       return [entry.name, entry];
     })
   );
-  const requiredImageMap = requiredPlatformImages(input.platform);
-  for (const [key, properties] of requiredImageMap.entries()) {
-  }
 
+  for (const [key, properties] of requiredPlatformImages(
+    input.platform
+  ).entries()) {
+    // check if the image exists or is uploaded
+    if (!imagesInContainerMap.has(key)) {
+      missingImages.push(
+        context.df.callActivity("PlatformGenerateImage", {
+          ...properties,
+          containerId: input.containerId,
+          getImageUrl: undefined,
+          biggestImageBlobName: largestImage,
+          type: MIME_PNG,
+        } as PlatformGenerateImageInput)
+      );
+    }
+  }
   yield context.df.Task.all(missingImages);
 
-  // Create Zip
-
-  // Get Zip Link
-
-  return outputs;
+  // Create zip and get zip link
+  yield context.df.callActivity("PlatformCreateZip", {});
+  // TODO figure this out
 });
 
 export default orchestrator;
