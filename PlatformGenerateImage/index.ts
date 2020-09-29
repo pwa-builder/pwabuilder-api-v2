@@ -31,7 +31,6 @@ const activityFunction: AzureFunction = async function (
 
     // Check duplicate, if duplicate, then return early
     const key = ImageKey(imageData);
-    const blobClient = containerClient.getBlobClient(key);
 
     // read from url source or from from blob (base64 encoded)
     let baseImage: Jimp;
