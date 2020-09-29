@@ -15,10 +15,14 @@ import * as df from "durable-functions";
 import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
 import { MIME_PNG } from "jimp/es";
 import { PlatformGenerateImageInput } from "../PlatformGenerateImage";
-import { PlatformGenerateZipInput } from "../PlatformGenerateZip";
 import { ReadContainerInput, ReadContainerOutput } from "../ReadContainer";
 import { isBigger } from "../utils/icons";
-import { PlatformId, requiredPlatformImages } from "../utils/platform";
+import {
+  PlatformGenerateZipInput,
+  PlatformGenerateZipOutput,
+  PlatformId,
+  requiredPlatformImages,
+} from "../utils/platform";
 
 interface PlatformBuilderOrchestratorInput {
   containerId: string;
@@ -76,11 +80,14 @@ const orchestrator = df.orchestrator(function* (
   yield context.df.Task.all(missingImages);
 
   // Create zip and get zip link
-  const zipLink = yield context.df.callActivity("PlatformCreateZip", {
-    ...input,
-  } as PlatformGenerateZipInput);
+  const zipDetails: PlatformGenerateZipOutput = yield context.df.callActivity(
+    `PlatformGenerateZip-${input.platform}`,
+    {
+      ...input,
+    } as PlatformGenerateZipInput
+  );
 
-  return zipLink;
+  return zipDetails.link;
 });
 
 export default orchestrator;

@@ -1,6 +1,15 @@
 type ImageKey = string;
 type SpaceSeparatedList = string;
 
+export interface PlatformGenerateZipOutput {
+  link: string;
+}
+
+export interface PlatformGenerateZipInput {
+  containerId: string;
+  platform: PlatformId;
+}
+
 export interface ImageProperties {
   width: number;
   height: number;
