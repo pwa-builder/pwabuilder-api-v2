@@ -3,7 +3,7 @@ import * as path from "path";
 import { BlobServiceClient } from "@azure/storage-blob";
 import ExceptionOf, { ExceptionType } from "../Exception";
 import { Context } from "@azure/functions";
-import { Manifest } from "../interfaces";
+import { Manifest, ManifestInfo } from "../interfaces";
 
 export interface MessageQueueConfig {
   storageAccount: string;
@@ -63,13 +63,26 @@ export function getBlobServiceClient(): BlobServiceClient {
   const connectionString = process.env.AzureWebJobsStorage;
 
   if (connectionString) {
-    return BlobServiceClient.fromConnectionString(
-      connectionString
+    return BlobServiceClient.fromConnectionString(connectionString);
+  } else {
+    throw new Error(
+      "Connection string for AzureWebJobsStorage could not be found"
     );
   }
-  else {
-    throw new Error("Connection string for AzureWebJobsStorage could not be found");
-  }
+}
+
+export async function getManifest(
+  containerId: string,
+  blobServiceClient?: BlobServiceClient
+): Promise<Manifest> {
+  const serviceClient = blobServiceClient || getBlobServiceClient();
+  const containerClient = serviceClient.getContainerClient(containerId);
+  const manifestClient = containerClient.getBlobClient("manifest.json");
+
+  return manifestClient
+    .downloadToBuffer()
+    .then((buffer) => buffer.toString("utf8"))
+    .then((manifestStr) => JSON.parse(manifestStr)) as Promise<Manifest>;
 }
 
 export function addImagesToContainer(
