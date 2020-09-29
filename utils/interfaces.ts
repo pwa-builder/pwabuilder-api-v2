@@ -1,6 +1,41 @@
+type HexCode = string;
+import {
+  ManifestImageResource,
+  SpaceSeparatedList,
+  ExternalApplicationResource,
+  ShortcutItem,
+} from "./w3c";
+
 // w3c manifest
 export interface Manifest {
+  dir: "auto" | string;
+  lang: "en-US" | "fr" | string;
+  name: string;
+  short_name: string;
+  description: string;
+  categories: SpaceSeparatedList;
+  iarc_rating_id: string;
   start_url: string;
+  icons: Array<ManifestImageResource>;
+  screenshots: Array<ManifestImageResource>;
+  display: "browser" | "fullscreen" | "standalone" | "minimal-ui";
+  orientation:
+    | "any"
+    | "natural"
+    | "landscape"
+    | "portrait"
+    | "portrait-primary"
+    | "portrait-secondary"
+    | "landscape-primary"
+    | "landscape-secondary";
+  theme_color: HexCode;
+  background_color: HexCode;
+  scope: string;
+  related_applications?: Array<ExternalApplicationResource>;
+  prefer_related_application?: boolean;
+  shortcuts: Array<ShortcutItem>;
+
+  // TODO: populate and remove
   [name: string]: any;
 }
 
@@ -18,13 +53,7 @@ export interface ManifestInfo {
   format: ManifestFormat;
   generatedUrl: string;
   content: Manifest;
-  default: {
-    // subset of the w3c manifest
-    short_name: string;
-    [name: string]: any;
-    icons: Array<Icon>;
-    screenshots: Array<Screenshot>;
-  };
+  default: Partial<Manifest>;
   errors: Array<ManifestGuidance>;
   suggestions: Array<ManifestGuidance>;
   warnings: Array<ManifestGuidance>;
