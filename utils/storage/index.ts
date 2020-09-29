@@ -74,30 +74,19 @@ export function getBlobServiceClient(): BlobServiceClient {
 export async function getManifest(
   containerId: string,
   blobServiceClient?: BlobServiceClient
-): Promise<Manifest> {
+): Promise<Buffer> {
   const serviceClient = blobServiceClient || getBlobServiceClient();
   const containerClient = serviceClient.getContainerClient(containerId);
   const manifestClient = containerClient.getBlobClient("manifest.json");
 
-  return manifestClient
-    .downloadToBuffer()
-    .then((buffer) => buffer.toString("utf8"))
-    .then((manifestStr) => JSON.parse(manifestStr)) as Promise<Manifest>;
+  return manifestClient.downloadToBuffer();
 }
 
-export function addImagesToContainer(
-  id: string,
-  manifest: Manifest,
-  context?: Context
-) {
-  const containerClient = getBlobServiceClient().getContainerClient(id);
-
-  for (const icon of manifest.icons) {
-    const parsedUrl = path.parse(icon);
-
-    containerClient.getBlobClient(icon);
-  }
-
-  for (const screenshot of manifest.screenshots) {
-  }
+export async function getManifestJson(
+  containerId: string,
+  blobServiceClient?: BlobServiceClient
+): Promise<Manifest> {
+  return getManifest(containerId, blobServiceClient)
+    .then((buffer) => buffer.toString("utf8"))
+    .then((manifestStr) => JSON.parse(manifestStr)) as Promise<Manifest>;
 }

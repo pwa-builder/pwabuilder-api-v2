@@ -1,4 +1,4 @@
-import { Icon, Manifest } from "../interfaces";
+import { Manifest } from "../interfaces";
 
 export function isDataUri(uri: string): boolean {
   return (
