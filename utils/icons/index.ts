@@ -7,13 +7,6 @@ export function isDataUri(uri: string): boolean {
   );
 }
 
-export function removeGeneratedImageEntries(manifest: Manifest) {
-  manifest.icons = (manifest.icons || []).filter((icon) => !icon.generated);
-  manifest.screenshots = (manifest.screenshots || []).filter(
-    (icon) => !icon.generated
-  );
-}
-
 type SizeString = string;
 export function getSize(
   blobName: SizeString
