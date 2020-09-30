@@ -1,8 +1,11 @@
+import { SASQueryParameters } from "@azure/storage-blob";
+
 type ImageKey = string;
 type SpaceSeparatedList = string;
 
 export interface PlatformGenerateZipOutput {
   link: string;
+  zipSAS: SASQueryParameters;
 }
 
 export interface PlatformGenerateZipInput {

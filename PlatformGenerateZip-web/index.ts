@@ -19,6 +19,10 @@ import {
   PlatformGenerateZipOutput,
 } from "../utils/platform";
 import { getBlobServiceClient, getManifestJson } from "../utils/storage";
+import {
+  ContainerSASPermissions,
+  generateBlobSASQueryParameters,
+} from "@azure/storage-blob";
 
 type size = string;
 type index = number;
@@ -128,10 +132,33 @@ const activityFunction: AzureFunction = async function (
     // uploadResponse.
   }
 
-  // TODO: Shared Access Signature generation
+  // Shared Access Signature generation
+  const startsOn = new Date();
+  const expiresOn = new Date();
+  expiresOn.setHours(expiresOn.getHours() + 6);
+  const delegatedKey = await serviceClient.getUserDelegationKey(
+    startsOn,
+    expiresOn
+  );
+
+  console.log(delegatedKey);
+
+  const zipSAS = generateBlobSASQueryParameters(
+    {
+      containerName: input.containerId,
+      permissions: ContainerSASPermissions.parse("r"),
+      startsOn,
+      expiresOn,
+    },
+    delegatedKey,
+    process.env.ACCOUNT_NAME as string
+  );
+
+  context.log(zipSAS);
 
   return {
     link: "testing",
+    zipSAS,
   };
 };
 
