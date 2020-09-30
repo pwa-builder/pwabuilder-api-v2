@@ -10,6 +10,7 @@
  */
 
 import * as url from "url";
+import * as Stream from "stream";
 import { AzureFunction, Context } from "@azure/functions";
 import * as JSZip from "jszip";
 import { Manifest } from "../utils/interfaces";
@@ -112,7 +113,22 @@ const activityFunction: AzureFunction = async function (
 
   // write manifest to zip last
   zip.file("manifest.json", Buffer.from(manifest));
-  // TODO finalize zip
+
+  // upload zip and create a link using SAS permissions
+  const zipClient = containerClient.getBlobClient(
+    `${manifest.short_name}-${input.platform}`
+  );
+  const uploadResponse = await zipClient
+    .getBlockBlobClient()
+    .uploadStream(
+      Stream.Readable.from(zip.generateNodeStream({ streamFiles: true }))
+    );
+
+  if (!uploadResponse.errorCode) {
+    // uploadResponse.
+  }
+
+  // TODO: Shared Access Signature generation
 
   return {
     link: "testing",

@@ -31,5 +31,6 @@ export function isBigger(current: SizeString, other: SizeString): boolean {
   const { width: cW, height: cH } = getSize(current);
   const { width: oW, height: oH } = getSize(other);
 
+  // Add aspect ratio comparisons? https://en.wikipedia.org/wiki/Aspect_ratio_(image)
   return cW * cH >= oW * oH;
 }
