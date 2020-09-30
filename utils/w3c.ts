@@ -9,7 +9,6 @@ export interface ManifestImageResource {
   sizes: WidthByHeight | SpaceSeparatedList;
   type: MimeType | SpaceSeparatedList;
   purpose?: "monochrome" | "maskable" | "any" | SpaceSeparatedList;
-  generated?: boolean; // non-standard, PWA Specific
 }
 
 export interface ExternalApplicationResource {

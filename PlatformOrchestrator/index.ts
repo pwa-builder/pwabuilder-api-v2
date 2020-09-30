@@ -13,7 +13,11 @@
 
 import * as url from "url";
 import * as df from "durable-functions";
-import { Icon, Manifest, ManifestInfo, Screenshot } from "../utils/interfaces";
+import {
+  IconManifestImageResource,
+  Manifest,
+  ScreenshotManifestImageResource,
+} from "../utils/interfaces";
 
 interface PlatformOrchestratorInput {
   siteUrl: string;
@@ -26,30 +30,32 @@ const orchestrator = df.orchestrator(function* (context) {
   const manifest = input.manifest;
 
   if (manifest.icons) {
-    const iconActivities = manifest.icons.map((icon: Icon) =>
-      context.df.callActivity("PlatformDownloadImage", {
-        containerId: context.df.instanceId,
-        siteUrl: input.siteUrl,
-        imageUrl: new url.URL(icon.src, input.siteUrl),
-        tags: ["icons", icon.sizes, icon.type, icon.purpose],
-      })
+    const iconActivities = manifest.icons.map(
+      (icon: IconManifestImageResource) =>
+        context.df.callActivity("PlatformDownloadImage", {
+          containerId: context.df.instanceId,
+          siteUrl: input.siteUrl,
+          imageUrl: new url.URL(icon.src, input.siteUrl),
+          tags: ["icons", icon.sizes, icon.type, icon.purpose],
+        })
     );
     outputs = outputs.concat(iconActivities);
   }
 
   if (manifest.screenshots) {
-    const screenshotActivities = manifest.screenshots.map((screenshot: Screenshot) =>
-      context.df.callActivity("PlatformDownloadImage", {
-        containerId: context.df.instanceId,
-        siteUrl: input.siteUrl,
-        imageUrl: new url.URL(screenshot.src, input.siteUrl),
-        tags: [
-          "screenshots",
-          screenshot.sizes,
-          screenshot.type,
-          screenshot.purpose,
-        ],
-      })
+    const screenshotActivities = manifest.screenshots.map(
+      (screenshot: ScreenshotManifestImageResource) =>
+        context.df.callActivity("PlatformDownloadImage", {
+          containerId: context.df.instanceId,
+          siteUrl: input.siteUrl,
+          imageUrl: new url.URL(screenshot.src, input.siteUrl),
+          tags: [
+            "screenshots",
+            screenshot.sizes,
+            screenshot.type,
+            screenshot.purpose,
+          ],
+        })
     );
     outputs = outputs.concat(screenshotActivities);
   }

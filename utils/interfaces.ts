@@ -16,8 +16,8 @@ export interface Manifest {
   categories: SpaceSeparatedList;
   iarc_rating_id: string;
   start_url: string;
-  icons: Array<ManifestImageResource>;
-  screenshots: Array<ManifestImageResource>;
+  icons: Array<IconManifestImageResource>;
+  screenshots: Array<ScreenshotManifestImageResource>;
   display: "browser" | "fullscreen" | "standalone" | "minimal-ui";
   orientation:
     | "any"
@@ -59,20 +59,12 @@ export interface ManifestInfo {
   warnings: Array<ManifestGuidance>;
 }
 
-export interface Icon {
-  src: string;
-  sizes: string;
-  purpose: string;
-  type: string;
+export type IconManifestImageResource = ManifestImageResource &
+  PWABuilderImageResource;
+export type ScreenshotManifestImageResource = ManifestImageResource &
+  PWABuilderImageResource;
+export interface PWABuilderImageResource {
   generated?: boolean;
-}
-
-export interface Screenshot {
-  src: string;
-  sizes: string;
-  purpose: string;
-  type: string;
-  generated: boolean;
 }
 
 export enum BlobCategory {

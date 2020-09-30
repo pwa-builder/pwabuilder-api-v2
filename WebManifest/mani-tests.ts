@@ -1,4 +1,4 @@
-import { Icon, Manifest } from "../utils/interfaces";
+import { Icon, IconManifestImageResource, Manifest } from "../utils/interfaces";
 
 export const checkShortName = (data: Manifest) => {
   if (data.short_name) {
@@ -56,11 +56,11 @@ export const checkIcons = (data: Manifest) => {
 
 export const checkMaskableIcon = (data: Manifest) => {
   const hasIcons = checkIcons(data);
-  
+
   if (hasIcons) {
     let hasMask = false;
 
-    data.icons.forEach((icon: Icon) => {
+       data.icons.forEach((icon: IconManifestImageResource) => {
       if (icon.purpose && icon.purpose.includes('maskable')) {
         hasMask = true;
       }
