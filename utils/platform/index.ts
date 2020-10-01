@@ -19,8 +19,10 @@ export interface PlatformGenerateZipInput {
 export interface ImageProperties
   extends IconManifestImageResource,
     ScreenshotManifestImageResource {
+  category?: string;
   width: number;
   height: number;
+  size?: string;
   path?: string;
 }
 
@@ -43,8 +45,14 @@ export function requiredPlatformImages(
 }
 
 export function ImageKey(properties: Partial<ImageProperties>): ImageKey {
+  let category = "";
   let size = "";
   let purpose = "";
+
+  if (properties.category) {
+    category = properties.category + "-";
+  }
+
   if (properties.size) {
     size = properties.size;
   } else {
@@ -55,7 +63,7 @@ export function ImageKey(properties: Partial<ImageProperties>): ImageKey {
     purpose = "-" + properties.purpose;
   }
 
-  return `${size}${purpose}`;
+  return `${category}${size}${purpose}`;
 }
 
 // JSON object that correlates the PWABuilder Image Sizes for the platform
