@@ -1,4 +1,8 @@
 import { SASQueryParameters } from "@azure/storage-blob";
+import {
+  IconManifestImageResource,
+  ScreenshotManifestImageResource,
+} from "../interfaces";
 
 type ImageKey = string;
 type SpaceSeparatedList = string;
@@ -12,13 +16,12 @@ export interface PlatformGenerateZipInput {
   containerId: string;
   platform: PlatformId;
 }
-
-export interface ImageProperties {
+export interface ImageProperties
+  extends IconManifestImageResource,
+    ScreenshotManifestImageResource {
   width: number;
   height: number;
-  size: string;
   path?: string;
-  purpose?: "monochrome" | "maskable" | "any" | SpaceSeparatedList | "none";
 }
 
 export enum PlatformId {
