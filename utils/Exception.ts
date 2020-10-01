@@ -11,7 +11,7 @@ export enum ExceptionMessage {
   MANIFEST_FILE_UNSUPPORTED = "failed to read the json of the submitted manifest file",
   BLOB_STORAGE_FAILURE = "failed to create the azure resources for generating the app",
   BLOB_STORAGE_FAILURE_IMAGE = "failed to upload image to blob storage",
-  BLOB_READ_FAILURE = "failed to fetch resource from blob storage"
+  BLOB_READ_FAILURE = "failed to fetch resource from blob storage",
 }
 
 /*
