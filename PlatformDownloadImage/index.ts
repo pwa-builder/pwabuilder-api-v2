@@ -17,7 +17,7 @@ import fetch from "node-fetch";
 import { BlockBlobUploadResponse } from "@azure/storage-blob";
 import { ImageKey } from "../utils/platform";
 
-interface PlatformImageInput {
+export interface PlatformDownloadImageInput {
   containerId: string;
   category: string;
   siteUrl: string;
@@ -25,7 +25,7 @@ interface PlatformImageInput {
   tags: Array<string>;
 }
 
-interface PlatformImageTaskOutput {
+export interface PlatformDownloadImageOutput {
   blobRes?: BlockBlobUploadResponse;
   success: boolean;
   error?: ExceptionWrap;
@@ -33,8 +33,8 @@ interface PlatformImageTaskOutput {
 
 const activityFunction: AzureFunction = async function (
   context: Context,
-  imageData: PlatformImageInput
-): Promise<PlatformImageTaskOutput> {
+  imageData: PlatformDownloadImageInput
+): Promise<PlatformDownloadImageOutput> {
   let error;
   try {
     const blobServiceClient = getBlobServiceClient();

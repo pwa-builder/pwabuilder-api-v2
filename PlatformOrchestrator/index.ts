@@ -18,6 +18,11 @@ import {
   Manifest,
   ScreenshotManifestImageResource,
 } from "../utils/interfaces";
+import {
+  PlatformDownloadImageInput,
+  PlatformDownloadImageOutput,
+} from "../PlatformDownloadImage";
+import { Task } from "durable-functions/lib/src/classes";
 
 interface PlatformOrchestratorInput {
   siteUrl: string;
@@ -25,7 +30,7 @@ interface PlatformOrchestratorInput {
 }
 
 const orchestrator = df.orchestrator(function* (context) {
-  let outputs: Array<any> = [];
+  let outputs: Array<Task> = [];
   const input = context.df.getInput() as PlatformOrchestratorInput;
   const manifest = input.manifest;
 
@@ -35,9 +40,10 @@ const orchestrator = df.orchestrator(function* (context) {
         context.df.callActivity("PlatformDownloadImage", {
           containerId: context.df.instanceId,
           siteUrl: input.siteUrl,
-          imageUrl: new url.URL(icon.src, input.siteUrl),
+          imageUrl: new url.URL(icon.src, input.siteUrl).toString(),
+          category: "icons",
           tags: ["icons", icon.sizes, icon.type, icon.purpose],
-        })
+        } as PlatformDownloadImageInput)
     );
     outputs = outputs.concat(iconActivities);
   }
@@ -48,21 +54,24 @@ const orchestrator = df.orchestrator(function* (context) {
         context.df.callActivity("PlatformDownloadImage", {
           containerId: context.df.instanceId,
           siteUrl: input.siteUrl,
-          imageUrl: new url.URL(screenshot.src, input.siteUrl),
+          imageUrl: new url.URL(screenshot.src, input.siteUrl).toString(),
+          category: "screenshots",
           tags: [
             "screenshots",
             screenshot.sizes,
             screenshot.type,
             screenshot.purpose,
           ],
-        })
+        } as PlatformDownloadImageInput)
     );
     outputs = outputs.concat(screenshotActivities);
   }
 
   context.log("start the sub jobs");
   yield context.df.Task.all(outputs);
-  context.log(outputs);
+  context.log(
+    outputs.map((task) => task.result as PlatformDownloadImageOutput)
+  );
   // outputs.reduce((prev, cur) => prev + cur )
   return outputs;
 });
