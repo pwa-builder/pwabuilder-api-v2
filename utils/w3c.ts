@@ -7,7 +7,7 @@ export type SpaceSeparatedList = string;
 export interface ManifestImageResource {
   src: string;
   sizes: WidthByHeight | SpaceSeparatedList;
-  type: MimeType | SpaceSeparatedList;
+  type: MimeType | SpaceSeparatedList; //use Jimp.MIME_<type>
   purpose?: "monochrome" | "maskable" | "any" | SpaceSeparatedList;
 }
 
