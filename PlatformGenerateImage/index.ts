@@ -16,7 +16,6 @@ export interface PlatformGenerateImageInput extends ImageProperties {
   getImageUrl?: string;
   biggestImageBlobName?: string; //${width}x${height}${"-" + purpose?}
   category: string; // "icons" | "screenshots"
-  type?: string; // Jimp.MIME_<type>
 }
 
 const activityFunction: AzureFunction = async function (
@@ -54,16 +53,22 @@ const activityFunction: AzureFunction = async function (
       imageBase64,
       imageBase64.length,
       {
+        blobHTTPHeaders: {
+          blobContentType: baseImage.getMIME(),
+          blobContentEncoding: "base64"
+        },
         tags: {
           category: imageData.category,
-          size: imageData.size,
+          size:
+            imageData.size || `${baseImage.getWidth()}${baseImage.getHeight()}`,
           type: imageData.type || baseImage.getMIME(),
           purpose: imageData.purpose || "none",
           generated: "true",
         },
         metadata: {
           category: imageData.category,
-          size: imageData.size,
+          size:
+            imageData.size || `${baseImage.getWidth()}${baseImage.getHeight()}`,
           type: imageData.type || baseImage.getMIME(),
           purpose: imageData.purpose || "none",
           generated: "true",

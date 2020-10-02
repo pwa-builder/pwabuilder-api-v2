@@ -10,10 +10,9 @@
  */
 
 import { AzureFunction, Context } from "@azure/functions";
-import * as Jimp from "jimp/es";
+import * as Jimp from "jimp";
 import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
-import fetch from "node-fetch";
 import { BlockBlobUploadResponse } from "@azure/storage-blob";
 import { ImageKey } from "../utils/platform";
 
@@ -43,22 +42,28 @@ const activityFunction: AzureFunction = async function (
     );
     const [category, sizes, type, ...rest] = imageData.tags;
     const purpose = rest[0] || "none";
-    const imageResponse = await fetch(imageData.imageUrl);
-    const imageBuffer = imageResponse.body.read();
-    const image = await Jimp.read(imageBuffer as Buffer);
+    const image = await Jimp.read(imageData.imageUrl);
     const width = image.getWidth();
     const height = image.getHeight();
-    const imageBase64 = await image.getBase64Async(Jimp.MIME_PNG);
-    const uploadResponse = await containerClient.uploadBlockBlob(
+    const imageBase64 = await image.getBase64Async(image.getMIME());
+    const imageKey =
       ImageKey({
         width,
         height,
-        size: `${width}x${height}`,
         purpose,
-      }),
+        category,
+      }) +
+      "." +
+      image.getExtension();
+    const blobClient = await containerClient.getBlockBlobClient(imageKey);
+    const uploadResponse = await blobClient.upload(
       imageBase64,
       imageBase64.length,
       {
+        blobHTTPHeaders: {
+          blobContentType: image.getMIME(),
+          blobContentEncoding: "base64",
+        },
         metadata: {
           category,
           sizes,
@@ -76,11 +81,11 @@ const activityFunction: AzureFunction = async function (
       }
     );
     return {
-      blobRes: uploadResponse.response,
+      blobRes: uploadResponse,
       success: true,
     };
   } catch (exception) {
-    context.log(error);
+    context.log(exception);
     error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
   }
 
