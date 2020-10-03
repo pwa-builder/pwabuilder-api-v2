@@ -1,3 +1,6 @@
+import * as stream from "stream";
+import * as Jimp from "jimp";
+
 export function isDataUri(uri: string): boolean {
   return (
     uri.match(/^(data:)([\w\/\+-]*)(;charset=[\w-]+|;base64){0,1},(.*)/gi)
@@ -24,4 +27,15 @@ export function isBigger(current: SizeString, other: SizeString): boolean {
 
   // Add aspect ratio comparisons? https://en.wikipedia.org/wiki/Aspect_ratio_(image)
   return cW * cH >= oW * oH;
+}
+
+export async function createImageStreamFromJimp(
+  jimpImage: Jimp
+): Promise<stream.Readable> {
+  const imageBuffer = await jimpImage.getBufferAsync(jimpImage.getMIME());
+  const imageStream = new stream.Readable();
+  imageStream.push(imageBuffer);
+  imageStream.push(null);
+
+  return imageStream;
 }

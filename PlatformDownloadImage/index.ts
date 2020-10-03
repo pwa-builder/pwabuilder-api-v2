@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -45,24 +45,24 @@ const activityFunction: AzureFunction = async function (
     const image = await Jimp.read(imageData.imageUrl);
     const width = image.getWidth();
     const height = image.getHeight();
-    const imageBase64 = await image.getBase64Async(image.getMIME());
-    const imageKey =
-      ImageKey({
-        width,
-        height,
-        purpose,
-        category,
-      }) +
-      "." +
-      image.getExtension();
+    const imageStream = await createImageStreamFromJimp(image);
+
+    const name = path.parse(imageData.imageUrl).base;
+    const imageKey = ImageKey({
+      width,
+      height,
+      purpose,
+      category,
+      name: name ? name : undefined,
+    });
     const blobClient = await containerClient.getBlockBlobClient(imageKey);
-    const uploadResponse = await blobClient.upload(
-      imageBase64,
-      imageBase64.length,
+    const uploadResponse = await blobClient.uploadStream(
+      imageStream,
+      undefined,
+      undefined,
       {
         blobHTTPHeaders: {
           blobContentType: image.getMIME(),
-          blobContentEncoding: "base64",
         },
         metadata: {
           category,

@@ -1,12 +1,14 @@
 ﻿import { AzureFunction, Context } from "@azure/functions";
-import { BlockBlobUploadResponse } from "@azure/storage-blob";
+import {
+  BlobUploadCommonResponse,
+} from "@azure/storage-blob";
 import * as Jimp from "jimp/es";
-import atob from "../utils/base64/atob";
+import { createImageStreamFromJimp } from "../utils/icons";
 import { ImageKey, ImageProperties } from "../utils/platform";
 import { getBlobServiceClient } from "../utils/storage";
 
 export interface PlatformGenerateImageOutput {
-  uploadRes?: BlockBlobUploadResponse;
+  uploadRes?: BlobUploadCommonResponse;
   success: boolean;
   error?: Error;
 }
@@ -30,6 +32,7 @@ const activityFunction: AzureFunction = async function (
 
     // Check duplicate, if duplicate, then return early
     const key = ImageKey(imageData);
+    const blobClient = containerClient.getBlockBlobClient(key);
 
     // read from url source or from from blob (base64 encoded)
     let baseImage: Jimp;
@@ -47,15 +50,16 @@ const activityFunction: AzureFunction = async function (
     const { width, height } = imageData;
     baseImage.resize(width, height);
 
-    const imageBase64 = await baseImage.getBase64Async(Jimp.MIME_PNG);
-    const uploadRes = await containerClient.uploadBlockBlob(
-      key,
-      imageBase64,
-      imageBase64.length,
+    const imageStream = await createImageStreamFromJimp(baseImage);
+
+    const uploadRes = await blobClient.uploadStream(
+      imageStream,
+      undefined,
+      undefined,
       {
         blobHTTPHeaders: {
           blobContentType: baseImage.getMIME(),
-          blobContentEncoding: "base64"
+          blobContentEncoding: "base64",
         },
         tags: {
           category: imageData.category,
@@ -77,8 +81,8 @@ const activityFunction: AzureFunction = async function (
     );
 
     return {
-      uploadRes: uploadRes.response,
-      success: uploadRes.response.errorCode ? false : true,
+      uploadRes: uploadRes,
+      success: uploadRes.errorCode ? false : true,
     };
   } catch (e) {
     error = e;
