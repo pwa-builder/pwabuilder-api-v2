@@ -1,7 +1,5 @@
 ﻿import { AzureFunction, Context } from "@azure/functions";
-import {
-  BlobUploadCommonResponse,
-} from "@azure/storage-blob";
+import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import * as Jimp from "jimp/es";
 import { createImageStreamFromJimp } from "../utils/icons";
 import { ImageKey, ImageProperties } from "../utils/platform";
@@ -50,11 +48,14 @@ const activityFunction: AzureFunction = async function (
     const { width, height } = imageData;
     baseImage.resize(width, height);
 
-    const imageStream = await createImageStreamFromJimp(baseImage);
+    const {
+      stream: imageStream,
+      buffer: imageBuffer,
+    } = await createImageStreamFromJimp(baseImage);
 
     const uploadRes = await blobClient.uploadStream(
       imageStream,
-      undefined,
+      imageBuffer.byteLength,
       undefined,
       {
         blobHTTPHeaders: {

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -9,12 +9,14 @@
  *   function app in Kudu
  */
 
+import * as path from "path";
 import { AzureFunction, Context } from "@azure/functions";
 import * as Jimp from "jimp";
 import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
-import { BlockBlobUploadResponse } from "@azure/storage-blob";
+import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import { ImageKey } from "../utils/platform";
+import { createImageStreamFromJimp } from "../utils/icons";
 
 export interface PlatformDownloadImageInput {
   containerId: string;
@@ -25,16 +27,22 @@ export interface PlatformDownloadImageInput {
 }
 
 export interface PlatformDownloadImageOutput {
-  blobRes?: BlockBlobUploadResponse;
+  blobRes?: BlobUploadCommonResponse;
   success: boolean;
   error?: ExceptionWrap;
+  err?: Error;
+
+  // TODO RM lazy mode
+  [name: string]: any;
 }
 
 const activityFunction: AzureFunction = async function (
   context: Context,
   imageData: PlatformDownloadImageInput
 ): Promise<PlatformDownloadImageOutput> {
-  let error;
+  //TODO could be image size collision!
+
+  let error, err;
   try {
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(
@@ -45,7 +53,10 @@ const activityFunction: AzureFunction = async function (
     const image = await Jimp.read(imageData.imageUrl);
     const width = image.getWidth();
     const height = image.getHeight();
-    const imageStream = await createImageStreamFromJimp(image);
+    const {
+      stream: imageStream,
+      buffer: imageBuffer,
+    } = await createImageStreamFromJimp(image);
 
     const name = path.parse(imageData.imageUrl).base;
     const imageKey = ImageKey({
@@ -58,7 +69,7 @@ const activityFunction: AzureFunction = async function (
     const blobClient = await containerClient.getBlockBlobClient(imageKey);
     const uploadResponse = await blobClient.uploadStream(
       imageStream,
-      undefined,
+      imageBuffer.byteLength,
       undefined,
       {
         blobHTTPHeaders: {
@@ -85,6 +96,7 @@ const activityFunction: AzureFunction = async function (
       success: true,
     };
   } catch (exception) {
+    context.log("\n\n\nException thrown in download image");
     context.log(exception);
     error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
   }

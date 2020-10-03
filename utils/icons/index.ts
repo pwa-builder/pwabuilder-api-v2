@@ -29,13 +29,18 @@ export function isBigger(current: SizeString, other: SizeString): boolean {
   return cW * cH >= oW * oH;
 }
 
+interface JimpStreamInterface {
+  stream: stream.Readable;
+  buffer: Buffer;
+}
+
 export async function createImageStreamFromJimp(
   jimpImage: Jimp
-): Promise<stream.Readable> {
-  const imageBuffer = await jimpImage.getBufferAsync(jimpImage.getMIME());
+): Promise<JimpStreamInterface> {
+  const buffer = await jimpImage.getBufferAsync(jimpImage.getMIME());
   const imageStream = new stream.Readable();
-  imageStream.push(imageBuffer);
+  imageStream.push(buffer);
   imageStream.push(null);
 
-  return imageStream;
+  return { stream: imageStream, buffer };
 }
