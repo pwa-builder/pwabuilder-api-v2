@@ -34,17 +34,22 @@ const httpTrigger: AzureFunction = async function (
         } as PlatformBuildOrchestratorInput
       );
 
-      // TODO status check stuff, figure out here
+      const statusQueryResponse = client.createCheckStatusResponse(
+        context.bindingData.req,
+        orchestratorId
+      );
+
       context.res = {
-        body: {},
+        body: {
+          orchestratorId: orchestratorId,
+          statusRes: statusQueryResponse,
+        },
       };
       return;
     }
 
     id = createId(req.query.site);
-    // context.log("id: " + id);
     const manifest = req.body; // pass body as manifest
-    // context.log(manifest);
 
     // prepare container and add manifest to container
     await createContainer(id, context);

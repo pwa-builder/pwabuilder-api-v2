@@ -1,5 +1,5 @@
 import * as stream from "stream";
-import * as Jimp from "jimp";
+import * as Jimp from "jimp/es";
 
 export function isDataUri(uri: string): boolean {
   return (
