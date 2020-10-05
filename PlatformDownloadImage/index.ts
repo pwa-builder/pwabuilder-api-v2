@@ -31,18 +31,13 @@ export interface PlatformDownloadImageOutput {
   success: boolean;
   error?: ExceptionWrap;
   err?: Error;
-
-  // TODO RM lazy mode
-  [name: string]: any;
 }
 
 const activityFunction: AzureFunction = async function (
   context: Context,
   imageData: PlatformDownloadImageInput
 ): Promise<PlatformDownloadImageOutput> {
-  //TODO could be image size collision!
-
-  let error, err;
+  let error;
   try {
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(
