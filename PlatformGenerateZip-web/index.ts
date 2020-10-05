@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -84,14 +84,12 @@ const activityFunction: AzureFunction = async function (
           .folder("icons")
           ?.file(
             blob.name + "",
-            containerClient.getBlobClient(blob.name).downloadToBuffer(),
-            {
-              base64: true,
-            }
+            containerClient.getBlobClient(blob.name).downloadToBuffer()
           );
       }
     } else if (category === "screenshots") {
-      [size, purpose] = blob.name.split("-");
+      let imgCategory;
+      [size, purpose, imgCategory, purpose] = blob.name.split("-");
 
       if (screenshotsMap.has(size)) {
         const screenshotManifestEntry =
