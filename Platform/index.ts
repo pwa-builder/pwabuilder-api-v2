@@ -1,6 +1,7 @@
 import * as df from "durable-functions";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createContainer, addManifestToContainer } from "../utils/storage";
+import { PlatformBuildOrchestratorInput } from "../PlatformBuildOrchestrator";
 import { createId } from "../utils/storage";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
 import { IHttpResponse } from "durable-functions/lib/src/classes";
@@ -24,16 +25,19 @@ const httpTrigger: AzureFunction = async function (
 
     // build path
     if (req.params.containerId && req.query.platform) {
-      const orchestratorId = await client.startNew("PlatformBuildOrchestrator", undefined, {
-        clientId: req.params.containerId,
-        platform: req.query.platform,
-      });
+      const orchestratorId = await client.startNew(
+        "PlatformBuildOrchestrator",
+        undefined,
+        {
+          containerId: req.params.containerId,
+          platform: req.query.platform,
+        } as PlatformBuildOrchestratorInput
+      );
 
       // TODO status check stuff, figure out here
       context.res = {
-        body: {
-        }
-      }
+        body: {},
+      };
       return;
     }
 
@@ -54,7 +58,7 @@ const httpTrigger: AzureFunction = async function (
       id
     );
 
-    const statusQueryResponseBody = (statusQueryResponse.body as any);
+    const statusQueryResponseBody = statusQueryResponse.body as any;
 
     context.res = {
       body: {
