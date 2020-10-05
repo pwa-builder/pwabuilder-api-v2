@@ -4,7 +4,6 @@ import { createContainer, addManifestToContainer } from "../utils/storage";
 import { PlatformBuildOrchestratorInput } from "../PlatformBuildOrchestrator";
 import { createId } from "../utils/storage";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
-import { IHttpResponse } from "durable-functions/lib/src/classes";
 
 /*
   Platform HTTP Trigger
