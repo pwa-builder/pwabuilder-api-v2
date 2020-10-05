@@ -24,7 +24,7 @@ import {
   requiredPlatformImages,
 } from "../utils/platform";
 
-interface PlatformBuilderOrchestratorInput {
+export interface PlatformBuildOrchestratorInput {
   containerId: string;
   platform: PlatformId;
 }
@@ -41,7 +41,7 @@ const orchestrator = df.orchestrator(function* (
     5. package apps in zips
     6. send back url to zip file
   */
-  const input = context.df.getInput() as PlatformBuilderOrchestratorInput;
+  const input = context.df.getInput() as PlatformBuildOrchestratorInput;
   // Read container contents
   const readContainerTask = yield context.df.callActivity("ReadContainer", {
     containerId: input.containerId,
