@@ -55,8 +55,6 @@ const activityFunction: AzureFunction = async function (
         manifestImageEntry.src,
         input.siteUrl
       ).toString();
-      context.log("\n\n\n" + imageUrl);
-
       const purpose = manifestImageEntry.purpose || "none";
       const image = await Jimp.read(imageUrl);
       const type = manifestImageEntry.type || image.getMIME();
@@ -69,8 +67,6 @@ const activityFunction: AzureFunction = async function (
         buffer: imageBuffer,
       } = await createImageStreamFromJimp(image);
 
-      context.log("\n\n\ngot image");
-
       const name = path.parse(imageUrl).base;
       const imageKey = ImageKey({
         width,
@@ -80,11 +76,7 @@ const activityFunction: AzureFunction = async function (
         name: name ? name : undefined,
       });
 
-      context.log("\n\n\nimage key: " + imageKey);
-
       const blobClient = await containerClient.getBlockBlobClient(imageKey);
-
-      context.log("\n\n\nblob image");
       const metaDataAndTags = {};
       const uploadStreamOptions = {
         blobHTTPHeaders: {
@@ -105,8 +97,6 @@ const activityFunction: AzureFunction = async function (
           originalUrl: imageUrl,
         },
       };
-      context.log(uploadStreamOptions);
-      context.log("\n\n\n");
 
       const uploadResponse = await blobClient.uploadStream(
         imageStream,
@@ -114,20 +104,15 @@ const activityFunction: AzureFunction = async function (
         undefined,
         uploadStreamOptions
       );
-      context.log("\n\n\nuploaded image");
 
       responses.push(uploadResponse);
     }
 
-    context.log("\n\n\ndonzo");
-
-    context.log(responses);
     return {
       blobResponses: responses,
       success: true,
     };
   } catch (exception) {
-    context.log("\n\n\nException thrown in download image");
     context.log(exception);
     error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
   }

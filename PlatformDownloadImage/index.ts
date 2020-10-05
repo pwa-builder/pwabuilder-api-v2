@@ -100,8 +100,6 @@ const activityFunction: AzureFunction = async function (
       success: true,
     };
   } catch (exception) {
-    context.log("\n\n\nException thrown in download image");
-    context.log(exception);
     error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
   }
 

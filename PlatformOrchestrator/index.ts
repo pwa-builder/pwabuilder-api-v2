@@ -18,10 +18,7 @@ import {
   Manifest,
   ScreenshotManifestImageResource,
 } from "../utils/interfaces";
-import {
-  PlatformDownloadImageInput,
-  PlatformDownloadImageOutput,
-} from "../PlatformDownloadImage";
+import { PlatformDownloadImageInput } from "../PlatformDownloadImage";
 import { Task } from "durable-functions/lib/src/classes";
 
 interface PlatformOrchestratorInput {
@@ -36,43 +33,39 @@ const orchestrator = df.orchestrator(function* (context) {
 
   if (manifest.icons) {
     const iconActivities = manifest.icons.map(
-      (icon: IconManifestImageResource) =>
-        context.df.callActivity("PlatformDownloadImage", {
+      (icon: IconManifestImageResource) => {
+        const imageUrl = new url.URL(icon.src, input.siteUrl).toString();
+        return context.df.callActivity("PlatformDownloadImage", {
           containerId: context.df.instanceId,
           siteUrl: input.siteUrl,
-          imageUrl: new url.URL(icon.src, input.siteUrl).toString(),
+          imageUrl,
           category: "icons",
           tags: ["icons", icon.sizes, icon.type, icon.purpose],
-        } as PlatformDownloadImageInput)
+        } as PlatformDownloadImageInput);
+      }
     );
     outputs = outputs.concat(iconActivities);
   }
 
   if (manifest.screenshots) {
     const screenshotActivities = manifest.screenshots.map(
-      (screenshot: ScreenshotManifestImageResource) =>
-        context.df.callActivity("PlatformDownloadImage", {
+      (screenshot: ScreenshotManifestImageResource) => {
+        const imageUrl = new url.URL(screenshot.src, input.siteUrl).toString();
+        return context.df.callActivity("PlatformDownloadImage", {
           containerId: context.df.instanceId,
           siteUrl: input.siteUrl,
-          imageUrl: new url.URL(screenshot.src, input.siteUrl).toString(),
+          imageUrl: imageUrl,
           category: "screenshots",
-          tags: [
-            "screenshots",
-            screenshot.sizes,
-            screenshot.type,
-            screenshot.purpose,
-          ],
-        } as PlatformDownloadImageInput)
+        } as PlatformDownloadImageInput);
+      }
     );
     outputs = outputs.concat(screenshotActivities);
   }
 
-  context.log("start the sub jobs");
+  context.log(outputs);
   yield context.df.Task.all(outputs);
-  context.log(
-    outputs.map((task) => task.result as PlatformDownloadImageOutput)
-  );
-  // outputs.reduce((prev, cur) => prev + cur )
+
+  context.log(outputs);
   return outputs;
 });
 

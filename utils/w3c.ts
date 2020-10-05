@@ -8,7 +8,7 @@ export interface ManifestImageResource {
   src: string;
   sizes: WidthByHeight | SpaceSeparatedList;
   type: MimeType | SpaceSeparatedList; //use Jimp.MIME_<type>
-  purpose?: "monochrome" | "maskable" | "any" | SpaceSeparatedList;
+  purpose?: "monochrome" | "maskable" | "any" | SpaceSeparatedList | "none";
 }
 
 export interface ExternalApplicationResource {

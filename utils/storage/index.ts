@@ -27,12 +27,19 @@ export async function createContainer(
     },
   });
 
-  if (createRes.errorCode !== "ContainerAlreadyExists") {
+  if (!createRes.succeeded && createRes.errorCode !== "ContainerAlreadyExists") {
     throw ExceptionOf(
       ExceptionType.BLOB_STORAGE_FAILURE,
       new Error(`azure blob storage error code: ${createRes.errorCode}`)
     );
   }
+
+  // let pollCount = 10;
+  // for (; pollCount > 0; pollCount--) {
+  //   if (await containerClient.exists()) {
+  //     break;
+  //   }
+  // }
 }
 
 export async function addManifestToContainer(
