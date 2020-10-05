@@ -11,7 +11,7 @@
 
 import * as path from "path";
 import { AzureFunction, Context } from "@azure/functions";
-import * as Jimp from "jimp";
+import * as Jimp from "jimp/es";
 import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
