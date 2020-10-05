@@ -48,23 +48,28 @@ const activityFunction: AzureFunction = async function (
     const containerClient = blobServiceClient.getContainerClient(
       input.containerId
     );
-
     const responses: Array<BlobUploadCommonResponse> = [];
 
-    // TODO - Loop here
     for (const manifestImageEntry of input.manifest[input.category]) {
-      const { src, sizes, type } = manifestImageEntry;
-      const imageUrl = new url.URL(src, input.siteUrl).toString();
-      context.log(imageUrl);
+      const imageUrl = new url.URL(
+        manifestImageEntry.src,
+        input.siteUrl
+      ).toString();
+      context.log("\n\n\n" + imageUrl);
 
-      let purpose = manifestImageEntry.purpose || "none";
+      const purpose = manifestImageEntry.purpose || "none";
       const image = await Jimp.read(imageUrl);
+      const type = manifestImageEntry.type || image.getMIME();
       const width = image.getWidth();
       const height = image.getHeight();
+
+      const sizes = manifestImageEntry.sizes || `${width}x${height}`;
       const {
         stream: imageStream,
         buffer: imageBuffer,
       } = await createImageStreamFromJimp(image);
+
+      context.log("\n\n\ngot image");
 
       const name = path.parse(imageUrl).base;
       const imageKey = ImageKey({
@@ -74,34 +79,47 @@ const activityFunction: AzureFunction = async function (
         category: input.category,
         name: name ? name : undefined,
       });
+
+      context.log("\n\n\nimage key: " + imageKey);
+
       const blobClient = await containerClient.getBlockBlobClient(imageKey);
+
+      context.log("\n\n\nblob image");
+      const metaDataAndTags = {};
+      const uploadStreamOptions = {
+        blobHTTPHeaders: {
+          blobContentType: image.getMIME(),
+        },
+        metadata: {
+          category: input.category,
+          sizes: sizes || `${width}x${height}`,
+          type,
+          purpose,
+          originalUrl: imageUrl,
+        },
+        tags: {
+          category: input.category,
+          sizes: sizes || `${width}x${height}`,
+          type,
+          purpose,
+          originalUrl: imageUrl,
+        },
+      };
+      context.log(uploadStreamOptions);
+      context.log("\n\n\n");
+
       const uploadResponse = await blobClient.uploadStream(
         imageStream,
         imageBuffer.byteLength,
         undefined,
-        {
-          blobHTTPHeaders: {
-            blobContentType: image.getMIME(),
-          },
-          metadata: {
-            category: input.category,
-            sizes,
-            type,
-            purpose,
-            originalUrl: imageUrl,
-          },
-          tags: {
-            category: input.category,
-            sizes,
-            type,
-            purpose,
-            originalUrl: imageUrl,
-          },
-        }
+        uploadStreamOptions
       );
+      context.log("\n\n\nuploaded image");
 
       responses.push(uploadResponse);
     }
+
+    context.log("\n\n\ndonzo");
 
     context.log(responses);
     return {

@@ -17,8 +17,14 @@ import { getBlobServiceClient } from "../utils/storage";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import { ImageKey } from "../utils/platform";
 import { createImageStreamFromJimp } from "../utils/icons";
+import {
+  IconManifestImageResource,
+  ScreenshotManifestImageResource,
+} from "../utils/interfaces";
 
-export interface PlatformDownloadImageInput {
+export interface PlatformDownloadImageInput
+  extends IconManifestImageResource,
+    ScreenshotManifestImageResource {
   containerId: string;
   category: string;
   siteUrl: string;
@@ -43,11 +49,14 @@ const activityFunction: AzureFunction = async function (
     const containerClient = blobServiceClient.getContainerClient(
       imageData.containerId
     );
-    const [category, sizes, type, ...rest] = imageData.tags;
-    const purpose = rest[0] || "none";
+    const category = imageData.category || "other";
+    const purpose = imageData.purpose || "none";
     const image = await Jimp.read(imageData.imageUrl);
     const width = image.getWidth();
     const height = image.getHeight();
+    const type = imageData.type || image.getMIME();
+    const sizes = imageData.sizes || `${width}x${height}`;
+
     const {
       stream: imageStream,
       buffer: imageBuffer,
