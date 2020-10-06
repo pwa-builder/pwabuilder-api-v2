@@ -28,7 +28,7 @@ const httpTrigger: AzureFunction = async function (
         "PlatformBuildOrchestrator",
         undefined,
         {
-          containerId: req.params.containerId,
+          containerId: req.query.containerId,
           platform: req.query.platform,
         } as PlatformBuildOrchestratorInput
       );
