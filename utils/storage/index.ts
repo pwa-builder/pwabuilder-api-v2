@@ -1,6 +1,8 @@
 import * as crypto from "crypto";
-import * as path from "path";
-import { BlobServiceClient } from "@azure/storage-blob";
+import {
+  BlobServiceClient,
+  ContainerCreateIfNotExistsResponse,
+} from "@azure/storage-blob";
 import ExceptionOf, { ExceptionType } from "../Exception";
 import { Context } from "@azure/functions";
 import { Manifest, ManifestInfo } from "../interfaces";
@@ -17,7 +19,7 @@ export function createId(siteUrl: string): string {
 export async function createContainer(
   id: string,
   context?: Context
-): Promise<void> {
+): Promise<ContainerCreateIfNotExistsResponse> {
   const blobServiceClient = getBlobServiceClient();
   const containerClient = blobServiceClient.getContainerClient(id);
   const createRes = await containerClient.createIfNotExists({
@@ -27,19 +29,16 @@ export async function createContainer(
     },
   });
 
-  if (!createRes.succeeded && createRes.errorCode !== "ContainerAlreadyExists") {
+  if (
+    !createRes.succeeded &&
+    createRes.errorCode !== "ContainerAlreadyExists"
+  ) {
     throw ExceptionOf(
       ExceptionType.BLOB_STORAGE_FAILURE,
       new Error(`azure blob storage error code: ${createRes.errorCode}`)
     );
   }
-
-  // let pollCount = 10;
-  // for (; pollCount > 0; pollCount--) {
-  //   if (await containerClient.exists()) {
-  //     break;
-  //   }
-  // }
+  return createRes;
 }
 
 export async function addManifestToContainer(
