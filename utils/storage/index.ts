@@ -55,7 +55,12 @@ export async function addManifestToContainer(
   );
   const response = await manifestBlobClient.upload(
     manifestStr,
-    manifestStr.length
+    manifestStr.length,
+    {
+      blobHTTPHeaders: {
+        blobContentType: "application/manifest+json",
+      },
+    }
   );
   if (response.errorCode) {
     throw ExceptionOf(
