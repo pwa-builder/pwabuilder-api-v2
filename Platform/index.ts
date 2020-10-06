@@ -7,7 +7,7 @@ import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
 
 /*
   Platform HTTP Trigger
-    Route: <url>/platform/{id: string?}?site={site: string}platform={PlatformEnum: string?}
+    Route: <url>/platform/?containerId={containerId: string?}&site={site: string}&platform={PlatformEnum: string?}
     - id: if passed with the platform will try to invoke the platform build path.
     - site: the url, used to create the id.
     - platform: determines what kind of app to build
@@ -23,7 +23,7 @@ const httpTrigger: AzureFunction = async function (
     const client = df.getClient(context);
 
     // build path
-    if (req.params.containerId && req.query.platform) {
+    if (req.query.containerId && req.query.platform) {
       const orchestratorId = await client.startNew(
         "PlatformBuildOrchestrator",
         undefined,
