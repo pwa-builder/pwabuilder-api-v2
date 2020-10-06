@@ -11,7 +11,6 @@
 
 import { AzureFunction, Context } from "@azure/functions";
 import { BlobItem } from "@azure/storage-blob";
-import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
 
 export interface ReadContainerInput {
@@ -21,7 +20,11 @@ export interface ReadContainerInput {
 export interface ReadContainerOutput {
   contents: Array<BlobItem>;
   success: boolean;
-  error?: Error;
+  error?: {
+    name: string;
+    message: string;
+    stack: string;
+  };
 }
 
 const activityFunction: AzureFunction = async function (
@@ -34,6 +37,8 @@ const activityFunction: AzureFunction = async function (
   };
 
   try {
+    context.log(input.containerId);
+
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(
       input.containerId
@@ -49,7 +54,11 @@ const activityFunction: AzureFunction = async function (
     output.success = true;
   } catch (e) {
     context.log(e);
-    output.error = ExceptionOf(ExceptionType.BLOB_READ_FAILURE, e);
+    output.error = {
+      name: e.name,
+      message: e.message,
+      stack: e.stack,
+    };
   }
 
   return output;
