@@ -46,6 +46,7 @@ const orchestrator = df.orchestrator(function* (
   const readContainerTask = yield context.df.callActivity("ReadContainer", {
     containerId: input.containerId,
   } as ReadContainerInput);
+
   const container = readContainerTask as ReadContainerOutput;
 
   // Generate Missing Images
@@ -90,7 +91,7 @@ const orchestrator = df.orchestrator(function* (
     } as PlatformGenerateZipInput
   );
 
-  return zipDetails.link;
+  return zipDetails;
 });
 
 export default orchestrator;
