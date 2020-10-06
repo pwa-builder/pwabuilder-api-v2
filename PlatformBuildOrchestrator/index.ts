@@ -46,7 +46,7 @@ const orchestrator = df.orchestrator(function* (
   const readContainerTask = yield context.df.callActivity("ReadContainer", {
     containerId: input.containerId,
   } as ReadContainerInput);
-  const container = readContainerTask.result as ReadContainerOutput;
+  const container = readContainerTask as ReadContainerOutput;
 
   // Generate Missing Images
   const missingImages = [];
@@ -77,7 +77,10 @@ const orchestrator = df.orchestrator(function* (
       );
     }
   }
-  yield context.df.Task.all(missingImages);
+
+  if (missingImages.length > 0) {
+    yield context.df.Task.all(missingImages);
+  }
 
   // Create zip and get zip link
   const zipDetails: PlatformGenerateZipOutput = yield context.df.callActivity(
