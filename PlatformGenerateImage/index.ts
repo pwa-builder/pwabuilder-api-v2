@@ -1,4 +1,4 @@
-﻿import { AzureFunction, Context } from "@azure/functions";
+import { AzureFunction, Context } from "@azure/functions";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import * as Jimp from "jimp";
 import { createImageStreamFromJimp } from "../utils/icons";
@@ -64,16 +64,18 @@ const activityFunction: AzureFunction = async function (
         },
         tags: {
           category: imageData.category,
-          size:
-            imageData.size || `${baseImage.getWidth()}${baseImage.getHeight()}`,
+          sizes:
+            imageData.size ||
+            `${baseImage.getWidth()}x${baseImage.getHeight()}`,
           type: imageData.type || baseImage.getMIME(),
           purpose: imageData.purpose || "none",
           generated: "true",
         },
         metadata: {
           category: imageData.category,
-          size:
-            imageData.size || `${baseImage.getWidth()}${baseImage.getHeight()}`,
+          sizes:
+            imageData.size ||
+            `${baseImage.getWidth()}x${baseImage.getHeight()}`,
           type: imageData.type || baseImage.getMIME(),
           purpose: imageData.purpose || "none",
           generated: "true",

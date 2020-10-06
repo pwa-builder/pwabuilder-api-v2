@@ -40,7 +40,6 @@ const orchestrator = df.orchestrator(function* (context) {
           siteUrl: input.siteUrl,
           imageUrl,
           category: "icons",
-          tags: ["icons", icon.sizes, icon.type, icon.purpose],
         } as PlatformDownloadImageInput);
       }
     );
@@ -62,10 +61,8 @@ const orchestrator = df.orchestrator(function* (context) {
     outputs = outputs.concat(screenshotActivities);
   }
 
-  context.log(outputs);
   yield context.df.Task.all(outputs);
 
-  context.log(outputs);
   return outputs;
 });
 

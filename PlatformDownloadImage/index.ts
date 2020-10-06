@@ -12,7 +12,6 @@
 import * as path from "path";
 import { AzureFunction, Context } from "@azure/functions";
 import * as Jimp from "jimp";
-import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import { ImageKey } from "../utils/platform";
@@ -34,8 +33,12 @@ export interface PlatformDownloadImageInput
 export interface PlatformDownloadImageOutput {
   blobRes?: BlobUploadCommonResponse;
   success: boolean;
-  error?: ExceptionWrap;
-  err?: Error;
+  error?: {
+    imageUrl: string;
+    name: string;
+    message: string;
+    stack: string;
+  };
 }
 
 const activityFunction: AzureFunction = async function (
@@ -100,7 +103,12 @@ const activityFunction: AzureFunction = async function (
     };
   } catch (exception) {
     context.log(exception);
-    error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
+    error = {
+      imageUrl: imageData.imageUrl,
+      name: exception.name,
+      message: exception.message,
+      stack: exception.stack,
+    };
   }
 
   return {
