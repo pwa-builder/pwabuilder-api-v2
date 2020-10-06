@@ -29,7 +29,6 @@ export interface PlatformDownloadImageInput
   category: string;
   siteUrl: string;
   imageUrl: string;
-  tags: Array<string>;
 }
 
 export interface PlatformDownloadImageOutput {
