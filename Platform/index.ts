@@ -67,7 +67,7 @@ const httpTrigger: AzureFunction = async function (
     context.res = {
       body: {
         id,
-        clientStatusQueryUrl: statusQueryResponseBody["statusQueryGetUri"],
+        clientStatusQueryUrl: statusQueryResponseBody,
       },
     };
   } catch (exception) {
