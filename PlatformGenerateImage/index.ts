@@ -1,6 +1,6 @@
 ﻿import { AzureFunction, Context } from "@azure/functions";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
-import * as Jimp from "jimp/es";
+import * as Jimp from "jimp";
 import { createImageStreamFromJimp } from "../utils/icons";
 import { ImageKey, ImageProperties } from "../utils/platform";
 import { getBlobServiceClient } from "../utils/storage";

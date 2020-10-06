@@ -13,7 +13,7 @@
 
 import * as df from "durable-functions";
 import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
-import { MIME_PNG } from "jimp/es";
+import { MIME_PNG } from "jimp";
 import { PlatformGenerateImageInput } from "../PlatformGenerateImage";
 import { ReadContainerInput, ReadContainerOutput } from "../ReadContainer";
 import { isBigger } from "../utils/icons";

@@ -11,7 +11,7 @@
 
 import * as path from "path";
 import { AzureFunction, Context } from "@azure/functions";
-import * as Jimp from "jimp/es";
+import * as Jimp from "jimp";
 import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
 import { getBlobServiceClient } from "../utils/storage";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
@@ -99,6 +99,7 @@ const activityFunction: AzureFunction = async function (
       success: true,
     };
   } catch (exception) {
+    context.log(exception);
     error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
   }
 
