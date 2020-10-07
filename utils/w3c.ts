@@ -1,14 +1,18 @@
-import { ManifestInfo } from "./interfaces";
-
-type WidthByHeight = string;
-type MimeType = string;
+export type WidthByHeight = string;
+export type MimeType = string;
+export type W3CPurpose =
+  | "monochrome"
+  | "maskable"
+  | "any"
+  | SpaceSeparatedList
+  | "none";
 export type SpaceSeparatedList = string;
 
 export interface ManifestImageResource {
   src: string;
   sizes: WidthByHeight | SpaceSeparatedList;
   type: MimeType | SpaceSeparatedList; //use Jimp.MIME_<type>
-  purpose?: "monochrome" | "maskable" | "any" | SpaceSeparatedList | "none";
+  purpose?: W3CPurpose;
 }
 
 export interface ExternalApplicationResource {

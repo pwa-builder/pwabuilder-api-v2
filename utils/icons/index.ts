@@ -1,5 +1,10 @@
 import * as stream from "stream";
+import * as url from "url";
 import * as Jimp from "jimp";
+import {
+  IconManifestImageResource,
+  ScreenshotManifestImageResource,
+} from "../interfaces";
 
 export function isDataUri(uri: string): boolean {
   return (
@@ -27,6 +32,36 @@ export function isBigger(current: SizeString, other: SizeString): boolean {
 
   // Add aspect ratio comparisons? https://en.wikipedia.org/wiki/Aspect_ratio_(image)
   return cW * cH >= oW * oH;
+}
+
+// string, index map of entries
+export async function buildImageSizeMap(
+  imageList: Array<IconManifestImageResource | ScreenshotManifestImageResource>,
+  siteUrl: string
+): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+
+  for (let i = 0; i < imageList.length; i++) {
+    const entry = imageList[i];
+    let sizes: Array<string> = [];
+
+    if (entry.sizes) {
+      sizes = entry.sizes.split(" ");
+    } else if ((entry as any).size) {
+      // not in manifest spec, but a logical next step to check
+      sizes = [(entry as any).size];
+    } else {
+      // just download image and see size, Jimp uses gzipped so latency shouldn't be too horrible. I wish we could consistently use HEAD calls instead though.
+      const img = await Jimp.read(new url.URL(entry.src, siteUrl).toString());
+      sizes = [`${img.getWidth()}x${img.getHeight()}`];
+    }
+
+    sizes.forEach((size) => {
+      map.set(size, i);
+    });
+  }
+
+  return map;
 }
 
 interface JimpStreamInterface {

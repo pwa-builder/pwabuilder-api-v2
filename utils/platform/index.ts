@@ -8,13 +8,20 @@ type ImageKey = string;
 type SpaceSeparatedList = string;
 
 export interface PlatformGenerateZipOutput {
-  link: string;
-  zipSAS: SASQueryParameters;
+  success: boolean;
+  link?: string;
+  zipSAS?: SASQueryParameters;
+  error?: {
+    name: string;
+    message: string;
+    stack: string;
+  };
 }
 
 export interface PlatformGenerateZipInput {
   containerId: string;
   platform: PlatformId;
+  siteUrl: string;
 }
 export interface ImageProperties
   extends IconManifestImageResource,
@@ -70,6 +77,16 @@ export function ImageKey(properties: Partial<ImageProperties>): ImageKey {
   }
 
   return `${size}${purpose}${category}${name}`;
+}
+
+export function parseImageKey(imageKey: ImageKey): Partial<ImageProperties> {
+  let [size, purpose, category, name] = imageKey.split("-");
+  return {
+    size,
+    purpose,
+    category,
+    name,
+  };
 }
 
 // JSON object that correlates the PWABuilder Image Sizes for the platform
