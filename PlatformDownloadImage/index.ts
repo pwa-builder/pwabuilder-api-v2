@@ -12,7 +12,10 @@
 import * as path from "path";
 import { AzureFunction, Context } from "@azure/functions";
 import * as Jimp from "jimp";
-import { getBlobServiceClient } from "../utils/storage";
+import {
+  getBlobServiceClient,
+  setTagMetadataProperties,
+} from "../utils/storage";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import { ImageKey } from "../utils/platform";
 import { createImageStreamFromJimp } from "../utils/icons";
@@ -57,7 +60,16 @@ const activityFunction: AzureFunction = async function (
     const width = image.getWidth();
     const height = image.getHeight();
     const type = imageData.type || image.getMIME();
-    const sizes = imageData.sizes || `${width}x${height}`;
+    const actualSize = `${width}x${height}`;
+    const sizes = imageData.sizes || actualSize;
+    const tagMetadata = setTagMetadataProperties({
+      category,
+      actualSize,
+      sizes,
+      type,
+      purpose,
+      originalUrl: imageData.imageUrl,
+    });
 
     const {
       stream: imageStream,
@@ -81,20 +93,8 @@ const activityFunction: AzureFunction = async function (
         blobHTTPHeaders: {
           blobContentType: image.getMIME(),
         },
-        metadata: {
-          category,
-          sizes,
-          type,
-          purpose,
-          originalUrl: imageData.imageUrl,
-        },
-        tags: {
-          category,
-          sizes,
-          type,
-          purpose,
-          originalUrl: imageData.imageUrl,
-        },
+        metadata: tagMetadata,
+        tags: tagMetadata,
       }
     );
     return {

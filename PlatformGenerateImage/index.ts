@@ -1,14 +1,21 @@
-import { AzureFunction, Context } from "@azure/functions";
+﻿import { AzureFunction, Context } from "@azure/functions";
 import { BlobUploadCommonResponse } from "@azure/storage-blob";
 import * as Jimp from "jimp";
 import { createImageStreamFromJimp } from "../utils/icons";
 import { ImageKey, ImageProperties } from "../utils/platform";
-import { getBlobServiceClient } from "../utils/storage";
+import {
+  getBlobServiceClient,
+  setTagMetadataProperties,
+} from "../utils/storage";
 
 export interface PlatformGenerateImageOutput {
   uploadRes?: BlobUploadCommonResponse;
   success: boolean;
-  error?: Error;
+  error?: {
+    name: string;
+    message: string;
+    stack: string;
+  };
 }
 
 export interface PlatformGenerateImageInput extends ImageProperties {
@@ -48,6 +55,17 @@ const activityFunction: AzureFunction = async function (
     const { width, height } = imageData;
     baseImage.resize(width, height);
 
+    const size =
+      imageData.size || `${baseImage.getWidth()}x${baseImage.getHeight()}`;
+    const tagMetadata = setTagMetadataProperties({
+      category: imageData.category,
+      actualSize: size,
+      sizes: size,
+      type: imageData.type || baseImage.getMIME(),
+      purpose: imageData.purpose || "none",
+      generated: "true",
+    });
+
     const {
       stream: imageStream,
       buffer: imageBuffer,
@@ -62,24 +80,8 @@ const activityFunction: AzureFunction = async function (
           blobContentType: baseImage.getMIME(),
           blobContentEncoding: "base64",
         },
-        tags: {
-          category: imageData.category,
-          sizes:
-            imageData.size ||
-            `${baseImage.getWidth()}x${baseImage.getHeight()}`,
-          type: imageData.type || baseImage.getMIME(),
-          purpose: imageData.purpose || "none",
-          generated: "true",
-        },
-        metadata: {
-          category: imageData.category,
-          sizes:
-            imageData.size ||
-            `${baseImage.getWidth()}x${baseImage.getHeight()}`,
-          type: imageData.type || baseImage.getMIME(),
-          purpose: imageData.purpose || "none",
-          generated: "true",
-        },
+        tags: tagMetadata,
+        metadata: tagMetadata,
       }
     );
 
@@ -88,7 +90,11 @@ const activityFunction: AzureFunction = async function (
       success: uploadRes.errorCode ? false : true,
     };
   } catch (e) {
-    error = e;
+    error = {
+      name: e.name,
+      message: e.message,
+      stack: e.stack,
+    };
   }
 
   return {
