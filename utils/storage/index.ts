@@ -3,9 +3,16 @@ import {
   BlobServiceClient,
   ContainerCreateIfNotExistsResponse,
 } from "@azure/storage-blob";
+
 import ExceptionOf, { ExceptionType } from "../Exception";
 import { Context } from "@azure/functions";
-import { Manifest, ManifestInfo } from "../interfaces";
+import { Manifest, Categories } from "../interfaces";
+import {
+  W3CPurpose,
+  MimeType,
+  WidthByHeight,
+  SpaceSeparatedList,
+} from "../w3c";
 
 export interface MessageQueueConfig {
   storageAccount: string;
@@ -100,4 +107,65 @@ export async function getManifestJson(
   return getManifest(containerId, blobServiceClient)
     .then((buffer) => buffer.toString("utf8"))
     .then((manifestStr) => JSON.parse(manifestStr)) as Promise<Manifest>;
+}
+
+interface TagMetaDataMap {
+  category: Categories | string;
+  actualSize: WidthByHeight;
+  sizes: WidthByHeight | SpaceSeparatedList;
+  originalUrl: string;
+  type: MimeType;
+  purpose: W3CPurpose;
+  generated: "true" | "false";
+}
+
+// These work the same... drives me insane why there's different declarations.
+type MapGestalt =
+  | Record<string, string>
+  | {
+      [name: string]: string;
+    };
+
+export function getTagMetadataProperties(gestalt: MapGestalt): TagMetaDataMap {
+  return {
+    category: gestalt.category ?? "unset",
+    actualSize: gestalt.actualSize ?? "unset",
+    sizes: gestalt.sizes ?? "unset",
+    originalUrl: gestalt.originalUrl ?? "unset",
+    type: gestalt.type ?? "unset",
+    purpose: gestalt.purpose ?? "unset",
+    generated: gestalt.generated ? "true" : "false",
+  };
+}
+
+// The client library does not accept undefined or null properties in the metadata fields, to keep consistent only add entries if defined.
+export function setTagMetadataProperties(
+  tagMetaData: Partial<TagMetaDataMap>
+): MapGestalt {
+  const output: any = {};
+  if (tagMetaData.category) {
+    output.category = tagMetaData.category;
+  }
+
+  if (tagMetaData.actualSize) {
+    output.actualSize = tagMetaData.actualSize;
+  }
+
+  if (tagMetaData.sizes) {
+    output.sizes = tagMetaData.sizes;
+  }
+
+  if (tagMetaData.type) {
+    output.type = tagMetaData.type;
+  }
+
+  if (tagMetaData.purpose) {
+    output.purpose = tagMetaData.purpose;
+  }
+
+  if (tagMetaData.generated) {
+    output.generated = tagMetaData.generated;
+  }
+
+  return output;
 }
