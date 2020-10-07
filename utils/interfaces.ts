@@ -39,6 +39,8 @@ export interface Manifest {
   [name: string]: any;
 }
 
+export type Categories = "icons" | "screenshots" | "unset";
+
 // Remapping of TV4 schema validation errors
 export interface ManifestGuidance {
   code: string; // w3c-schema-${tv4.errorCodes[number]}
