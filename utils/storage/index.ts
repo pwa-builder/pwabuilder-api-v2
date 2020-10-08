@@ -34,6 +34,7 @@ export async function createContainer(
       id,
       isSiteData: "true",
     },
+    access: "blob",
   });
 
   if (
