@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an HTTP starter function.
  *
@@ -40,6 +40,7 @@ const orchestrator = df.orchestrator(function* (context) {
           siteUrl: input.siteUrl,
           imageUrl,
           category: "icons",
+          ...icon,
         } as PlatformDownloadImageInput);
       }
     );
