@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -19,7 +19,6 @@ import {
 import { getBlobServiceClient, getManifestJson } from "../utils/storage";
 import { buildImageSizeMap } from "../utils/icons";
 import { addImageToZipAndEditManifestEntry } from "../utils/zip";
-import { generateSASLink } from "../utils/sas";
 
 const activityFunction: AzureFunction = async function (
   context: Context,
@@ -101,16 +100,24 @@ const activityFunction: AzureFunction = async function (
       throw Error("Upload failed with error code: " + uploadResponse.errorCode);
     }
 
-    // SAS
-    context.log("generate SAS link");
-    const zipSAS = await generateSASLink(input.containerId, serviceClient);
+    // SAS (add here if required again);
+    // const zipSAS = await generateSASLink(
+    //   input.containerId,
+    //   serviceClient,
+    //   context
+    // );
 
-    context.log(zipSAS);
+    const zipLink = `https://${
+      process.env.ACCOUNT_NAME
+    }.blob.core.windows.net/${input.containerId}/${
+      "PWABuilder-" + input.platform
+    }`;
+    context.log("storage account url: " + zipLink);
 
     return {
       success: true,
-      link: "testing",
-      zipSAS,
+      link: zipLink,
+      zipSAS: undefined,
     };
   } catch (e) {
     context.log(e);
