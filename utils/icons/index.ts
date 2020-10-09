@@ -47,6 +47,7 @@ export async function buildImageSizeMap(
 
     if (entry.sizes) {
       sizes = entry.sizes.split(" ");
+      map.set(entry.sizes, i); // set sizes if a list of sizes.
     } else if ((entry as any).size) {
       // not in manifest spec, but a logical next step to check
       sizes = [(entry as any).size];
