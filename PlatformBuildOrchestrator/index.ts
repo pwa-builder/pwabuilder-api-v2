@@ -26,6 +26,7 @@ import {
 
 export interface PlatformBuildOrchestratorInput {
   containerId: string;
+  siteUrl: string;
   platform: PlatformId;
 }
 
@@ -42,6 +43,7 @@ const orchestrator = df.orchestrator(function* (
     6. send back url to zip file
   */
   const input = context.df.getInput() as PlatformBuildOrchestratorInput;
+
   // Read container contents
   const readContainerTask = yield context.df.callActivity("ReadContainer", {
     containerId: input.containerId,
@@ -51,15 +53,22 @@ const orchestrator = df.orchestrator(function* (
 
   // Generate Missing Images
   const missingImages = [];
-  let largestImage: string = "";
+  let largestIcon: string = "";
   const imagesInContainerMap = new Map(
-    container.contents.map((entry) => {
-      if (!largestImage || !isBigger(largestImage, entry.name)) {
-        largestImage = entry.name;
-      }
+    container.contents
+      .filter((entry) => {
+        return (
+          !entry.metadata?.generated &&
+          entry.metadata?.category !== "screenshots" // ignore screenshots atm, just generate icons.
+        );
+      })
+      .map((entry) => {
+        if (!largestIcon || !isBigger(largestIcon, entry.name)) {
+          largestIcon = entry.name;
+        }
 
-      return [entry.name, entry];
-    })
+        return [entry.name, entry];
+      })
   );
 
   for (const [key, properties] of requiredPlatformImages(
@@ -71,8 +80,7 @@ const orchestrator = df.orchestrator(function* (
         context.df.callActivity("PlatformGenerateImage", {
           ...properties,
           containerId: input.containerId,
-          getImageUrl: undefined,
-          biggestImageBlobName: largestImage,
+          biggestImageBlobName: largestIcon,
           type: MIME_PNG,
         } as PlatformGenerateImageInput)
       );

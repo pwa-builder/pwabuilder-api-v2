@@ -37,15 +37,13 @@ const activityFunction: AzureFunction = async function (
   };
 
   try {
-    context.log(input.containerId);
-
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(
       input.containerId
     );
 
     for await (const blob of containerClient.listBlobsFlat({
-      includeTags: true,
+      // includeTags: true, // unsupported in rest api... still in the typescript
       includeMetadata: true,
     })) {
       output.contents.push(blob);
