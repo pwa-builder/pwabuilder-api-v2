@@ -79,7 +79,9 @@ export function ImageKey(properties: Partial<ImageProperties>): ImageKey {
   return `${size}${purpose}${category}${name}`;
 }
 
-export function parseImageBlobName(imageKey: ImageKey): Partial<ImageProperties> {
+export function parseImageBlobName(
+  imageKey: ImageKey
+): Partial<ImageProperties> {
   let [size, purpose, category, name] = imageKey.split("-");
   return {
     size,

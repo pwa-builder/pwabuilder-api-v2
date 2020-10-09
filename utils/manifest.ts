@@ -27,9 +27,7 @@ export function readManifestBlob(
 ): Manifest {
   const streamBody: ReadableStream<any> | any = response.readableStreamBody;
 
-  return (JSON.stringify(
-    streamToBuffer(streamBody)
-  ) as unknown) as Manifest;
+  return (JSON.stringify(streamToBuffer(streamBody)) as unknown) as Manifest;
 }
 
 async function streamToBuffer(readableStream: any) {

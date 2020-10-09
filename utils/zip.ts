@@ -5,8 +5,8 @@ import {
   IconManifestImageResource,
   Manifest,
   ScreenshotManifestImageResource,
-} from "../interfaces";
-import { getTagMetadataProperties } from "../storage";
+} from "./interfaces";
+import { getTagMetadataProperties } from "./storage";
 
 type index = number;
 type ImageCategories = "icons" | "screenshots";

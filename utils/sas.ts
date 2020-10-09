@@ -11,7 +11,6 @@ export async function generateSASLink(
   context?: Context
 ) {
   try {
-    // Create SAS link
     context?.log("creating delegate key");
     const startsOn = new Date();
     const expiresOn = new Date();
