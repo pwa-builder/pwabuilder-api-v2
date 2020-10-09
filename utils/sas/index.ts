@@ -1,52 +1,42 @@
+import { Context } from "@azure/functions";
 import {
   BlobServiceClient,
   ContainerSASPermissions,
   generateBlobSASQueryParameters,
-  StorageSharedKeyCredential,
 } from "@azure/storage-blob";
 
 export async function generateSASLink(
   containerId: string,
-  serviceClient: BlobServiceClient
+  serviceClient: BlobServiceClient,
+  context?: Context
 ) {
-  // Get SAS Credential =
-  const credential = new StorageSharedKeyCredential(
-    process.env.ACCOUNT_NAME as string,
-    process.env.ACCOUNT_KEY as string
-  );
-
-  // Create SAS link
-  const startsOn = new Date();
-  const expiresOn = new Date();
-  expiresOn.setHours(expiresOn.getHours() + 6);
-  const delegateKey = await getUserDelegationKey(
-    serviceClient,
-    startsOn,
-    expiresOn
-  );
-
-  // TODO see if this works first
-  return generateBlobSASQueryParameters(
-    {
-      containerName: containerId,
-      permissions: ContainerSASPermissions.parse("r"),
+  try {
+    // Create SAS link
+    context?.log("create delegate key");
+    const startsOn = new Date();
+    const expiresOn = new Date();
+    expiresOn.setHours(expiresOn.getHours() + 6);
+    const delegateKey = await getUserDelegationKey(
+      serviceClient,
       startsOn,
-      expiresOn,
-    },
-    credential
-  );
+      expiresOn
+    );
 
-  // TODO happy path
-  return generateBlobSASQueryParameters(
-    {
-      containerName: containerId,
-      permissions: ContainerSASPermissions.parse("r"),
-      startsOn,
-      expiresOn,
-    },
-    delegateKey,
-    process.env.ACCOUNT_NAME as string
-  );
+    context?.log("create SAS query parameters");
+    return generateBlobSASQueryParameters(
+      {
+        containerName: containerId,
+        permissions: ContainerSASPermissions.parse("r"),
+        startsOn,
+        expiresOn,
+      },
+      delegateKey,
+      process.env.ACCOUNT_NAME as string
+    );
+  } catch (e) {
+    context?.log("failed to create SAS credentials");
+    context?.log(e);
+  }
 }
 
 export async function getUserDelegationKey(
