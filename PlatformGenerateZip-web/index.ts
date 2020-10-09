@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -27,8 +27,8 @@ const activityFunction: AzureFunction = async function (
   let error;
   try {
     /*
-    Zip: If image has generated metadata/tag name with ${name}-generated
-  */
+      Zip: If image has generated metadata/tag name with ${name}-generated
+    */
     const zip = new JSZip();
     const serviceClient = getBlobServiceClient();
     const containerClient = await serviceClient.getContainerClient(
