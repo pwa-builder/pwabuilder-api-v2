@@ -1,4 +1,5 @@
-﻿/*
+﻿import { BlobItem } from "@azure/storage-blob";
+/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an HTTP starter function.
  *
@@ -23,6 +24,7 @@ import {
   PlatformId,
   requiredPlatformImages,
 } from "../utils/platform";
+import { getTagMetadataProperties } from "../utils/storage";
 
 export interface PlatformBuildOrchestratorInput {
   containerId: string;
@@ -53,23 +55,31 @@ const orchestrator = df.orchestrator(function* (
 
   // Generate Missing Images
   const missingImages = [];
-  let largestIcon: string = "";
-  const imagesInContainerMap = new Map(
-    container.contents
-      .filter((entry) => {
-        return (
-          !entry.metadata?.generated &&
-          entry.metadata?.category !== "screenshots" // ignore screenshots atm, just generate icons.
-        );
-      })
-      .map((entry) => {
-        if (!largestIcon || !isBigger(largestIcon, entry.name)) {
-          largestIcon = entry.name;
+  let largestIcon: string | undefined;
+
+  const imagesInContainerMap = new Map<string, BlobItem>();
+  for (let i = 0; i < container.contents.length; i++) {
+    const entry = container.contents[i];
+    const metadata = getTagMetadataProperties(entry.metadata ?? {});
+
+    if (!largestIcon || !isBigger(largestIcon, metadata.actualSize)) {
+      largestIcon = metadata.actualSize;
+    }
+
+    imagesInContainerMap.set(metadata.actualSize, entry);
+
+    if (metadata.sizes.indexOf(" ") !== -1) {
+      metadata.sizes.split(" ").forEach((size) => {
+        if (!largestIcon || !isBigger(largestIcon, size)) {
+          largestIcon = metadata.sizes;
         }
 
-        return [entry.name, entry];
-      })
-  );
+        imagesInContainerMap.set(size, entry);
+      });
+    }
+
+    imagesInContainerMap.set(metadata.sizes, entry);
+  }
 
   for (const [key, properties] of requiredPlatformImages(
     input.platform
