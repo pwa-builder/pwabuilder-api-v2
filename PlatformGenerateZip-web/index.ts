@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -78,7 +78,7 @@ const activityFunction: AzureFunction = async function (
 
     // upload zip and create a link using SAS permissions
     const zipClient = containerClient.getBlobClient(
-      `${manifest.short_name}-${input.platform}`
+      `${manifest.short_name}-${input.platform}.zip`
     );
 
     // Create Zip
