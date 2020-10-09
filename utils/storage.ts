@@ -4,15 +4,10 @@ import {
   ContainerCreateIfNotExistsResponse,
 } from "@azure/storage-blob";
 
-import ExceptionOf, { ExceptionType } from "../Exception";
+import ExceptionOf, { ExceptionType } from "./Exception";
 import { Context } from "@azure/functions";
-import { Manifest, Categories } from "../interfaces";
-import {
-  W3CPurpose,
-  MimeType,
-  WidthByHeight,
-  SpaceSeparatedList,
-} from "../w3c";
+import { Manifest, Categories } from "./interfaces";
+import { W3CPurpose, MimeType, WidthByHeight, SpaceSeparatedList } from "./w3c";
 
 export interface MessageQueueConfig {
   storageAccount: string;
