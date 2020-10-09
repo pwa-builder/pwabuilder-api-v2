@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -35,14 +35,11 @@ const activityFunction: AzureFunction = async function (
       input.containerId
     );
 
-    context.log("get manifest");
     // Get manifest json and add to zip
     const manifest: Manifest = await getManifestJson(
       input.containerId,
       serviceClient
     );
-
-    context.log(manifest);
 
     // Add icons and screenshots to zip
     const containerContents = containerClient.listBlobsFlat({
@@ -112,7 +109,7 @@ const activityFunction: AzureFunction = async function (
     }.blob.core.windows.net/${input.containerId}/${
       "PWABuilder-" + input.platform
     }`;
-    context.log("storage account url: " + zipLink);
+    context.log("zip url: " + zipLink);
 
     return {
       success: true,
