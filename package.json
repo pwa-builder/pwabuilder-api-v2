@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@azure/identity": "^1.1.0",
-    "@azure/storage-blob": "^12.2.0",
+    "@azure/storage-blob": "^12.2.1",
     "@azure/storage-queue": "^12.1.0",
     "durable-functions": "^1.4.3",
     "jimp": "^0.16.1",
