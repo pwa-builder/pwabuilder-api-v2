@@ -17,12 +17,9 @@ import {
   PlatformGenerateZipOutput,
 } from "../utils/platform";
 import { getBlobServiceClient, getManifestJson } from "../utils/storage";
-import {
-  ContainerSASPermissions,
-  generateBlobSASQueryParameters,
-} from "@azure/storage-blob";
 import { buildImageSizeMap } from "../utils/icons";
 import { addImageToZipAndEditManifestEntry } from "../utils/zip";
+import { generateSASLink } from "../utils/sas";
 
 const activityFunction: AzureFunction = async function (
   context: Context,
@@ -33,9 +30,6 @@ const activityFunction: AzureFunction = async function (
     /*
     Zip: If image has generated metadata/tag name with ${name}-generated
   */
-
-    context.log(input.containerId);
-    context.log("init zip");
     const zip = new JSZip();
     const serviceClient = getBlobServiceClient();
     const containerClient = await serviceClient.getContainerClient(
@@ -62,10 +56,6 @@ const activityFunction: AzureFunction = async function (
       input.siteUrl
     );
 
-    context.log(iconsMap);
-    context.log(screenshotsMap);
-
-    context.log("iterate through containerContents");
     for await (const blob of containerContents) {
       const category = blob?.metadata?.category as "icons" | "screenshots";
       let indexMap = iconsMap;
@@ -78,7 +68,7 @@ const activityFunction: AzureFunction = async function (
         containerClient,
         blob,
         manifest,
-        screenshotsMap,
+        indexMap,
         category
       );
     }
@@ -111,26 +101,9 @@ const activityFunction: AzureFunction = async function (
       throw Error("Upload failed with error code: " + uploadResponse.errorCode);
     }
 
-    // Get Delegated SAS Key
-    const startsOn = new Date();
-    const expiresOn = new Date();
-    expiresOn.setHours(expiresOn.getHours() + 6);
-    const delegatedKey = await serviceClient.getUserDelegationKey(
-      startsOn,
-      expiresOn
-    );
-
-    // Create SAS link
-    const zipSAS = generateBlobSASQueryParameters(
-      {
-        containerName: input.containerId,
-        permissions: ContainerSASPermissions.parse("r"),
-        startsOn,
-        expiresOn,
-      },
-      delegatedKey,
-      process.env.ACCOUNT_NAME as string
-    );
+    // SAS
+    context.log("generate SAS link");
+    const zipSAS = await generateSASLink(input.containerId, serviceClient);
 
     context.log(zipSAS);
 
