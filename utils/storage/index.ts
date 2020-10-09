@@ -110,7 +110,7 @@ export async function getManifestJson(
     .then((manifestStr) => JSON.parse(manifestStr)) as Promise<Manifest>;
 }
 
-interface TagMetaDataMap {
+export interface TagMetaDataMap {
   category: Categories | string;
   actualSize: WidthByHeight;
   sizes: WidthByHeight | SpaceSeparatedList;
