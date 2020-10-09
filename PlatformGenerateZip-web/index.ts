@@ -9,26 +9,20 @@
  *   function app in Kudu
  */
 
-import * as url from "url";
-import * as Stream from "stream";
 import { AzureFunction, Context } from "@azure/functions";
 import * as JSZip from "jszip";
 import { Manifest } from "../utils/interfaces";
 import {
-  parseImageKey,
   PlatformGenerateZipInput,
   PlatformGenerateZipOutput,
 } from "../utils/platform";
-import {
-  getBlobServiceClient,
-  getManifestJson,
-  getTagMetadataProperties,
-} from "../utils/storage";
+import { getBlobServiceClient, getManifestJson } from "../utils/storage";
 import {
   ContainerSASPermissions,
   generateBlobSASQueryParameters,
 } from "@azure/storage-blob";
 import { buildImageSizeMap } from "../utils/icons";
+import { addImageToZipAndEditManifestEntry } from "../utils/zip";
 
 const activityFunction: AzureFunction = async function (
   context: Context,
@@ -55,8 +49,12 @@ const activityFunction: AzureFunction = async function (
       serviceClient
     );
 
+    context.log(manifest);
+
     // Add icons and screenshots to zip
-    const containerContents = containerClient.listBlobsFlat();
+    const containerContents = containerClient.listBlobsFlat({
+      includeMetadata: true,
+    });
 
     const iconsMap = await buildImageSizeMap(manifest.icons, input.siteUrl);
     const screenshotsMap = await buildImageSizeMap(
@@ -64,75 +62,56 @@ const activityFunction: AzureFunction = async function (
       input.siteUrl
     );
 
+    context.log(iconsMap);
+    context.log(screenshotsMap);
+
     context.log("iterate through containerContents");
     for await (const blob of containerContents) {
-      let size: string, purpose: string;
-      const category = blob?.tags?.category;
-
-      context.log("blob item: " + blob.name);
-      if (category === "icons") {
-        let parsedImageKey = parseImageKey(blob.name);
-        const tagMetadata = getTagMetadataProperties(blob.metadata ?? {});
-        let size = parsedImageKey.size || tagMetadata.actualSize;
-
-        if (iconsMap.has(size)) {
-          const iconManifestEntry =
-            manifest.icons[iconsMap.get(size) as number];
-
-          iconManifestEntry.src = new url.URL(
-            iconManifestEntry.src,
-            manifest.start_url
-          ).toString();
-
-          zip
-            .folder("icons")
-            ?.file(
-              blob.name,
-              containerClient.getBlobClient(blob.name).downloadToBuffer()
-            );
-        }
-      } else if (category === "screenshots") {
-        let parsedImageKey = parseImageKey(blob.name);
-        const tagMetadata = getTagMetadataProperties(blob.metadata ?? {});
-        let size = parsedImageKey.size || tagMetadata.actualSize;
-
-        if (screenshotsMap.has(size)) {
-          const screenshotManifestEntry =
-            manifest.screenshots[screenshotsMap.get(size) as number];
-
-          screenshotManifestEntry.src = new url.URL(
-            screenshotManifestEntry.src,
-            manifest.start_url
-          ).toString();
-
-          zip
-            .folder("screenshots")
-            ?.file(
-              blob.name,
-              containerClient.getBlobClient(blob.name).downloadToBuffer()
-            );
-        }
+      const category = blob?.metadata?.category as "icons" | "screenshots";
+      let indexMap = iconsMap;
+      if (category === "screenshots") {
+        indexMap = screenshotsMap;
       }
+
+      addImageToZipAndEditManifestEntry(
+        zip,
+        containerClient,
+        blob,
+        manifest,
+        screenshotsMap,
+        category
+      );
     }
 
-    // write manifest to zip last
-    zip.file("manifest.json", Buffer.from(manifest));
+    // Write manifest zip with relative paths to new image locations
+    zip.file("manifest.json", Buffer.from(JSON.stringify(manifest)));
 
     // upload zip and create a link using SAS permissions
     const zipClient = containerClient.getBlobClient(
       `${manifest.short_name}-${input.platform}`
     );
+
+    // Create Zip
+    const zipBuffer = await zip.generateAsync({
+      type: "nodebuffer",
+      platform: "UNIX", // TODO - need to set env variable to control this :(
+    });
+
+    // Upload Zip
     const uploadResponse = await zipClient
       .getBlockBlobClient()
-      .uploadStream(
-        Stream.Readable.from(zip.generateNodeStream({ streamFiles: true }))
-      );
+      .upload(zipBuffer, zipBuffer.byteLength, {
+        blobHTTPHeaders: {
+          blobContentType: "application/zip",
+        },
+      });
 
-    if (!uploadResponse.errorCode) {
-      // uploadResponse.
+    if (uploadResponse.errorCode) {
+      context.log(uploadResponse);
+      throw Error("Upload failed with error code: " + uploadResponse.errorCode);
     }
 
-    // Shared Access Signature generation
+    // Get Delegated SAS Key
     const startsOn = new Date();
     const expiresOn = new Date();
     expiresOn.setHours(expiresOn.getHours() + 6);
@@ -141,8 +120,7 @@ const activityFunction: AzureFunction = async function (
       expiresOn
     );
 
-    console.log(delegatedKey);
-
+    // Create SAS link
     const zipSAS = generateBlobSASQueryParameters(
       {
         containerName: input.containerId,
