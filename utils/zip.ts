@@ -6,7 +6,9 @@ import {
   Manifest,
   ScreenshotManifestImageResource,
 } from "./interfaces";
+import { ImageProperties } from "./platform";
 import { getTagMetadataProperties } from "./storage";
+import { ManifestImageResource } from "./w3c";
 
 type index = number;
 type ImageCategories = "icons" | "screenshots";
@@ -39,7 +41,17 @@ export async function addImageToZipAndEditManifestEntry(
 
     const newPath = `${folderPath}${blob.name}`;
 
-    manifestEntry.src = newPath; // TODO seems naive...
+    if (manifestEntry) {
+      manifestEntry.src = newPath; // TODO seems naive...
+    } else {
+      const newEntry: ManifestImageResource = {
+        sizes: size,
+        src: newPath,
+        type: metadata.type,
+      };
+
+      manifest[category].push(newEntry);
+    }
 
     zip.file(
       newPath,
