@@ -12,7 +12,7 @@ export async function generateSASLink(
 ) {
   try {
     // Create SAS link
-    context?.log("create delegate key");
+    context?.log("creating delegate key");
     const startsOn = new Date();
     const expiresOn = new Date();
     expiresOn.setHours(expiresOn.getHours() + 6);
