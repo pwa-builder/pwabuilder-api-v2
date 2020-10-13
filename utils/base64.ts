@@ -1,6 +1,10 @@
 type Base64String = string;
 
-export default function atob(str: string | Buffer): Base64String {
+export function btoa(str: string): Base64String {
+  return Buffer.from(str, "base64").toString();
+}
+
+export function atob(str: string | Buffer): Base64String {
   if (str instanceof Buffer) {
     return str.toString("base64");
   }

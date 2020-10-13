@@ -5,7 +5,6 @@
       "name": "req",
       "type": "httpTrigger",
       "direction": "in",
-      "route": "platform/{containerId:int?}",
       "methods": ["get", "post"]
     },
     {

@@ -1,13 +1,13 @@
 import * as df from "durable-functions";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { createContainer, addManifestToContainer } from "../utils/storage";
+import { PlatformBuildOrchestratorInput } from "../PlatformBuildOrchestrator";
 import { createId } from "../utils/storage";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
-import { IHttpResponse } from "durable-functions/lib/src/classes";
 
 /*
   Platform HTTP Trigger
-    Route: <url>/platform/{id: string?}?site={site: string}platform={PlatformEnum: string?}
+    Route: <url>/platform/?containerId={containerId: string?}&site={site: string}&platform={PlatformEnum: string?}
     - id: if passed with the platform will try to invoke the platform build path.
     - site: the url, used to create the id.
     - platform: determines what kind of app to build
@@ -23,15 +23,33 @@ const httpTrigger: AzureFunction = async function (
     const client = df.getClient(context);
 
     // build path
-    if (req.params.containerId && req.query.platform) {
-      // df.startNew();
+    if (req.query.containerId && req.query.platform) {
+      const orchestratorId = await client.startNew(
+        "PlatformBuildOrchestrator",
+        undefined,
+        {
+          containerId: req.query.containerId,
+          siteUrl: req.query.site,
+          platform: req.query.platform,
+        } as PlatformBuildOrchestratorInput
+      );
+
+      const statusQueryResponse = client.createCheckStatusResponse(
+        context.bindingData.req,
+        orchestratorId
+      );
+
+      context.res = {
+        body: {
+          orchestratorId: orchestratorId,
+          statusRes: statusQueryResponse,
+        },
+      };
       return;
     }
 
     id = createId(req.query.site);
-    // context.log("id: " + id);
     const manifest = req.body; // pass body as manifest
-    // context.log(manifest);
 
     // prepare container and add manifest to container
     await createContainer(id, context);
@@ -45,12 +63,12 @@ const httpTrigger: AzureFunction = async function (
       id
     );
 
-    const statusQueryResponseBody = (statusQueryResponse.body as any);
+    const statusQueryResponseBody = statusQueryResponse.body as any;
 
     context.res = {
       body: {
         id,
-        clientStatusQueryUrl: statusQueryResponseBody["statusQueryGetUri"],
+        clientStatusQueryUrl: statusQueryResponseBody,
       },
     };
   } catch (exception) {

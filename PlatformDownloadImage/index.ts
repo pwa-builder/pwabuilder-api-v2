@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an orchestrator function.
  *
@@ -9,67 +9,106 @@
  *   function app in Kudu
  */
 
-import { AzureFunction, Context } from "@azure/functions";
-import ExceptionOf, { ExceptionType, ExceptionWrap } from "../utils/Exception";
-import { getBlobServiceClient } from "../utils/storage";
-import atob from "../utils/base64/atob";
 import * as path from "path";
-import fetch from "node-fetch";
-import { BlockBlobUploadResponse } from "@azure/storage-blob";
+import { AzureFunction, Context } from "@azure/functions";
+import * as Jimp from "jimp";
+import {
+  getBlobServiceClient,
+  setTagMetadataProperties,
+} from "../utils/storage";
+import { BlobUploadCommonResponse } from "@azure/storage-blob";
+import { ImageKey } from "../utils/platform";
+import { createImageStreamFromJimp } from "../utils/icons";
+import {
+  IconManifestImageResource,
+  ScreenshotManifestImageResource,
+} from "../utils/interfaces";
 
-interface PlatformImageData {
+export interface PlatformDownloadImageInput
+  extends IconManifestImageResource,
+    ScreenshotManifestImageResource {
   containerId: string;
+  category: string;
   siteUrl: string;
   imageUrl: string;
-  tags: Array<string>;
 }
 
-interface PlatformImageTaskResponse {
-  blobRes?: BlockBlobUploadResponse;
+export interface PlatformDownloadImageOutput {
+  blobRes?: BlobUploadCommonResponse;
   success: boolean;
-  error?: ExceptionWrap;
+  error?: {
+    imageUrl: string;
+    name: string;
+    message: string;
+    stack: string;
+  };
 }
 
 const activityFunction: AzureFunction = async function (
   context: Context,
-  imageData: PlatformImageData
-): Promise<PlatformImageTaskResponse> {
+  imageData: PlatformDownloadImageInput
+): Promise<PlatformDownloadImageOutput> {
   let error;
   try {
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(
       imageData.containerId
     );
-    const [category, sizes, type, ...rest] = imageData.tags;
-    const fileName = path.parse(imageData.imageUrl).base;
+    const category = imageData.category || "other";
+    const purpose = imageData.purpose || "none";
+    const image = await Jimp.read(imageData.imageUrl);
+    const width = image.getWidth();
+    const height = image.getHeight();
+    const type = imageData.type || image.getMIME();
+    const actualSize = `${width}x${height}`;
+    const sizes = imageData.sizes || actualSize;
+    const tagMetadata = setTagMetadataProperties({
+      category,
+      actualSize,
+      sizes,
+      type,
+      purpose,
+      originalUrl: imageData.imageUrl,
+    });
 
-    const imageResponse = await fetch(imageData.imageUrl);
-    const imageBase64 = atob(imageResponse.body.read());
+    const {
+      stream: imageStream,
+      buffer: imageBuffer,
+    } = await createImageStreamFromJimp(image);
 
-    const uploadResponse = await containerClient.uploadBlockBlob(
-      fileName,
-      imageBase64,
-      imageBase64.length,
+    const name = path.parse(imageData.imageUrl).base;
+    const imageKey = ImageKey({
+      width,
+      height,
+      purpose,
+      category,
+      name: name ? name : undefined,
+    });
+    const blobClient = await containerClient.getBlockBlobClient(imageKey);
+    const uploadResponse = await blobClient.uploadStream(
+      imageStream,
+      imageBuffer.byteLength,
+      undefined,
       {
-        metadata: {
-          category,
-          sizes,
-          type,
+        blobHTTPHeaders: {
+          blobContentType: image.getMIME(),
         },
-        tags: {
-          category,
-          sizes,
-          type
-        }
+        metadata: tagMetadata,
+        tags: tagMetadata,
       }
     );
     return {
-      blobRes: uploadResponse.response,
+      blobRes: uploadResponse,
       success: true,
     };
   } catch (exception) {
-    context.log(error);
-    error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
+    context.log(exception);
+    error = {
+      imageUrl: imageData.imageUrl,
+      name: exception.name,
+      message: exception.message,
+      stack: exception.stack,
+    };
   }
 
   return {

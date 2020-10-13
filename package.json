@@ -20,13 +20,14 @@
   },
   "dependencies": {
     "@azure/identity": "^1.1.0",
-    "@azure/storage-blob": "^12.2.0",
+    "@azure/storage-blob": "^12.2.1",
     "@azure/storage-queue": "^12.1.0",
     "durable-functions": "^1.4.3",
-    "image-size": "^0.9.1",
     "jimp": "^0.16.1",
+    "jszip": "^3.5.0",
     "node-fetch": "^2.6.0",
     "puppeteer": "^5.2.1",
-    "pwabuilder-lib": "^2.1.9"
+    "pwabuilder-lib": "^2.1.9",
+    "svgjs": "^2.6.2"
   }
 }

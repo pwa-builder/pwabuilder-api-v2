@@ -1,0 +1,10 @@
+{
+  "bindings": [
+    {
+      "name": "readContainerInput",
+      "type": "activityTrigger",
+      "direction": "in"
+    }
+  ],
+  "scriptFile": "../dist/ReadContainer/index.js"
+}
