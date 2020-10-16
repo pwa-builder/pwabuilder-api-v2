@@ -1,4 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import { Page } from "puppeteer";
 import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -28,7 +29,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     // empty object that we fill with data below
     let swInfo: any = {};
 
-    // Check to see if there is a service worker
+    // Check to see if there is a service worker installing
+    let swInstalling = await checkRegistration(page);
+    if (!swInstalling) {
+      context.res = {
+        status: 200,
+        body: {
+          error: {
+            message: "service worker not registered."
+          }
+        }
+      }
+      return;
+    }
+    
+    // Wait until the service worker is ready
     let serviceWorkerHandle = await page.waitForFunction(
       () => {
         return navigator.serviceWorker.ready.then(
@@ -87,5 +102,29 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
   }
 };
+
+async function checkRegistration(page: Page) {
+  return await Promise.race([
+      page.waitForFunction(() => {
+        return new Promise((resolve, reject) => {
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            resolve(navigator.serviceWorker.controller)
+          });
+
+          setTimeout(() => {
+            reject(false);
+          }, 30000);
+        });
+      }, {timeout: 30000 }),
+      page.waitForFunction(() => {
+        return navigator.serviceWorker.getRegistration().then(reg => (reg?.active || reg?.installing || reg?.waiting) ? true : false);
+      }, {
+        polling: 1000,
+        timeout: 30000,
+      })
+  ])
+  .then((res) => res.jsonValue())
+  .catch(() => false);
+}
 
 export default httpTrigger;
