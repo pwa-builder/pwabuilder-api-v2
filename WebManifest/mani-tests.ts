@@ -1,4 +1,6 @@
-export const checkShortName = (data) => {
+import { IconManifestImageResource, Manifest } from "../utils/interfaces";
+
+export const checkShortName = (data: Manifest) => {
   if (data.short_name) {
     return true;
   }
@@ -7,7 +9,7 @@ export const checkShortName = (data) => {
   }
 }
 
-export const checkName = (data) => {
+export const checkName = (data: Manifest) => {
   if (data.name) {
     return true;
   }
@@ -16,7 +18,7 @@ export const checkName = (data) => {
   }
 }
 
-export const checkDesc = (data) => {
+export const checkDesc = (data: Manifest) => {
   if (data.description && data.description.length > 0) {
     return true;
   }
@@ -25,7 +27,7 @@ export const checkDesc = (data) => {
   }
 }
 
-export const checkDisplay = (data) => {
+export const checkDisplay = (data: Manifest) => {
   if (data.display && data.display.length > 0) {
     return true;
   }
@@ -34,7 +36,7 @@ export const checkDisplay = (data) => {
   }
 }
 
-export const checkStartUrl = (data) => {
+export const checkStartUrl = (data: Manifest) => {
   if (data.start_url && data.start_url.length > 0) {
     return true;
   }
@@ -43,7 +45,7 @@ export const checkStartUrl = (data) => {
   }
 }
 
-export const checkIcons = (data) => {
+export const checkIcons = (data: Manifest) => {
   if (data.icons && data.icons.length > 0) {
     return true;
   }
@@ -52,13 +54,13 @@ export const checkIcons = (data) => {
   }
 }
 
-export const checkMaskableIcon = (data) => {
+export const checkMaskableIcon = (data: Manifest) => {
   const hasIcons = checkIcons(data);
-  
+
   if (hasIcons) {
     let hasMask = false;
 
-    data.icons.forEach((icon) => {
+       data.icons.forEach((icon: IconManifestImageResource) => {
       if (icon.purpose && icon.purpose.includes('maskable')) {
         hasMask = true;
       }
@@ -71,7 +73,7 @@ export const checkMaskableIcon = (data) => {
   }
 }
 
-export const checkScreenshots = (data) => {
+export const checkScreenshots = (data: Manifest) => {
   if (data.screenshots && data.screenshots.length > 0) {
     return true;
   }
@@ -80,7 +82,7 @@ export const checkScreenshots = (data) => {
   }
 }
 
-export const checkCategories = (data) => {
+export const checkCategories = (data: Manifest) => {
   if (data.categories && data.categories.length > 0) {
     return true;
   }
@@ -89,7 +91,7 @@ export const checkCategories = (data) => {
   }
 }
 
-export const checkRating = (data) => {
+export const checkRating = (data: Manifest) => {
   if (data.iarc_rating) {
     return true;
   }
@@ -98,7 +100,7 @@ export const checkRating = (data) => {
   }
 }
 
-export const checkRelatedApps = (data) => {
+export const checkRelatedApps = (data: Manifest) => {
   if (data.related_applications) {
     return true;
   }
@@ -107,7 +109,7 @@ export const checkRelatedApps = (data) => {
   }
 }
 
-export const checkRelatedPref = (data) => {
+export const checkRelatedPref = (data: Manifest) => {
   if (data.prefer_related_applications !== undefined && data.prefer_related_applications !== null) {
     return true;
   }
@@ -116,7 +118,7 @@ export const checkRelatedPref = (data) => {
   }
 }
 
-export const checkBackgroundColor = (data) => {
+export const checkBackgroundColor = (data: Manifest) => {
   if (data.background_color) {
     return true;
   }
@@ -125,7 +127,7 @@ export const checkBackgroundColor = (data) => {
   }
 }
 
-export const checkThemeColor = (data) => {
+export const checkThemeColor = (data: Manifest) => {
   if (data.theme_color) {
     return true;
   }
@@ -134,7 +136,7 @@ export const checkThemeColor = (data) => {
   }
 }
 
-export const checkOrientation = (data) => {
+export const checkOrientation = (data: Manifest) => {
   if (data.orientation) {
     return true;
   }

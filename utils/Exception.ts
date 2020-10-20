@@ -1,11 +1,17 @@
 export enum ExceptionType {
   MANIFEST_NOT_FOUND = "MANIFEST_NOT_FOUND",
   MANIFEST_FILE_UNSUPPORTED = "MANIFEST_FILE_UNSUPPORTED",
+  BLOB_STORAGE_FAILURE = "BLOB_STORAGE_FAILURE",
+  BLOB_STORAGE_FAILURE_IMAGE = "BLOB_STORAGE_FAILURE_IMAGE",
+  BLOB_READ_FAILURE = "BLOB_READ_FAILURE",
 }
 
 export enum ExceptionMessage {
   MANIFEST_NOT_FOUND = "failed to find the manifest",
   MANIFEST_FILE_UNSUPPORTED = "failed to read the json of the submitted manifest file",
+  BLOB_STORAGE_FAILURE = "failed to create the azure resources for generating the app",
+  BLOB_STORAGE_FAILURE_IMAGE = "failed to upload image to blob storage",
+  BLOB_READ_FAILURE = "failed to fetch resource from blob storage",
 }
 
 /*

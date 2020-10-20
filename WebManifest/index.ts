@@ -3,33 +3,37 @@ import { checkBackgroundColor, checkCategories, checkDesc, checkDisplay, checkIc
 import getManifest from "../utils/getManifest";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log('Web Manifest function processed a request.');
+  context.log(`Web Manifest function is processing a request for site: ${req.query.site}`);
 
   const site = req.query.site;
+  
+  const maniObject = req.body.manifest;
+  const maniUrl = req.body.maniurl;
+
   try {
 
-    const maniData = await getManifest(site);
+    if (maniObject) {
+      context.log(`Web Manifest function has a raw manifest object for site: ${req.query.site}`);
 
-    if (maniData) {
       const results = {
         "required": {
-          "short_name": checkShortName(maniData.json),
-          "name": checkName(maniData.json),
-          "display": checkDisplay(maniData.json),
-          "start_url": checkStartUrl(maniData.json),
-          "icons": checkIcons(maniData.json)
+          "short_name": checkShortName(maniObject),
+          "name": checkName(maniObject),
+          "display": checkDisplay(maniObject),
+          "start_url": checkStartUrl(maniObject),
+          "icons": checkIcons(maniObject)
         },
         "recommended": {
-          "screenshots": checkScreenshots(maniData.json),
-          "description": checkDesc(maniData.json),
-          "categories": checkCategories(maniData.json),
-          "maskable_icon": checkMaskableIcon(maniData.json),
-          "iarc_rating": checkRating(maniData.json),
-          "related_applications": checkRelatedApps(maniData.json),
-          "prefer_related_applications": checkRelatedPref(maniData.json),
-          "background_color": checkBackgroundColor(maniData.json),
-          "theme_color": checkThemeColor(maniData.json),
-          "orientation": checkOrientation(maniData.json)
+          "screenshots": checkScreenshots(maniObject),
+          "description": checkDesc(maniObject),
+          "categories": checkCategories(maniObject),
+          "maskable_icon": checkMaskableIcon(maniObject),
+          "iarc_rating": checkRating(maniObject),
+          "related_applications": checkRelatedApps(maniObject),
+          "prefer_related_applications": checkRelatedPref(maniObject),
+          "background_color": checkBackgroundColor(maniObject),
+          "theme_color": checkThemeColor(maniObject),
+          "orientation": checkOrientation(maniObject)
         },
         "optional": {
 
@@ -40,8 +44,54 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         status: 200,
         body: {
           "data": results,
-          "content": maniData
+          "content": {
+            json: maniObject,
+            url: maniUrl || site
+          }
         }
+      }
+
+      context.log(`Web Manifest function is DONE processing for site: ${req.query.site}`);
+    }
+    else {
+      context.log(`Web Manifest function is grabbing manifest object for site: ${req.query.site}`);
+      const maniData = await getManifest(site);
+
+      if (maniData) {
+        const results = {
+          "required": {
+            "short_name": checkShortName(maniData.json),
+            "name": checkName(maniData.json),
+            "display": checkDisplay(maniData.json),
+            "start_url": checkStartUrl(maniData.json),
+            "icons": checkIcons(maniData.json)
+          },
+          "recommended": {
+            "screenshots": checkScreenshots(maniData.json),
+            "description": checkDesc(maniData.json),
+            "categories": checkCategories(maniData.json),
+            "maskable_icon": checkMaskableIcon(maniData.json),
+            "iarc_rating": checkRating(maniData.json),
+            "related_applications": checkRelatedApps(maniData.json),
+            "prefer_related_applications": checkRelatedPref(maniData.json),
+            "background_color": checkBackgroundColor(maniData.json),
+            "theme_color": checkThemeColor(maniData.json),
+            "orientation": checkOrientation(maniData.json)
+          },
+          "optional": {
+
+          }
+        }
+
+        context.res = {
+          status: 200,
+          body: {
+            "data": results,
+            "content": maniData
+          }
+        }
+
+        context.log(`Web Manifest function is DONE processing for site: ${req.query.site}`);
       }
     }
   }
@@ -52,6 +102,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "error": { error: err, message: err.message }
       },
     };
+
+    context.log(`Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${err.message}`);
   }
 };
 

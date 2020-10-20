@@ -3,7 +3,7 @@ import * as puppeteer from 'puppeteer';
 export default async function loadPage(site: string): Promise<{ sitePage: puppeteer.Page, pageResponse: puppeteer.Response, browser: puppeteer.Browser }> {
   let browser: puppeteer.Browser;
   let sitePage: puppeteer.Page;
-  let pageResponse: puppeteer.Response;
+  let pageResponse: puppeteer.Response | null;
 
   const timeout = 120000;
 
@@ -21,11 +21,16 @@ export default async function loadPage(site: string): Promise<{ sitePage: puppet
 
     pageResponse = await sitePage.goto(site, { waitUntil: ['domcontentloaded'] });
 
-    return {
-      sitePage: sitePage,
-      pageResponse: pageResponse,
-      browser: browser
-    };
+    if (pageResponse) {
+      return {
+        sitePage: sitePage,
+        pageResponse: pageResponse,
+        browser: browser
+      };
+    }
+    else {
+      throw new Error("Could not get a page response")
+    }
   }
   catch (err) {
     return err || err.message;

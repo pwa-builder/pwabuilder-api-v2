@@ -1,6 +1,6 @@
 {
   "name": "",
-  "version": "",
+  "version": "12.16.1",
   "scripts": {
     "build": "tsc",
     "build:production": "npm run prestart && npm prune --production",
@@ -14,12 +14,20 @@
   "devDependencies": {
     "@azure/functions": "^1.0.1-beta1",
     "@types/puppeteer": "^3.0.1",
+    "azurite": "^3.8.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^4.0.2"
   },
   "dependencies": {
+    "@azure/identity": "^1.1.0",
+    "@azure/storage-blob": "^12.2.1",
+    "@azure/storage-queue": "^12.1.0",
+    "durable-functions": "^1.4.3",
+    "jimp": "^0.16.1",
+    "jszip": "^3.5.0",
     "node-fetch": "^2.6.0",
     "puppeteer": "^5.2.1",
-    "pwabuilder-lib": "^2.1.8"
+    "pwabuilder-lib": "^2.1.9",
+    "svgjs": "^2.6.2"
   }
 }

@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
-import ExceptionOf, { ExceptionType } from "./Exception";
+import ExceptionOf, { ExceptionType as Type } from "./Exception";
+import { Manifest } from "./interfaces";
 import loadPage from "./loadPage";
 
-export type Manifest = any;
 export interface ManifestInformation {
   json: Manifest;
   url: string;
@@ -10,14 +10,14 @@ export interface ManifestInformation {
 
 export default async function getManifest(
   site: string
-): Promise<ManifestInformation> {
+): Promise<ManifestInformation | null> {
   try {
     const siteData = await loadPage(site);
 
     siteData.sitePage.setRequestInterception(true);
 
-    let whiteList = ['document', 'plain', 'script', 'javascript'];
-    siteData.sitePage.on('request', (req) => {
+    let whiteList = ["document", "plain", "script", "javascript"];
+    siteData.sitePage.on("request", (req) => {
       const type = req.resourceType();
       if (whiteList.some((el) => type.indexOf(el) >= 0)) {
         req.continue();
@@ -28,7 +28,10 @@ export default async function getManifest(
 
     const manifestUrl = await siteData.sitePage.$eval(
       "link[rel=manifest]",
-      (el: HTMLAnchorElement) => el.href
+      (el: Element) => {
+        const anchorEl = (el as HTMLAnchorElement);
+        return anchorEl.href
+      }
     );
 
     if (manifestUrl) {
@@ -41,6 +44,6 @@ export default async function getManifest(
 
     return null;
   } catch (e) {
-    throw ExceptionOf(ExceptionType.MANIFEST_NOT_FOUND, e);
+    throw ExceptionOf(Type.MANIFEST_NOT_FOUND, e);
   }
 }
