@@ -10,7 +10,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   const timeout = 120000;
 
   try {
-    const pageData = await loadPage(url);
+    const pageData = await loadPage(url, context);
 
     const page = pageData.sitePage;
 
