@@ -5,14 +5,27 @@ import getManifest from "../utils/getManifest";
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log(`Web Manifest function is processing a request for site: ${req.query.site}`);
 
-  const site = req.query.site;
-  
-  const maniObject = req.body.manifest;
-  const maniUrl = req.body.maniurl;
+  let site = null;
+  let maniObject = null;
+  let maniUrl = null;
+
+  // set our variables to actual values
+  // if the values are available
+  if (req.query && req.query.site) {
+    site = req.query.site;
+  }
+
+  if (req.body && req.body.manifest) {
+    maniObject = req.body.manifest;
+  }
+
+  if (req.body && req.body.maniurl) {
+    maniUrl = req.body.maniurl;
+  }
 
   try {
 
-    if (maniObject) {
+    if (maniObject && (maniUrl || site)) {
       context.log(`Web Manifest function has a raw manifest object for site: ${req.query.site}`);
 
       const results = {
@@ -53,7 +66,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
       context.log(`Web Manifest function is DONE processing for site: ${req.query.site}`);
     }
-    else {
+    else if (site) {
       context.log(`Web Manifest function is grabbing manifest object for site: ${req.query.site}`);
       const maniData = await getManifest(site);
 
