@@ -1,4 +1,4 @@
-import { IconManifestImageResource, Manifest } from "../utils/interfaces";
+import { IconManifestImageResource, Manifest } from "./interfaces";
 
 export const checkShortName = (data: Manifest) => {
   if (data.short_name) {
