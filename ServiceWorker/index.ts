@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { Page } from "puppeteer";
+import { Page, Response, Browser } from "puppeteer";
 import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -9,8 +9,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   const timeout = 120000;
 
+  let pageData: { sitePage: Page, pageResponse: Response, browser: Browser } | null = null;
   try {
-    const pageData = await loadPage(url);
+    pageData = await loadPage(url);
 
     const page = pageData.sitePage;
 
@@ -101,6 +102,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     } else {
       context.log(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
+  } finally {
+    pageData?.sitePage?.close();
+    pageData?.browser.close();
   }
 };
 
