@@ -103,8 +103,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.log(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
   } finally {
-    pageData?.sitePage?.close();
-    pageData?.browser.close();
+    await pageData?.sitePage?.close();
+    await pageData?.browser?.close();
   }
 };
 
