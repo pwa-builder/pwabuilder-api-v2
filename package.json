@@ -25,6 +25,7 @@
     "durable-functions": "^1.4.3",
     "jimp": "^0.16.1",
     "jszip": "^3.5.0",
+    "lighthouse": "^6.4.1",
     "node-fetch": "^2.6.0",
     "puppeteer": "^5.2.1",
     "pwabuilder-lib": "^2.1.9",

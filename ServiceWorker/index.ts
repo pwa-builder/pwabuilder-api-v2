@@ -1,5 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { Page, Response, Browser } from "puppeteer";
+const lighthouse = require('lighthouse');
+
+import { PageData } from "../utils/interfaces";
 import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -7,13 +9,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   const url = req.query.site;
 
-  const timeout = 120000;
+  let pageData: PageData | null = null;
 
-  let pageData: { sitePage: Page, pageResponse: Response, browser: Browser } | null = null;
   try {
     pageData = await loadPage(url);
 
-    const page = pageData.sitePage;
+    const page = pageData?.sitePage;
 
     page.setRequestInterception(true);
 
@@ -27,59 +28,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     });
 
-    // empty object that we fill with data below
-    let swInfo: any = {};
-
-    // Check to see if there is a service worker installing
-    let swInstalling = await checkRegistration(page);
-    if (!swInstalling) {
-      context.res = {
-        status: 200,
-        body: {
-          error: {
-            message: "service worker not registered."
-          }
-        }
-      }
-      return;
-    }
-    
-    // Wait until the service worker is ready
-    let serviceWorkerHandle = await page.waitForFunction(
-      () => {
-        return navigator.serviceWorker.ready.then(
-          (res) => res.active?.scriptURL
-        );
-      },
-      { timeout }
-    );
-
-    swInfo['hasSW'] =
-      serviceWorkerHandle && (await serviceWorkerHandle.jsonValue());
-
-    // try to grab service worker scope
-    const serviceWorkerScope = await page.evaluate(
-      () => {
-        return navigator.serviceWorker
-          .getRegistration()
-          .then((res) => res?.scope);
-      },
-      { timeout }
-    );
-
-    swInfo['scope'] = serviceWorkerScope;
-
-    // checking push reg
-    let pushReg: boolean | PushSubscription | undefined | null = await page.evaluate(
-      () => {
-        return navigator.serviceWorker.getRegistration().then((reg) => {
-          return reg?.pushManager.getSubscription().then((sub) => sub);
-        });
-      },
-      { timeout }
-    );
-
-    swInfo['pushReg'] = pushReg;
+    // run lighthouse audit
+    const swInfo = await audit(pageData, url);
 
     context.res = {
       status: 200,
@@ -108,28 +58,26 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   }
 };
 
-async function checkRegistration(page: Page) {
-  return await Promise.race([
-      page.waitForFunction(() => {
-        return new Promise((resolve, reject) => {
-          navigator.serviceWorker.addEventListener("controllerchange", () => {
-            resolve(navigator.serviceWorker.controller)
-          });
+const audit = async (pageData: PageData, url: string) => {
+  // empty object that we fill with data below
+  let swInfo: any = {};
 
-          setTimeout(() => {
-            reject(false);
-          }, 30000);
-        });
-      }, {timeout: 30000 }),
-      page.waitForFunction(() => {
-        return navigator.serviceWorker.getRegistration().then(reg => (reg?.active || reg?.installing || reg?.waiting) ? true : false);
-      }, {
-        polling: 1000,
-        timeout: 30000,
-      })
-  ])
-  .then((res) => res.jsonValue())
-  .catch(() => false);
+  const options = {
+    output: 'json',
+    logLevel: 'info',
+    disableDeviceEmulation: true,
+    chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
+    onlyCategories: ['pwa'],
+    port: (new URL(pageData.browser.wsEndpoint())).port
+  };
+  const runnerResult = await lighthouse(url, options);
+  const audits = runnerResult?.lhr?.audits;
+
+  if (audits) {
+    swInfo['hasSW'] = audits['service-worker'].score >= 1 ? true : false;
+    swInfo['scope'] = audits['service-worker'].details.scopeUrl || null;
+    swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
+  }
 }
 
 export default httpTrigger;

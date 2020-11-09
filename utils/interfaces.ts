@@ -1,4 +1,5 @@
 type HexCode = string;
+import { Browser, Page, Response } from "puppeteer";
 import {
   ManifestImageResource,
   SpaceSeparatedList,
@@ -80,4 +81,10 @@ export enum ManifestFormat {
   edgeextension = "edgeextension",
   windows10 = "windows10",
   firefox = "firefox",
+}
+
+export interface PageData {
+  sitePage: Page,
+  pageResponse: Response,
+  browser: Browser
 }
