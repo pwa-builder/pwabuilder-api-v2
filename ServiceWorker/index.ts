@@ -75,9 +75,15 @@ const audit = async (pageData: PageData, url: string) => {
 
   if (audits) {
     swInfo['hasSW'] = audits['service-worker'].score >= 1 ? true : false;
-    swInfo['scope'] = audits['service-worker'].details.scopeUrl || null;
+    swInfo['scope'] = audits['service-worker'].details ? audits['service-worker'].details.scopeUrl : null;
     swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
+
+    return swInfo;
   }
+  else {
+    return null;
+  }
+
 }
 
 export default httpTrigger;
