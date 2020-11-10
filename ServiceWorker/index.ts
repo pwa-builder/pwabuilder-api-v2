@@ -62,6 +62,8 @@ const audit = async (pageData: PageData, url: string) => {
   // empty object that we fill with data below
   let swInfo: any = {};
 
+  // Default options to use when using
+  // Puppeteer with Lighthouse
   const options = {
     output: 'json',
     logLevel: 'info',
