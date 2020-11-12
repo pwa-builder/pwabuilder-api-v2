@@ -1,44 +1,32 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import { Browser } from 'puppeteer';
 const lighthouse = require('lighthouse');
 
-import { PageData } from "../utils/interfaces";
-import loadPage from "../utils/loadPage";
+import { getBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log(`Service Worker function is processing a request for site: ${req.query.site}`);
 
   const url = req.query.site;
 
-  let pageData: PageData | null = null;
+  const currentBrowser = getBrowser();
 
   try {
-    pageData = await loadPage(url);
-
-    const page = pageData?.sitePage;
-
-    page.setRequestInterception(true);
-
-    let allowList = ['javascript'];
-    page.on('request', (req) => {
-      const type = req.resourceType();
-      if (allowList.some((el) => type.indexOf(el) >= 0)) {
-        req.continue();
-      } else {
-        req.abort();
-      }
-    });
-
     // run lighthouse audit
-    const swInfo = await audit(pageData, url);
 
-    context.res = {
-      status: 200,
-      body: {
-        "data": swInfo
+    if (currentBrowser) {
+      const swInfo = await audit(currentBrowser, url);
+
+      context.res = {
+        status: 200,
+        body: {
+          "data": swInfo
+        }
       }
+
+      context.log(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
     }
 
-    context.log(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
   } catch (error) {
     context.res = {
       status: 500,
@@ -52,13 +40,13 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     } else {
       context.log(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
-  } finally {
-    await pageData?.sitePage?.close();
-    await pageData?.browser?.close();
+  }
+  finally {
+    await currentBrowser?.close();
   }
 };
 
-const audit = async (pageData: PageData, url: string) => {
+const audit = async (browser: Browser, url: string) => {
   // empty object that we fill with data below
   let swInfo: any = {};
 
@@ -70,8 +58,9 @@ const audit = async (pageData: PageData, url: string) => {
     disableDeviceEmulation: true,
     chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
     onlyCategories: ['pwa'],
-    port: (new URL(pageData.browser.wsEndpoint())).port
+    port: (new URL(browser.wsEndpoint())).port
   };
+
   const runnerResult = await lighthouse(url, options);
   const audits = runnerResult?.lhr?.audits;
 

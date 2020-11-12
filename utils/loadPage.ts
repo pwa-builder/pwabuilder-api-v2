@@ -1,7 +1,8 @@
 import * as puppeteer from 'puppeteer';
 
+let browser: puppeteer.Browser;
+
 export default async function loadPage(site: string): Promise<{ sitePage: puppeteer.Page, pageResponse: puppeteer.Response, browser: puppeteer.Browser }> {
-  let browser: puppeteer.Browser;
   let sitePage: puppeteer.Page;
   let pageResponse: puppeteer.Response | null;
 
@@ -34,5 +35,14 @@ export default async function loadPage(site: string): Promise<{ sitePage: puppet
   }
   catch (err) {
     return err || err.message;
+  }
+}
+
+export function getBrowser(): puppeteer.Browser | null {
+  if (browser) {
+    return browser;
+  }
+  else {
+    return null
   }
 }
