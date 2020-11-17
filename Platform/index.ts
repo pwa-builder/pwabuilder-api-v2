@@ -72,7 +72,8 @@ const httpTrigger: AzureFunction = async function (
       },
     };
   } catch (exception) {
-    context.log(exception);
+    context.log.error(exception);
+    
     if (exception instanceof ExceptionWrap) {
       context.res = {
         body: {

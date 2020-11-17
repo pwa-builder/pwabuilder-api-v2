@@ -51,7 +51,7 @@ const activityFunction: AzureFunction = async function (
 
     output.success = true;
   } catch (e) {
-    context.log(e);
+    context.log.error(e);
     output.error = {
       name: e.name,
       message: e.message,

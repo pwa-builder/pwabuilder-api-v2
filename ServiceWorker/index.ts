@@ -5,7 +5,7 @@ const lighthouse = require('lighthouse');
 import { getBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log(`Service Worker function is processing a request for site: ${req.query.site}`);
+  context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
 
   const url = req.query.site;
 
@@ -24,7 +24,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
-      context.log(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
+      context.log.info(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
     }
 
   } catch (error) {
@@ -36,9 +36,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     };
 
     if (error.name && error.name.indexOf('TimeoutError') > -1) {
-      context.log(`Service Worker function TIMED OUT processing a request for site: ${url}`);
+      context
+      context.log.error(`Service Worker function TIMED OUT processing a request for site: ${url}`);
     } else {
-      context.log(`Service Worker function failed for ${url} with the following error: ${error}`)
+      context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
   }
   finally {

@@ -113,7 +113,7 @@ const activityFunction: AzureFunction = async function (
       success: true,
     };
   } catch (exception) {
-    context.log(exception);
+    context.log.error(exception);
     error = ExceptionOf(ExceptionType.BLOB_STORAGE_FAILURE_IMAGE, exception);
   }
 

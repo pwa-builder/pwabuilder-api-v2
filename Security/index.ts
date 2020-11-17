@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import loadPage from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log(`Security function is processing a request for site: ${req.query.site}`);
+  context.log.info(`Security function is processing a request for site: ${req.query.site}`);
 
   const site = req.query.site;
 
@@ -36,7 +36,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
-      context.log(`Security function ERRORED loading a request for site: ${req.query.site}`);
+      context.log.error(`Security function ERRORED loading a request for site: ${req.query.site}`);
     }
 
     const securityDetails = pageResponse?.securityDetails();
@@ -63,7 +63,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
-      context.log(`Security function could not load security details for site: ${req.query.site}`);
+      context.log.error(`Security function could not load security details for site: ${req.query.site}`);
     }
 
   }
@@ -75,7 +75,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
 
-    context.log(`Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`);
+    context.log.error(`Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`);
   }
 };
 
