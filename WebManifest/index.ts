@@ -11,7 +11,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   try {
     if (maniObject && (maniUrl || site)) {
-      context.log(`Web Manifest function has a raw manifest object for site: ${req?.query?.site}`);
+      context.log.info(`Web Manifest function has a raw manifest object for site: ${req?.query?.site}`);
 
       const results = await testManifest(maniObject);
 
@@ -26,10 +26,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
-      context.log(`Web Manifest function is DONE processing for site: ${req.query.site}`);
+      context.log.info(`Web Manifest function is DONE processing for site: ${req.query.site}`);
     }
     else if (site) {
-      context.log(`Web Manifest function is grabbing manifest object for site: ${req.query.site}`);
+      context.log.info(`Web Manifest function is grabbing manifest object for site: ${req.query.site}`);
       const maniData = await getManifest(site);
 
       if (maniData) {
@@ -43,7 +43,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           }
         }
 
-        context.log(`Web Manifest function is DONE processing for site: ${req.query.site}`);
+        context.log.info(`Web Manifest function is DONE processing for site: ${req.query.site}`);
       }
     }
   }
@@ -55,7 +55,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       },
     };
 
-    context.log(`Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${err.message}`);
+    context.log.error(`Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${err.message}`);
   }
 };
 
