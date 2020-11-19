@@ -9,12 +9,7 @@ export default async function loadPage(site: string): Promise<{ sitePage: puppet
   const timeout = 120000;
 
   try {
-    browser = await puppeteer.launch(
-      {
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      }
-    );
+    browser = await getBrowser();
 
     sitePage = await browser.newPage();
 
