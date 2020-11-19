@@ -38,11 +38,17 @@ export default async function loadPage(site: string): Promise<{ sitePage: puppet
   }
 }
 
-export function getBrowser(): puppeteer.Browser | null {
+export async function getBrowser(): Promise<puppeteer.Browser> {
   if (browser) {
     return browser;
   }
   else {
-    return null
+    browser = await puppeteer.launch(
+      {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      }
+    );
+    return browser;
   }
 }
