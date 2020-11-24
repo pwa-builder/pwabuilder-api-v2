@@ -1,15 +1,16 @@
+import { Context } from '@azure/functions';
 import * as puppeteer from 'puppeteer';
 
 let browser: puppeteer.Browser;
 
-export default async function loadPage(site: string): Promise<{ sitePage: puppeteer.Page, pageResponse: puppeteer.Response, browser: puppeteer.Browser }> {
+export default async function loadPage(site: string, context: Context): Promise<{ sitePage: puppeteer.Page, pageResponse: puppeteer.Response, browser: puppeteer.Browser }> {
   let sitePage: puppeteer.Page;
   let pageResponse: puppeteer.Response | null;
 
   const timeout = 120000;
 
   try {
-    browser = await getBrowser();
+    browser = await getBrowser(context);
 
     sitePage = await browser.newPage();
 
@@ -33,11 +34,13 @@ export default async function loadPage(site: string): Promise<{ sitePage: puppet
   }
 }
 
-export async function getBrowser(): Promise<puppeteer.Browser> {
+export async function getBrowser(context: Context): Promise<puppeteer.Browser> {
   if (browser) {
+    context.log.info("Getting an already created browser");
     return browser;
   }
   else {
+    context.log.info("Spinning up a new browser");
     browser = await puppeteer.launch(
       {
         headless: true,

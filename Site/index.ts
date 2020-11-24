@@ -35,7 +35,7 @@ const httpTrigger: AzureFunction = async function (
       // Handle Site
       context.log.info(`Site function is loading the manifest from the URL for site: ${req.query.site}`);
 
-      const manifestData = await getManifest(siteUrl);
+      const manifestData = await getManifest(siteUrl, context);
 
       if (manifestData) {
         manifest = manifestData.json;
