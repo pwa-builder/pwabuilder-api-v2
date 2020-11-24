@@ -30,7 +30,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
     else if (site) {
       context.log.info(`Web Manifest function is grabbing manifest object for site: ${req.query.site}`);
-      const maniData = await getManifest(site);
+      const maniData = await getManifest(site, context);
 
       if (maniData) {
         const results = await testManifest(maniObject);

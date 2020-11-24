@@ -1,3 +1,4 @@
+import { Context } from "@azure/functions";
 import fetch from "node-fetch";
 import ExceptionOf, { ExceptionType as Type } from "./Exception";
 import { Manifest } from "./interfaces";
@@ -9,10 +10,11 @@ export interface ManifestInformation {
 }
 
 export default async function getManifest(
-  site: string
+  site: string,
+  context: Context
 ): Promise<ManifestInformation | null> {
   try {
-    const siteData = await loadPage(site);
+    const siteData = await loadPage(site, context);
 
     siteData.sitePage.setRequestInterception(true);
 

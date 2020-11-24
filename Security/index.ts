@@ -11,7 +11,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     let pageResponse;
 
     try {
-      const siteData = await loadPage(site);
+      const siteData = await loadPage(site, context);
 
       page = siteData.sitePage;
       pageResponse = siteData.pageResponse;

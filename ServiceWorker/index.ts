@@ -9,7 +9,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   const url = req.query.site;
 
-  const currentBrowser = await getBrowser();
+  const currentBrowser = await getBrowser(context);
 
   try {
     // run lighthouse audit
@@ -43,7 +43,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
   }
   finally {
+    context.log.info("Closing the browser instance");
     await currentBrowser?.close();
+    context.log.info("Browser instance is closed");
   }
 };
 
