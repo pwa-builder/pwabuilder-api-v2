@@ -2,7 +2,7 @@ import { Context } from "@azure/functions";
 import fetch from "node-fetch";
 import ExceptionOf, { ExceptionType as Type } from "./Exception";
 import { Manifest } from "./interfaces";
-import loadPage from "./loadPage";
+import loadPage, { closeBrowser } from "./loadPage";
 
 export interface ManifestInformation {
   json: Manifest;
@@ -38,6 +38,9 @@ export default async function getManifest(
 
     if (manifestUrl) {
       const response = await fetch(manifestUrl);
+
+      await closeBrowser(context, siteData.browser);
+
       return {
         json: await response.json(),
         url: manifestUrl,

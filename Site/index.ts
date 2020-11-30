@@ -1,9 +1,11 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import * as puppeteer from "puppeteer";
+
 import getManifestFromFile, {
   ifSupportedFile,
 } from "../utils/getManifestFromFile";
 import getManifest from "../utils/getManifest";
+
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
 import { Manifest, ManifestFormat, ManifestInfo } from "../utils/interfaces";
 const manifestTools = require("pwabuilder-lib").manifestTools;
@@ -14,13 +16,7 @@ const httpTrigger: AzureFunction = async function (
 ): Promise<void> {
   context.log.info(`Site function is processing a request for site: ${req.query.site}`);
 
-  let browser: puppeteer.Browser | null = null;
-
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
 
     let manifestUrl: string;
     let manifest: Manifest | null = null;
@@ -99,10 +95,6 @@ const httpTrigger: AzureFunction = async function (
       };
 
       context.log.error(`Site function errored getting the manifest for site: ${req.query.site}`);
-    }
-  } finally {
-    if (browser) {
-      browser.close();
     }
   }
 };
