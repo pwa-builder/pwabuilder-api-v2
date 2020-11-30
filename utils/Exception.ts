@@ -4,6 +4,7 @@ export enum ExceptionType {
   BLOB_STORAGE_FAILURE = "BLOB_STORAGE_FAILURE",
   BLOB_STORAGE_FAILURE_IMAGE = "BLOB_STORAGE_FAILURE_IMAGE",
   BLOB_READ_FAILURE = "BLOB_READ_FAILURE",
+  BROWSER_CLOSE_FAILURE = "BROWSER_CLOSE_FAILURE",
 }
 
 export enum ExceptionMessage {
@@ -12,6 +13,7 @@ export enum ExceptionMessage {
   BLOB_STORAGE_FAILURE = "failed to create the azure resources for generating the app",
   BLOB_STORAGE_FAILURE_IMAGE = "failed to upload image to blob storage",
   BLOB_READ_FAILURE = "failed to fetch resource from blob storage",
+  BROWSER_CLOSE_FAILURE = "Failed to close browser",
 }
 
 /*

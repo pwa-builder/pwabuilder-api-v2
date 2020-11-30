@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { Browser } from 'puppeteer';
 const lighthouse = require('lighthouse');
 
-import { getBrowser } from "../utils/loadPage";
+import { closeBrowser, getBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
@@ -17,6 +17,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     if (currentBrowser) {
       const swInfo = await audit(currentBrowser, url);
 
+      await closeBrowser(context, currentBrowser);
+
       context.res = {
         status: 200,
         body: {
@@ -28,6 +30,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
   } catch (error) {
+    await closeBrowser(context, currentBrowser);
+
     context.res = {
       status: 500,
       body: {
@@ -41,11 +45,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     } else {
       context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
-  }
-  finally {
-    context.log.info("Closing the browser instance");
-    await currentBrowser?.close();
-    context.log.info("Browser instance is closed");
   }
 };
 

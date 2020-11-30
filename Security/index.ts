@@ -1,17 +1,18 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import loadPage from "../utils/loadPage";
+import loadPage, { closeBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log.info(`Security function is processing a request for site: ${req.query.site}`);
 
   const site = req.query.site;
+  let siteData = null;
 
   try {
     let page;
     let pageResponse;
 
     try {
-      const siteData = await loadPage(site, context);
+      siteData = await loadPage(site, context);
 
       page = siteData.sitePage;
       pageResponse = siteData.pageResponse;
@@ -29,6 +30,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       });
     }
     catch (err) {
+      if (siteData && siteData.browser) {
+        await closeBrowser(context, siteData.browser);
+      }
+
       context.res = {
         status: 500,
         body: {
@@ -48,6 +53,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         "valid": securityDetails.validTo() <= new Date().getTime()
       };
 
+      if (siteData && siteData.browser) {
+        await closeBrowser(context, siteData.browser);
+      }
+
       context.res = {
         status: 200,
         body: {
@@ -56,6 +65,10 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
     else {
+      if (siteData && siteData.browser) {
+        await closeBrowser(context, siteData.browser);
+      }
+
       context.res = {
         status: 400,
         body: {

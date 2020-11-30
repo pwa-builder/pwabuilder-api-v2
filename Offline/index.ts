@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import loadPage from "../utils/loadPage";
+import loadPage, { closeBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log.info(`Offline function is processing a request for site: ${req.query.site}`);
@@ -51,6 +51,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       await page.reload({ waitUntil: 'domcontentloaded' });
 
       if (bodySelector) {
+        await closeBrowser(context, pageData.browser);
+
         context.res = {
           status: 200,
           body: {
@@ -60,6 +62,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
     catch (err) {
+      await closeBrowser(context, pageData.browser);
+
       context.res = {
         status: 400,
         body: {
@@ -71,6 +75,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
   }
   catch (err) {
+    await closeBrowser(context, pageData.browser);
+
     context.res = {
       status: 500,
       body: {
