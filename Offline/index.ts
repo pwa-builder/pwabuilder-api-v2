@@ -1,12 +1,12 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import loadPage from "../utils/loadPage";
+import loadPage, { closeBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log(`Offline function is processing a request for site: ${req.query.site}`);
+  context.log.info(`Offline function is processing a request for site: ${req.query.site}`);
 
   const url = req.query.site;
 
-  const pageData = await loadPage(url);
+  const pageData = await loadPage(url, context);
 
   const page = pageData.sitePage;
 
@@ -51,6 +51,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       await page.reload({ waitUntil: 'domcontentloaded' });
 
       if (bodySelector) {
+        await closeBrowser(context, pageData.browser);
+
         context.res = {
           status: 200,
           body: {
@@ -60,6 +62,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
     catch (err) {
+      await closeBrowser(context, pageData.browser);
+
       context.res = {
         status: 400,
         body: {
@@ -67,10 +71,12 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
-      context.log(`Offline function determined ${req.query.site} does not load offline`);
+      context.log.info(`Offline function determined ${req.query.site} does not load offline`);
     }
   }
   catch (err) {
+    await closeBrowser(context, pageData.browser);
+
     context.res = {
       status: 500,
       body: {
@@ -78,7 +84,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
 
-    context.log(`Offline function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`);
+    context.log.error(`Offline function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`);
   }
 };
 

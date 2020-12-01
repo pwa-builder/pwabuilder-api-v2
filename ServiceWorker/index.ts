@@ -1,130 +1,82 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { Page } from "puppeteer";
-import loadPage from "../utils/loadPage";
+import { Browser } from 'puppeteer';
+const lighthouse = require('lighthouse');
+
+import { closeBrowser, getBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log(`Service Worker function is processing a request for site: ${req.query.site}`);
+  context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
 
   const url = req.query.site;
 
-  const timeout = 120000;
+  const currentBrowser = await getBrowser(context);
 
   try {
-    const pageData = await loadPage(url);
+    // run lighthouse audit
 
-    const page = pageData.sitePage;
+    if (currentBrowser) {
+      const swInfo = await audit(currentBrowser, url);
 
-    page.setRequestInterception(true);
+      await closeBrowser(context, currentBrowser);
 
-    let allowList = ['javascript'];
-    page.on('request', (req) => {
-      const type = req.resourceType();
-      if (allowList.some((el) => type.indexOf(el) >= 0)) {
-        req.continue();
-      } else {
-        req.abort();
-      }
-    });
-
-    // empty object that we fill with data below
-    let swInfo: any = {};
-
-    // Check to see if there is a service worker installing
-    let swInstalling = await checkRegistration(page);
-    if (!swInstalling) {
       context.res = {
         status: 200,
         body: {
-          error: {
-            message: "service worker not registered."
-          }
+          "data": swInfo
         }
       }
-      return;
+
+      context.log.info(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
     }
-    
-    // Wait until the service worker is ready
-    let serviceWorkerHandle = await page.waitForFunction(
-      () => {
-        return navigator.serviceWorker.ready.then(
-          (res) => res.active?.scriptURL
-        );
-      },
-      { timeout }
-    );
 
-    swInfo['hasSW'] =
-      serviceWorkerHandle && (await serviceWorkerHandle.jsonValue());
-
-    // try to grab service worker scope
-    const serviceWorkerScope = await page.evaluate(
-      () => {
-        return navigator.serviceWorker
-          .getRegistration()
-          .then((res) => res?.scope);
-      },
-      { timeout }
-    );
-
-    swInfo['scope'] = serviceWorkerScope;
-
-    // checking push reg
-    let pushReg: boolean | PushSubscription | undefined | null = await page.evaluate(
-      () => {
-        return navigator.serviceWorker.getRegistration().then((reg) => {
-          return reg?.pushManager.getSubscription().then((sub) => sub);
-        });
-      },
-      { timeout }
-    );
-
-    swInfo['pushReg'] = pushReg;
+  } catch (error) {
+    await closeBrowser(context, currentBrowser);
 
     context.res = {
-      status: 200,
+      status: 500,
       body: {
-        "data": swInfo
+        error: error
       }
-    }
+    };
 
-    context.log(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
-  } catch (error) {
     if (error.name && error.name.indexOf('TimeoutError') > -1) {
-
-      context.res = {
-        status: 500,
-        body: {
-          error: error
-        }
-      }
-
-      context.log(`Service Worker function TIMED OUT processing a request for site: ${req.query.site}`);
+      context
+      context.log.error(`Service Worker function TIMED OUT processing a request for site: ${url}`);
+    } else {
+      context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
   }
 };
 
-async function checkRegistration(page: Page) {
-  return await Promise.race([
-      page.waitForFunction(() => {
-        return new Promise((resolve, reject) => {
-          navigator.serviceWorker.addEventListener("controllerchange", () => {
-            resolve(navigator.serviceWorker.controller)
-          });
+const audit = async (browser: Browser, url: string) => {
+  // empty object that we fill with data below
+  let swInfo: any = {};
 
-          setTimeout(() => {
-            reject(false);
-          }, 30000);
-        });
-      }, {timeout: 30000 }),
-      page.waitForFunction(() => {
-        return navigator.serviceWorker.getRegistration().then(reg => (reg?.active || reg?.installing || reg?.waiting) ? true : false);
-      }, {
-        polling: 1000,
-        timeout: 30000,
-      })
-  ])
-  .then((res) => res.jsonValue())
-  .catch(() => false);
+  // Default options to use when using
+  // Puppeteer with Lighthouse
+  const options = {
+    output: 'json',
+    logLevel: 'info',
+    disableDeviceEmulation: true,
+    chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
+    onlyCategories: ['pwa'],
+    port: (new URL(browser.wsEndpoint())).port
+  };
+
+  const runnerResult = await lighthouse(url, options);
+  const audits = runnerResult?.lhr?.audits;
+
+  if (audits) {
+    swInfo['hasSW'] = audits['service-worker'].score >= 1 ? true : false;
+    swInfo['scope'] = audits['service-worker'].details ? audits['service-worker'].details.scopeUrl : null;
+    swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
+
+    return swInfo;
+  }
+  else {
+    return null;
+  }
+
 }
 
 export default httpTrigger;

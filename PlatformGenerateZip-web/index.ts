@@ -93,7 +93,7 @@ const activityFunction: AzureFunction = async function (
       });
 
     if (uploadResponse.errorCode) {
-      context.log(uploadResponse);
+      context.log.info(uploadResponse);
       throw Error("Upload failed with error code: " + uploadResponse.errorCode);
     }
 
@@ -109,7 +109,7 @@ const activityFunction: AzureFunction = async function (
     }.blob.core.windows.net/${input.containerId}/${
       "PWABuilder-" + input.platform
     }`;
-    context.log("zip url: " + zipLink);
+    context.log.info("zip url: " + zipLink);
 
     return {
       success: true,
@@ -117,7 +117,7 @@ const activityFunction: AzureFunction = async function (
       zipSAS: undefined,
     };
   } catch (e) {
-    context.log(e);
+    context.log.error('Error generating zip', e);
     error = {
       name: e.name,
       message: e.message,

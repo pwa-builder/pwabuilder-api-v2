@@ -102,7 +102,7 @@ const activityFunction: AzureFunction = async function (
       success: true,
     };
   } catch (exception) {
-    context.log(exception);
+    context.log.error(exception);
     error = {
       imageUrl: imageData.imageUrl,
       name: exception.name,
