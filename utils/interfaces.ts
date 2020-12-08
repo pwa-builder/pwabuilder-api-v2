@@ -88,3 +88,7 @@ export interface PageData {
   pageResponse: Response,
   browser: Browser
 }
+
+export interface OfflineTestData {
+  worksOffline: boolean
+}
