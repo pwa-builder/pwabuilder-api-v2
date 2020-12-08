@@ -1,91 +1,79 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import loadPage, { closeBrowser } from "../utils/loadPage";
+import { Browser } from 'puppeteer';
+import { OfflineTestData } from "../utils/interfaces";
+const lighthouse = require('lighthouse');
+
+import { closeBrowser, getBrowser } from "../utils/loadPage";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log.info(`Offline function is processing a request for site: ${req.query.site}`);
+  context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
 
   const url = req.query.site;
 
-  const pageData = await loadPage(url, context);
-
-  const page = pageData.sitePage;
-
-  page.setRequestInterception(true);
-
-  let whiteList = ['document', 'plain', 'script', 'javascript'];
-  page.on('request', (req) => {
-    const type = req.resourceType();
-    if (whiteList.some((el) => type.indexOf(el) >= 0)) {
-      req.continue();
-    } else {
-      req.abort();
-    }
-  });
+  const currentBrowser = await getBrowser(context);
 
   try {
-    await page.goto(url, {
-      waitUntil: 'domcontentloaded',
-    });
+    // run lighthouse audit
 
-    await page.setOfflineMode(true);
-    const targets = await pageData.browser.targets();
+    if (currentBrowser) {
+      const swInfo = await audit(currentBrowser, url);
 
-    const serviceWorker = targets.find((t) => t.type() === 'service_worker');
-    const serviceWorkerConnection = await serviceWorker?.createCDPSession();
-    await serviceWorkerConnection?.send('Network.enable');
-    await serviceWorkerConnection?.send('Network.emulateNetworkConditions', {
-      offline: true,
-      latency: 0,
-      downloadThroughput: 0,
-      uploadThroughput: 0,
-    })
-      .catch(() => {
-        // needed for a chromium bug https://github.com/puppeteer/puppeteer/issues/2469
-      });
-
-    try {
-      const bodySelector = await page.waitForSelector('body', {
-        visible: true,
-      });
-
-      await page.reload({ waitUntil: 'domcontentloaded' });
-
-      if (bodySelector) {
-        await closeBrowser(context, pageData.browser);
-
-        context.res = {
-          status: 200,
-          body: {
-            "data": 'loaded'
-          }
-        }
-      }
-    }
-    catch (err) {
-      await closeBrowser(context, pageData.browser);
+      await closeBrowser(context, currentBrowser);
 
       context.res = {
-        status: 400,
+        status: 200,
         body: {
-          "error": "site does not load offline"
+          "data": swInfo
         }
       }
 
-      context.log.info(`Offline function determined ${req.query.site} does not load offline`);
+      context.log.info(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
     }
-  }
-  catch (err) {
-    await closeBrowser(context, pageData.browser);
+
+  } catch (error) {
+    await closeBrowser(context, currentBrowser);
 
     context.res = {
       status: 500,
       body: {
-        "error": err || err.message
+        error: error
       }
-    }
+    };
 
-    context.log.error(`Offline function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`);
+    if (error.name && error.name.indexOf('TimeoutError') > -1) {
+      context
+      context.log.error(`Service Worker function TIMED OUT processing a request for site: ${url}`);
+    } else {
+      context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
+    }
   }
 };
+
+const audit = async (browser: Browser, url: string): Promise<OfflineTestData | null> => {
+  // empty object that we fill with data below
+  let swInfo: any = {};
+
+  const options = {
+    logLevel: 'info',
+    disableDeviceEmulation: true,
+    chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
+    onlyAudits: ['works-offline'],
+    output: 'json',
+    port: (new URL(browser.wsEndpoint())).port
+  };
+
+  const runnerResult = await lighthouse(url, options);
+  const audits = runnerResult?.lhr?.audits;
+
+  if (audits) {
+    swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
+
+    return swInfo;
+  }
+  else {
+    return null;
+  }
+
+}
 
 export default httpTrigger;
