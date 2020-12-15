@@ -39,6 +39,7 @@ const httpTrigger: AzureFunction = async function (
       }
     }
 
+    // TODO replace this with the validation tool - utils/schema
     const detectedFormat = <ManifestFormat>manifestTools.detect(manifest);
 
     manifestTools.convertTo(
