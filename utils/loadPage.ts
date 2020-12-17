@@ -1,5 +1,5 @@
 import { Context } from '@azure/functions';
-import * as puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer';
 import ExceptionOf, { ExceptionType as Type } from "./Exception";
 import { LogMessages } from './logMessages';
 
