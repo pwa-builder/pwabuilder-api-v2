@@ -1,5 +1,4 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import * as puppeteer from "puppeteer";
 
 import getManifestFromFile, {
   ifSupportedFile,
