@@ -1,11 +1,13 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import loadPage, { closeBrowser } from "../utils/loadPage";
+import { logUrlResult } from "../utils/urlLogger";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log.info(`Security function is processing a request for site: ${req.query.site}`);
 
   const site = req.query.site;
   let siteData = null;
+  const startTime = new Date();
 
   try {
     let page;
@@ -42,6 +44,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
 
       context.log.error(`Security function ERRORED loading a request for site: ${req.query.site}`);
+      logUrlResult(site, false, "Error loading site data: " + err, startTime);
     }
 
     const securityDetails = pageResponse?.securityDetails();
@@ -63,6 +66,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
           "data": results
         }
       }
+
+      logUrlResult(site, results.isHTTPS && results.valid && results.validProtocol, null, startTime);
     }
     else {
       if (siteData && siteData.browser) {
@@ -76,7 +81,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
-      context.log.error(`Security function could not load security details for site: ${req.query.site}`);
+      const errorMessage = `Security function could not load security details for site: ${req.query.site}`;
+      context.log.error(errorMessage);
+      logUrlResult(site, false, errorMessage, startTime);
     }
 
   }
@@ -88,7 +95,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     }
 
-    context.log.error(`Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`);
+    const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`;
+    context.log.error(errorMessage);
+    logUrlResult(site, false, errorMessage, startTime);
   }
 };
 
