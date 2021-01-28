@@ -10,7 +10,7 @@
  */
 
 import { AzureFunction, Context } from "@azure/functions";
-import * as JSZip from "jszip";
+import JSZip from "jszip";
 import { Manifest } from "../utils/interfaces";
 import {
   PlatformGenerateZipInput,
