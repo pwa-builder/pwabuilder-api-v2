@@ -1,8 +1,8 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import Jimp from "jimp/*";
-import fetch from "node-fetch";
-import { generateAllImages } from "../services/imageGenerator";
-import { ManifestImageResource } from "../utils/w3c";
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import * as Jimp from 'jimp';
+import fetch from 'node-fetch';
+import { generateAllImages } from '../services/imageGenerator';
+import { ManifestImageResource } from '../utils/w3c';
 
 type Base64Image = ManifestImageResource;
 
@@ -35,7 +35,7 @@ const httpTrigger: AzureFunction = async function (
       console.log(req.query.imgUrl);
       const { imgUrl } = req.query;
       const headTest = await fetch(imgUrl, {
-        method: "HEAD",
+        method: 'HEAD',
       });
 
       console.log(headTest.headers);
@@ -50,7 +50,7 @@ const httpTrigger: AzureFunction = async function (
 
     // then read content and base64 all images.
   } catch (e) {
-    console.log("error", e);
+    console.log('error', e);
 
     // the file fetch path, check for HEAD and Jimp failures.
   }
