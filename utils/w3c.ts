@@ -1,11 +1,11 @@
 export type WidthByHeight = string;
 export type MimeType = string;
 export type W3CPurpose =
-  | "monochrome"
-  | "maskable"
-  | "any"
+  | 'monochrome'
+  | 'maskable'
+  | 'any'
   | SpaceSeparatedList
-  | "none";
+  | 'none';
 export type SpaceSeparatedList = string;
 
 export interface ManifestImageResource {
@@ -19,7 +19,7 @@ export interface ExternalApplicationResource {
   platform: string;
   url: string;
   id: string;
-  min_version: "1" | "2" | string;
+  min_version: '1' | '2' | string;
   fingerprints: Record<string, string>;
 }
 

@@ -1,13 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import * as Jimp from 'jimp';
+import JSZip from 'jszip';
 import fetch from 'node-fetch';
-import { generateAllImages } from '../services/imageGenerator';
+import FormData from 'form-data';
+import {
+  generateAllImages,
+  getBase64Images,
+  setupFormData,
+} from '../services/imageGenerator';
 import { ManifestImageResource } from '../utils/w3c';
 
-type Base64Image = ManifestImageResource;
-
 interface ImageBase64ResponseBody {
-  icons: Array<Base64Image>;
+  icons: Array<ManifestImageResource>;
   successful: boolean;
 }
 
@@ -21,7 +25,7 @@ const httpTrigger: AzureFunction = async function (
   };
 
   try {
-    let form = new FormData();
+    let form = setupFormData();
 
     if (req.body instanceof FormData) {
       // veneer of the image generator service
@@ -39,16 +43,19 @@ const httpTrigger: AzureFunction = async function (
       });
 
       console.log(headTest.headers);
-      const img = Jimp.read(imgUrl);
-      //img.
+      const img = await Jimp.read(imgUrl);
+      const buf = await img.getBufferAsync(Jimp.MIME_PNG);
+
+      form.append('fileName', new Blob([new Uint8Array(buf)]));
     }
 
-    const res = await generateAllImages(form);
-
-    // read using archiver or jszip
-    res.blob();
-
-    // then read content and base64 all images.
+    const res = await generateAllImages(context, form);
+    if (res) {
+      // TODO test, might need to move this logic into a durable function setup.
+      const zip = new JSZip();
+      zip.loadAsync(await res.arrayBuffer());
+      body.icons = await getBase64Images(context, zip);
+    }
   } catch (e) {
     console.log('error', e);
 
