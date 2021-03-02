@@ -2,8 +2,8 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { Browser } from 'puppeteer';
 import { OfflineTestData } from "../utils/interfaces";
 const lighthouse = require('lighthouse');
-
 import { closeBrowser, getBrowser } from "../utils/loadPage";
+import { logOfflineResult } from "../utils/urlLogger";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
@@ -27,6 +27,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
+      logOfflineResult(url, swInfo?.worksOffline === true);
       context.log.info(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
     }
 
@@ -46,6 +47,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     } else {
       context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
+    logOfflineResult(url, false);
   }
 };
 
