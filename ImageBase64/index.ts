@@ -9,6 +9,7 @@ import {
   setupFormData,
 } from '../services/imageGenerator';
 import { ManifestImageResource } from '../utils/w3c';
+import ExceptionOf, { ExceptionType } from '../utils/Exception';
 
 interface ImageBase64ResponseBody {
   icons: Array<ManifestImageResource>;
@@ -33,7 +34,12 @@ const httpTrigger: AzureFunction = async function (
       form = req.body as FormData;
     } else if (req.body) {
       // if file is sent, then create image generator
-      console.log(req.body as File);
+      const buf = req.body as Buffer;
+      const mime = req.headers['Content-Type'];
+
+      form.append('fileName', new Blob([new Uint8Array(buf)]), {
+        contentType: mime,
+      });
     } else if (req.query.imgUrl) {
       // check site url and fetch and send image to image generation
       console.log(req.query.imgUrl);
@@ -42,7 +48,13 @@ const httpTrigger: AzureFunction = async function (
         method: 'HEAD',
       });
 
-      console.log(headTest.headers);
+      if (!headTest.ok) {
+        throw ExceptionOf(
+          ExceptionType.IMAGE_GEN_IMG_NETWORK_ERROR,
+          new Error(`Could not find requested resource at: ${imgUrl}`)
+        );
+      }
+
       const img = await Jimp.read(imgUrl);
       const buf = await img.getBufferAsync(Jimp.MIME_PNG);
 
@@ -51,7 +63,6 @@ const httpTrigger: AzureFunction = async function (
 
     const res = await generateAllImages(context, form);
     if (res) {
-      // TODO test, might need to move this logic into a durable function setup.
       const zip = new JSZip();
       zip.loadAsync(await res.arrayBuffer());
       body.icons = await getBase64Images(context, zip);
