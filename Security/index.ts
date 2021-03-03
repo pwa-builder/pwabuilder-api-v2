@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import loadPage, { closeBrowser } from "../utils/loadPage";
-import { logUrlResult } from "../utils/urlLogger";
+import { logHttpsResult } from "../utils/urlLogger";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log.info(`Security function is processing a request for site: ${req.query.site}`);
@@ -44,7 +44,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
 
       context.log.error(`Security function ERRORED loading a request for site: ${req.query.site}`);
-      logUrlResult(site, false, "Error loading site data: " + err, startTime);
+      logHttpsResult(site, false, 0, "Error loading site data: " + err, startTime);
     }
 
     const securityDetails = pageResponse?.securityDetails();
@@ -67,7 +67,15 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         }
       }
 
-      logUrlResult(site, results.isHTTPS && results.valid && results.validProtocol, null, startTime);
+      const score = [
+        { metric: results.isHTTPS, score: 10 },
+        { metric: results.valid, score: 5 },
+        { metric: results.validProtocol, score: 5 }
+      ]
+        .filter(a => a.metric)
+        .map(a => a.score)
+        .reduce((a, b) => a + b);
+      logHttpsResult(site, results.isHTTPS && results.valid && results.validProtocol, score, null, startTime);
     }
     else {
       if (siteData && siteData.browser) {
@@ -83,7 +91,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
       const errorMessage = `Security function could not load security details for site: ${req.query.site}`;
       context.log.error(errorMessage);
-      logUrlResult(site, false, errorMessage, startTime);
+      logHttpsResult(site, false, 0, errorMessage, startTime);
     }
 
   }
@@ -97,7 +105,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`;
     context.log.error(errorMessage);
-    logUrlResult(site, false, errorMessage, startTime);
+    logHttpsResult(site, false, 0, errorMessage, startTime);
   }
 };
 
