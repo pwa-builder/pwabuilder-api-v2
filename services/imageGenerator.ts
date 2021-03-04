@@ -18,9 +18,14 @@ export async function generateAllImages(
 
     const generate = await fetch(uriUrl, {
       method: 'POST',
-      headers: form.getHeaders(),
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'content-type': 'multipart/form-data',
+      },
       body: form,
     });
+
+    context.log.info(generate.status, generate.statusText);
 
     const generateResponse: {
       Uri?: string | '/api/image/<hash>';
@@ -30,6 +35,7 @@ export async function generateAllImages(
     context.log.info('after post', generateResponse);
     if (generateResponse.Message) {
       // returned message means error
+
       throw ExceptionOf(
         ExceptionType.IMAGE_GEN_IMG_SERVICE_ERROR,
         new Error(generateResponse.Message)
@@ -96,14 +102,14 @@ export async function getBase64Images(
 
 export function setupFormData(): FormData {
   const form = new FormData();
+  form.append('padding', '0.0');
+  form.append('colorOption', 'transparent');
   form.append('platform', 'windows10');
   form.append('platform', 'windows');
   form.append('platform', 'msteams');
   form.append('platform', 'android');
   form.append('platform', 'chrome');
   form.append('platform', 'firefox');
-  form.append('colorOption', 'transparent');
-  form.append('padding', '0.0');
 
   return form;
 }

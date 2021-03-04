@@ -3,7 +3,6 @@ import * as Jimp from 'jimp';
 
 import JSZip from 'jszip';
 import fetch from 'node-fetch';
-import FormData from 'form-data';
 import {
   generateAllImages,
   getBase64Images,
@@ -11,11 +10,7 @@ import {
 } from '../services/imageGenerator';
 import { ManifestImageResource } from '../utils/w3c';
 import ExceptionOf, { ExceptionType } from '../utils/Exception';
-import {
-  getContentType,
-  isFormData,
-  isValidImage,
-} from '../utils/fetch-headers';
+import { getContentType, isValidImage } from '../utils/fetch-headers';
 
 interface ImageBase64ResponseBody {
   icons: Array<ManifestImageResource>;
@@ -78,7 +73,7 @@ const httpTrigger: AzureFunction = async function (
         const buf = await img.getBufferAsync(Jimp.MIME_PNG);
         context.log.info(buf);
 
-        form.append('fileName', buf);
+        form.append('fileName', buf, { contentType: img.getMIME() });
       } else {
         throw ExceptionOf(
           ExceptionType.IMAGE_GEN_IMG_NETWORK_ERROR,
