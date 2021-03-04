@@ -6,16 +6,20 @@ export enum ExceptionType {
   BLOB_READ_FAILURE = 'BLOB_READ_FAILURE',
   BROWSER_CLOSE_FAILURE = 'BROWSER_CLOSE_FAILURE',
   IMAGE_GEN_IMG_NETWORK_ERROR = 'IMAGE_GEN_IMG_NETWORK_ERROR',
+  IMAGE_GEN_IMG_SERVICE_ERROR = 'IMAGE_GEN_IMG_SERVICE_ERROR',
   IMAGE_GEN_FILE_NOT_FOUND = 'IMAGE_GEN_FILE_NOT_FOUND',
 }
 
 export enum ExceptionMessage {
-  MANIFEST_NOT_FOUND = "failed to find the manifest",
-  MANIFEST_FILE_UNSUPPORTED = "failed to read the json of the submitted manifest file",
-  BLOB_STORAGE_FAILURE = "failed to create the azure resources for generating the app",
-  BLOB_STORAGE_FAILURE_IMAGE = "failed to upload image to blob storage",
-  BLOB_READ_FAILURE = "failed to fetch resource from blob storage",
-  BROWSER_CLOSE_FAILURE = "Failed to close browser",
+  MANIFEST_NOT_FOUND = 'failed to find the manifest',
+  MANIFEST_FILE_UNSUPPORTED = 'failed to read the json of the submitted manifest file',
+  BLOB_STORAGE_FAILURE = 'failed to create the azure resources for generating the app',
+  BLOB_STORAGE_FAILURE_IMAGE = 'failed to upload image to blob storage',
+  BLOB_READ_FAILURE = 'failed to fetch resource from blob storage',
+  BROWSER_CLOSE_FAILURE = 'Failed to close browser',
+  IMAGE_GEN_IMG_NETWORK_ERROR = 'failed to connect or receive a successful response from the image generator service',
+  IMAGE_GEN_IMG_SERVICE_ERROR = 'the generator service returns an error',
+  IMAGE_GEN_FILE_NOT_FOUND = 'failed to retrieve the image resource from the site, or the file blob',
 }
 
 /*
@@ -49,6 +53,9 @@ export class ExceptionWrap {
   }
 }
 
-export default function ExceptionOf(type: ExceptionType, error: Error) {
+export default function ExceptionOf(
+  type: ExceptionType,
+  error: Error
+): ExceptionWrap {
   return new ExceptionWrap(ExceptionType[type], error);
 }

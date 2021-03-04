@@ -1,5 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import * as Jimp from 'jimp';
+
 import JSZip from 'jszip';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
@@ -10,6 +11,11 @@ import {
 } from '../services/imageGenerator';
 import { ManifestImageResource } from '../utils/w3c';
 import ExceptionOf, { ExceptionType } from '../utils/Exception';
+import {
+  getContentType,
+  isFormData,
+  isValidImage,
+} from '../utils/fetch-headers';
 
 interface ImageBase64ResponseBody {
   icons: Array<ManifestImageResource>;
@@ -26,23 +32,33 @@ const httpTrigger: AzureFunction = async function (
   };
 
   try {
-    let form = setupFormData();
+    context.log.info('do something');
 
-    if (req.body instanceof FormData) {
-      // veneer of the image generator service
-      console.log(req.body);
-      form = req.body as FormData;
-    } else if (req.body) {
+    // TODO this is failing the checks for formdata and buffer (for formdata) or
+    context.log.info(req.headers);
+    // context.log.info(
+    //   req.body,
+    //   req.params,
+    //   req.query,
+    //   req.body instanceof Buffer,
+    //   req.body instanceof FormData,
+    //   req.query.imgUrl
+    // );
+
+    const form = setupFormData();
+
+    if (isValidImage(req)) {
+      context.log.info('buffer path');
+
       // if file is sent, then create image generator
       const buf = req.body as Buffer;
-      const mime = req.headers['Content-Type'];
+      const mime = getContentType(req);
 
-      form.append('fileName', new Blob([new Uint8Array(buf)]), {
-        contentType: mime,
-      });
+      form.append('fileName', buf, { contentType: mime });
     } else if (req.query.imgUrl) {
       // check site url and fetch and send image to image generation
-      console.log(req.query.imgUrl);
+      context.log.info('imgUrl path', req.query.imgUrl);
+
       const { imgUrl } = req.query;
       const headTest = await fetch(imgUrl, {
         method: 'HEAD',
@@ -56,20 +72,33 @@ const httpTrigger: AzureFunction = async function (
       }
 
       const img = await Jimp.read(imgUrl);
-      const buf = await img.getBufferAsync(Jimp.MIME_PNG);
+      context.log.info(img, img._originalMime);
 
-      form.append('fileName', new Blob([new Uint8Array(buf)]));
+      if (img) {
+        const buf = await img.getBufferAsync(Jimp.MIME_PNG);
+        context.log.info(buf);
+
+        form.append('fileName', buf);
+      } else {
+        throw ExceptionOf(
+          ExceptionType.IMAGE_GEN_IMG_NETWORK_ERROR,
+          new Error(`Could not find requested resource at: ${imgUrl}`)
+        );
+      }
     }
 
+    context.log.info('passed the parsing of the stuffs.');
+
     const res = await generateAllImages(context, form);
+    context.log.info('after gen all images');
+
     if (res) {
       const zip = new JSZip();
       zip.loadAsync(await res.arrayBuffer());
       body.icons = await getBase64Images(context, zip);
     }
   } catch (e) {
-    console.log('error', e);
-
+    context.log.error('error', e);
     // the file fetch path, check for HEAD and Jimp failures.
   }
 

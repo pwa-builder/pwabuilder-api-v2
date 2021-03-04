@@ -6,27 +6,41 @@ import fetch, { Response } from 'node-fetch';
 import ExceptionOf, { ExceptionType } from '../utils/Exception';
 import { IconManifestImageResource } from '../utils/interfaces';
 
-const url = 'https://appimagegenerator-prod.azurewebsites.net/api/image';
+const baseUrl = 'https://appimagegenerator-prod.azurewebsites.net';
+const uriUrl = `${baseUrl}/api/image`;
 
 export async function generateAllImages(
   context: Context,
   form: FormData
 ): Promise<Response | undefined> {
   try {
-    const generate = await fetch(url, {
+    context.log.info('before generate all images');
+
+    const generate = await fetch(uriUrl, {
       method: 'POST',
       headers: form.getHeaders(),
       body: form,
     });
 
-    const generateResponse: { Uri?: string } = await generate.json();
-    if (generateResponse.Uri) {
-      return fetch(`${url}/${generateResponse.Uri}`, {
+    const generateResponse: {
+      Uri?: string | '/api/image/<hash>';
+      Message?: string;
+    } = await generate.json();
+
+    context.log.info('after post', generateResponse);
+    if (generateResponse.Message) {
+      // returned message means error
+      throw ExceptionOf(
+        ExceptionType.IMAGE_GEN_IMG_SERVICE_ERROR,
+        new Error(generateResponse.Message)
+      );
+    } else if (generateResponse.Uri) {
+      return fetch(`${baseUrl}${generateResponse.Uri}`, {
         method: 'GET',
       });
     }
   } catch (e) {
-    context.log(e.message);
+    context.log.error(e);
   }
 
   return undefined;
@@ -74,7 +88,7 @@ export async function getBase64Images(
       }
     }
   } catch (e) {
-    context.log(e);
+    context.log.error(e);
   }
 
   return output;
