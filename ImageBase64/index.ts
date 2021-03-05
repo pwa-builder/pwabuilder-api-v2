@@ -10,7 +10,7 @@ import {
 } from '../services/imageGenerator';
 import { ManifestImageResource } from '../utils/w3c';
 import ExceptionOf, { ExceptionType } from '../utils/Exception';
-import { getContentType, isValidImage } from '../utils/fetch-headers';
+import { isValidImage } from '../utils/fetch-headers';
 
 interface ImageBase64ResponseBody {
   icons: Array<ManifestImageResource>;
@@ -46,10 +46,9 @@ const httpTrigger: AzureFunction = async function (
       context.log.info('buffer path');
 
       // if file is sent, then create image generator
-      const buf = req.body as Buffer;
-      const mime = getContentType(req);
+      const buf = req.body;
 
-      form.append('fileName', buf, { contentType: mime });
+      form.append('fileName', buf);
     } else if (req.query.imgUrl) {
       // check site url and fetch and send image to image generation
       context.log.info('imgUrl path', req.query.imgUrl);
@@ -67,13 +66,13 @@ const httpTrigger: AzureFunction = async function (
       }
 
       const img = await Jimp.read(imgUrl);
-      context.log.info(img, img._originalMime);
+      context.log.info(img._originalMime);
 
       if (img) {
         const buf = await img.getBufferAsync(Jimp.MIME_PNG);
         context.log.info(buf);
 
-        form.append('fileName', buf, { contentType: img.getMIME() });
+        form.append('fileName', buf);
       } else {
         throw ExceptionOf(
           ExceptionType.IMAGE_GEN_IMG_NETWORK_ERROR,
