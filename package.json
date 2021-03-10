@@ -32,7 +32,6 @@
     "ajv": "^6.12.6",
     "durable-functions": "^1.4.3",
     "form-data": "^4.0.0",
-    "formdata-node": "^2.4.0",
     "fs-extra": "^9.0.1",
     "jimp": "^0.16.1",
     "jszip": "^3.5.0",
