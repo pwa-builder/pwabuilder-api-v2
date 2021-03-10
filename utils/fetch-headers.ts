@@ -14,13 +14,6 @@ export function headerHasMimeType(req: HttpRequest, type: MimeTypes): boolean {
   return (getContentType(req) || '').includes(type);
 }
 
-export function isValidImage(req: HttpRequest): boolean {
-  return (
-    headerHasMimeType(req, MimeTypes.png) ||
-    headerHasMimeType(req, MimeTypes.jpeg)
-  );
-}
-
 export function isFormData(req: HttpRequest): boolean {
   return headerHasMimeType(req, MimeTypes.formData);
 }

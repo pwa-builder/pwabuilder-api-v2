@@ -3,11 +3,10 @@
     {
       "authLevel": "anonymous",
       "type": "httpTrigger",
+      "dataType": "binary",
       "direction": "in",
       "name": "req",
-      "methods": [
-        "post"
-      ]
+      "methods": ["get", "post"]
     },
     {
       "type": "http",

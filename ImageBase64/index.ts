@@ -10,7 +10,6 @@ import {
 } from '../services/imageGenerator';
 import { ManifestImageResource } from '../utils/w3c';
 import ExceptionOf, { ExceptionType } from '../utils/Exception';
-import { isValidImage } from '../utils/fetch-headers';
 
 interface ImageBase64ResponseBody {
   icons: Array<ManifestImageResource>;
@@ -27,32 +26,10 @@ const httpTrigger: AzureFunction = async function (
   };
 
   try {
-    context.log.info('do something');
-
-    // TODO this is failing the checks for formdata and buffer (for formdata) or
-    context.log.info(req.headers);
-    // context.log.info(
-    //   req.body,
-    //   req.params,
-    //   req.query,
-    //   req.body instanceof Buffer,
-    //   req.body instanceof FormData,
-    //   req.query.imgUrl
-    // );
-
     const form = setupFormData();
 
-    if (isValidImage(req)) {
-      context.log.info('buffer path');
-
-      // if file is sent, then create image generator
-      const buf = req.body;
-
-      form.append('fileName', buf);
-    } else if (req.query.imgUrl) {
-      // check site url and fetch and send image to image generation
-      context.log.info('imgUrl path', req.query.imgUrl);
-
+    // if a image url is passed use that by default
+    if (req.query.imgUrl) {
       const { imgUrl } = req.query;
       const headTest = await fetch(imgUrl, {
         method: 'HEAD',
@@ -66,22 +43,33 @@ const httpTrigger: AzureFunction = async function (
       }
 
       const img = await Jimp.read(imgUrl);
-      context.log.info(img._originalMime);
 
       if (img) {
         const buf = await img.getBufferAsync(Jimp.MIME_PNG);
-        context.log.info(buf);
 
-        form.append('fileName', buf);
+        form.append('fileName', buf, { contentType: Jimp.MIME_PNG });
       } else {
         throw ExceptionOf(
           ExceptionType.IMAGE_GEN_IMG_NETWORK_ERROR,
           new Error(`Could not find requested resource at: ${imgUrl}`)
         );
       }
-    }
+    } else if (req.body) {
+      // azure functions defaults bodies to string, unless the header is specified as application/octet-stream. https://github.com/Azure/azure-functions-nodejs-worker/issues/294
+      // how do we determine it is a valid image and not some garbage...
+      // if file is sent, then create image generator
+      const buf = Buffer.from(req.body, 'binary');
+      const img = await Jimp.read(buf);
 
-    context.log.info('passed the parsing of the stuffs.');
+      form.append('fileName', await img.getBufferAsync(Jimp.MIME_PNG), {
+        contentType: Jimp.MIME_PNG,
+      });
+    } else {
+      throw ExceptionOf(
+        ExceptionType.IMAGE_GEN_FILE_NOT_FOUND,
+        new Error('the image generation code requires a file or a image url')
+      );
+    }
 
     const res = await generateAllImages(context, form);
     context.log.info('after gen all images');

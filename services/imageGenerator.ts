@@ -32,8 +32,8 @@ export async function generateAllImages(
       method: 'POST',
       headers: form.getHeaders(),
       body: form.getBuffer(),
+      compress: false,
     });
-
     context.log.info(generate.status, generate.statusText);
 
     const generateResponse: {
