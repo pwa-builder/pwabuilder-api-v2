@@ -4,7 +4,9 @@ import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import fetch from 'node-fetch';
 import {
+  convertToBase64,
   generateAllImages,
+  generateAllImagesJimp,
   getBase64Images,
   setupFormData,
 } from '../services/imageGenerator';
@@ -27,10 +29,10 @@ const httpTrigger: AzureFunction = async function (
 
   try {
     const form = setupFormData();
+    const imgUrl = req.query.imgUrl;
 
     // if a image url is passed use that by default
-    if (req.query.imgUrl) {
-      const { imgUrl } = req.query;
+    if (imgUrl) {
       const headTest = await fetch(imgUrl, {
         method: 'HEAD',
       });
@@ -71,14 +73,27 @@ const httpTrigger: AzureFunction = async function (
       );
     }
 
-    const res = await generateAllImages(context, form);
-    context.log.info('after gen all images');
-
-    if (res) {
-      const zip = new JSZip();
-      zip.loadAsync(await res.arrayBuffer());
-      body.icons = await getBase64Images(context, zip);
+    // TODO uncomment for images delete the next few lines up until the comment
+    let img: Jimp;
+    if (imgUrl) {
+      img = await Jimp.read(imgUrl);
+    } else {
+      const buf = Buffer.from(req.body, 'binary');
+      img = await Jimp.read(buf);
     }
+
+    const jimpIcons = await generateAllImagesJimp(context, img);
+    const icons = await convertToBase64(context, jimpIcons);
+    body.icons = icons;
+
+    // const res = await generateAllImages(context, form);
+    // context.log.info('after gen all images');
+
+    // if (res) {
+    //   const zip = new JSZip();
+    //   zip.loadAsync(await res.arrayBuffer());
+    //   body.icons = await getBase64Images(context, zip);
+    // }
   } catch (e) {
     context.log.error('error', e);
     // the file fetch path, check for HEAD and Jimp failures.
