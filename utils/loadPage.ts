@@ -1,11 +1,20 @@
-import { Context } from '@azure/functions';
-import puppeteer from 'puppeteer';
+import { Context } from "@azure/functions";
+import puppeteer from "puppeteer";
 import ExceptionOf, { ExceptionType as Type } from "./Exception";
-import { LogMessages } from './logMessages';
+import { LogMessages } from "./logMessages";
 
-export default async function loadPage(site: string, context: Context): Promise<{ sitePage: puppeteer.Page, pageResponse: puppeteer.Response, browser: puppeteer.Browser }> {
+export interface LoadedPage {
+  sitePage: puppeteer.Page;
+  pageResponse: puppeteer.HTTPResponse;
+  browser: puppeteer.Browser;
+}
+
+export default async function loadPage(
+  site: string,
+  context: Context
+): Promise<LoadedPage | undefined | Error> {
   let sitePage: puppeteer.Page;
-  let pageResponse: puppeteer.Response | null;
+  let pageResponse: puppeteer.HTTPResponse | undefined;
 
   const timeout = 120000;
 
@@ -16,44 +25,44 @@ export default async function loadPage(site: string, context: Context): Promise<
 
     await sitePage.setDefaultNavigationTimeout(timeout);
 
-    pageResponse = await sitePage.goto(site, { waitUntil: ['domcontentloaded'] });
+    pageResponse = await sitePage.goto(site, {
+      waitUntil: ["domcontentloaded"],
+    });
 
     if (pageResponse) {
       return {
         sitePage: sitePage,
         pageResponse: pageResponse,
-        browser: browser
+        browser: browser,
       };
+    } else {
+      throw new Error("Could not get a page response");
     }
-    else {
-      throw new Error("Could not get a page response")
-    }
-  }
-  catch (err) {
-    return err || err.message;
+  } catch (err) {
+    return err;
   }
 }
 
 export async function getBrowser(context: Context): Promise<puppeteer.Browser> {
   context.log.info(LogMessages.OPENING_BROWSER);
 
-  const browser = await puppeteer.launch(
-    {
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    }
-  );
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   return browser;
 }
 
-export async function closeBrowser(context: Context, browser: puppeteer.Browser): Promise<void> {
+export async function closeBrowser(
+  context: Context,
+  browser: puppeteer.Browser
+): Promise<void> {
   if (browser) {
     context.log.info(LogMessages.CLOSING_BROWSER);
 
     try {
       await browser.close();
-    }
-    catch(err) {
+    } catch (err) {
       throw ExceptionOf(Type.BROWSER_CLOSE_FAILURE, err);
       return err;
     }
