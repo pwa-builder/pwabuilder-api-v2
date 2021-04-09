@@ -1,7 +1,7 @@
 type HexCode = string;
+import { Browser, Page, HTTPResponse } from 'puppeteer';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
-import { Browser, Page, Response } from 'puppeteer';
 import {
   ManifestImageResource,
   WidthByHeight,
@@ -89,7 +89,7 @@ export enum ManifestFormat {
 
 export interface PageData {
   sitePage: Page;
-  pageResponse: Response;
+  pageResponse: HTTPResponse;
   browser: Browser;
 }
 

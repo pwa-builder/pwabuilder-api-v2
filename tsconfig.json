@@ -9,5 +9,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
-  }
+  },
+  "exclude": ["node_modules"]
 }
