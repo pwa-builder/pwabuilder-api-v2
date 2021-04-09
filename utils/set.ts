@@ -3,7 +3,7 @@ export function setUnion<T>(a: Set<T>, b: Set<T>): Array<T> {
 }
 
 export function setIntersection<T>(a: Set<T>, b: Set<T>): Array<T> {
-  const output = [];
+  const output: Array<T> = [];
 
   for (const el of a) {
     if (b.has(el)) {
@@ -15,7 +15,7 @@ export function setIntersection<T>(a: Set<T>, b: Set<T>): Array<T> {
 }
 
 export function setDifference<T>(a: Set<T>, b: Set<T>): Array<T> {
-  const output = [];
+  const output: Array<T> = [];
 
   for (const el of a) {
     if (!b.has(el)) {
