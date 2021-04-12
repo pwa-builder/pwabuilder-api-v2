@@ -1,4 +1,4 @@
-﻿import { BlobItem } from "@azure/storage-blob";
+﻿import { BlobItem } from '@azure/storage-blob';
 /*
  * This function is not intended to be invoked directly. Instead it will be
  * triggered by an HTTP starter function.
@@ -12,19 +12,22 @@
  * This durable function is designed to build the actual application.
  */
 
-import * as df from "durable-functions";
-import { IOrchestrationFunctionContext } from "durable-functions/lib/src/classes";
-import { MIME_PNG } from "jimp";
-import { PlatformGenerateImageInput } from "../PlatformGenerateImage";
-import { ReadContainerInput, ReadContainerOutput } from "../ReadContainer";
-import { isBigger } from "../utils/icons";
+import * as df from 'durable-functions';
+import {
+  IOrchestrationFunctionContext,
+  Task,
+} from 'durable-functions/lib/src/classes';
+import { MIME_PNG } from 'jimp';
+import { PlatformGenerateImageInput } from '../PlatformGenerateImage';
+import { ReadContainerInput, ReadContainerOutput } from '../ReadContainer';
+import { isBigger } from '../utils/icons';
 import {
   PlatformGenerateZipInput,
   PlatformGenerateZipOutput,
   PlatformId,
   requiredPlatformImages,
-} from "../utils/platform";
-import { getTagMetadataProperties } from "../utils/storage";
+} from '../utils/platform';
+import { getTagMetadataProperties } from '../utils/storage';
 
 export interface PlatformBuildOrchestratorInput {
   containerId: string;
@@ -47,14 +50,14 @@ const orchestrator = df.orchestrator(function* (
   const input = context.df.getInput() as PlatformBuildOrchestratorInput;
 
   // Read container contents
-  const readContainerTask = yield context.df.callActivity("ReadContainer", {
+  const readContainerTask = yield context.df.callActivity('ReadContainer', {
     containerId: input.containerId,
   } as ReadContainerInput);
 
   const container = readContainerTask as ReadContainerOutput;
 
   // Generate Missing Images
-  const missingImages = [];
+  const missingImages: Array<Task> = [];
   let largestIcon: string | undefined;
 
   const imagesInContainerMap = new Map<string, BlobItem>();
@@ -68,8 +71,8 @@ const orchestrator = df.orchestrator(function* (
 
     imagesInContainerMap.set(metadata.actualSize, entry);
 
-    if (metadata.sizes.indexOf(" ") !== -1) {
-      metadata.sizes.split(" ").forEach((size) => {
+    if (metadata.sizes.indexOf(' ') !== -1) {
+      metadata.sizes.split(' ').forEach(size => {
         if (!largestIcon || !isBigger(largestIcon, size)) {
           largestIcon = metadata.sizes;
         }
@@ -87,7 +90,7 @@ const orchestrator = df.orchestrator(function* (
     // check if the image exists or is uploaded
     if (!imagesInContainerMap.has(key)) {
       missingImages.push(
-        context.df.callActivity("PlatformGenerateImage", {
+        context.df.callActivity('PlatformGenerateImage', {
           ...properties,
           containerId: input.containerId,
           biggestImageBlobName: largestIcon,

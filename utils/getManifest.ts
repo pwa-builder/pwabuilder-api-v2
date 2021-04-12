@@ -1,8 +1,8 @@
-import { Context } from "@azure/functions";
-import fetch from "node-fetch";
-import ExceptionOf, { ExceptionType as Type } from "./Exception";
-import { Manifest } from "./interfaces";
-import loadPage, { closeBrowser } from "./loadPage";
+import { Context } from '@azure/functions';
+import fetch from 'node-fetch';
+import ExceptionOf, { ExceptionType as Type } from './Exception';
+import { Manifest } from './interfaces';
+import loadPage, { closeBrowser } from './loadPage';
 
 export interface ManifestInformation {
   json: Manifest;
@@ -12,27 +12,33 @@ export interface ManifestInformation {
 export default async function getManifest(
   site: string,
   context: Context
-): Promise<ManifestInformation | null> {
+): Promise<ManifestInformation | undefined> {
   try {
+    context.log.info('getManifest');
     const siteData = await loadPage(site, context);
+
+    if (siteData instanceof Error || !siteData) {
+      context.log.info('did not get manifest');
+      return undefined;
+    }
 
     siteData.sitePage.setRequestInterception(true);
 
-    let whiteList = ["document", "plain", "script", "javascript"];
-    siteData.sitePage.on("request", (req) => {
+    const whiteList = ['document', 'plain', 'script', 'javascript'];
+    siteData.sitePage.on('request', req => {
       const type = req.resourceType();
-      if (whiteList.some((el) => type.indexOf(el) >= 0)) {
+      if (whiteList.some(el => type.indexOf(el) >= 0)) {
         req.continue();
       } else {
         req.abort();
       }
     });
 
-    const manifestUrl = await siteData.sitePage.$eval(
-      "link[rel=manifest]",
+    const manifestUrl = await siteData?.sitePage.$eval(
+      'link[rel=manifest]',
       (el: Element) => {
-        const anchorEl = (el as HTMLAnchorElement);
-        return anchorEl.href
+        const anchorEl = el as HTMLAnchorElement;
+        return anchorEl.href;
       }
     );
 
@@ -47,7 +53,7 @@ export default async function getManifest(
       };
     }
 
-    return null;
+    return undefined;
   } catch (e) {
     throw ExceptionOf(Type.MANIFEST_NOT_FOUND, e);
   }
