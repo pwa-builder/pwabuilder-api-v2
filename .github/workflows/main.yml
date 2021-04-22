@@ -11,6 +11,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
 
     steps:
     - uses: actions/checkout@v2
@@ -22,3 +23,14 @@ jobs:
       
     - name: Push
       run: docker push pwabuilder.azurecr.io/pwabuildertests:latest
+      
+  build-pr:
+    runs-on: ubuntu-latest
+    if: github.event.name == "pull_request"
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker Image for a PR
+      run: docker build . --file Dockerfile
+   
+   
