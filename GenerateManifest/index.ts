@@ -12,7 +12,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   try {
     if (siteUrl) {
-      context.log.info(manifestCreator);
       const generated_mani = await manifestCreator.getManifestFromSite(siteUrl);
 
       if (generated_mani) {
