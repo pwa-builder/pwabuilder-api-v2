@@ -39,7 +39,7 @@ export default async function loadPage(
       throw new Error("Could not get a page response");
     }
   } catch (err) {
-    return err;
+    return err as Error;
   }
 }
 
@@ -63,8 +63,7 @@ export async function closeBrowser(
     try {
       await browser.close();
     } catch (err) {
-      throw ExceptionOf(Type.BROWSER_CLOSE_FAILURE, err);
-      return err;
+      console.warn("Error closing browser", err);
     }
   }
 }
