@@ -48,14 +48,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
   }
   catch (err) {
+    const error = err as Error;
+    const errorMessage = error?.message || `${err}`;
     context.res = {
       status: 400,
       body: {
-        "error": { error: err, message: err.message }
+        "error": { error: err, message: errorMessage }
       },
     };
 
-    context.log.error(`Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${err.message}`);
+    context.log.error(`Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${errorMessage}`);
   }
 };
 

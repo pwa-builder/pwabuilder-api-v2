@@ -14,12 +14,8 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   try {
     // run lighthouse audit
-
     if (currentBrowser) {
       const swInfo = await audit(currentBrowser, url);
-
-      await closeBrowser(context, currentBrowser);
-
       context.res = {
         status: 200,
         body: {
@@ -32,8 +28,6 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     }
 
   } catch (error) {
-    await closeBrowser(context, currentBrowser);
-
     context.res = {
       status: 500,
       body: {
@@ -41,13 +35,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
     };
 
-    if (error.name && error.name.indexOf('TimeoutError') > -1) {
+    const typedError = error as Error;
+    if (typedError.name && typedError.name.indexOf('TimeoutError') > -1) {
       context
       context.log.error(`Service Worker function TIMED OUT processing a request for site: ${url}`);
     } else {
       context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
     }
     logOfflineResult(url, false);
+  } finally {
+    await closeBrowser(context, currentBrowser);
   }
 };
 
