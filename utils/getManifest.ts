@@ -44,11 +44,10 @@ export default async function getManifest(
 
     if (manifestUrl) {
       const response = await fetch(manifestUrl);
-
+      const jsonResponse = JSON.parse((await response.text()).trim());
       await closeBrowser(context, siteData.browser);
-
       return {
-        json: await response.json(),
+        json: jsonResponse,
         url: manifestUrl,
       };
     }
