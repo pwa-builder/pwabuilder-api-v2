@@ -32,7 +32,7 @@
     "@azure/storage-blob": "^12.2.1",
     "@azure/storage-queue": "^12.1.0",
     "ajv": "^6.12.6",
-    "durable-functions": "^1.4.3",
+    "durable-functions": "^1.5.4",
     "form-data": "^4.0.0",
     "formdata-node": "^2.4.0",
     "fs-extra": "^9.0.1",
@@ -43,6 +43,7 @@
     "node-fetch": "^2.6.0",
     "puppeteer": "^8.0.0",
     "pwabuilder-lib": "^2.1.9",
-    "svgjs": "^2.6.2"
+    "svgjs": "^2.6.2",
+    "utf8": "^3.0.0"
   }
 }
