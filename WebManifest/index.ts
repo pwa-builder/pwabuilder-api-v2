@@ -1,9 +1,14 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import getManifest from "../utils/getManifest";
-import testManifest from "../utils/testManifest";
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { getManifest } from '../utils/getManifest';
+import testManifest from '../utils/testManifest';
 
-const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log(`Web Manifest function is processing a request for site: ${req?.query?.site}`);
+const httpTrigger: AzureFunction = async function (
+  context: Context,
+  req: HttpRequest
+): Promise<void> {
+  context.log(
+    `Web Manifest function is processing a request for site: ${req?.query?.site}`
+  );
 
   const site = req?.query?.site;
   const maniObject = req?.body?.manifest;
@@ -11,25 +16,30 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
   try {
     if (maniObject && (maniUrl || site)) {
-      context.log.info(`Web Manifest function has a raw manifest object for site: ${req?.query?.site}`);
+      context.log.info(
+        `Web Manifest function has a raw manifest object for site: ${req?.query?.site}`
+      );
 
       const results = await testManifest(maniObject);
 
       context.res = {
         status: 200,
         body: {
-          "data": results,
-          "content": {
+          data: results,
+          content: {
             json: maniObject,
-            url: maniUrl || site
-          }
-        }
-      }
+            url: maniUrl || site,
+          },
+        },
+      };
 
-      context.log.info(`Web Manifest function is DONE processing for site: ${req.query.site}`);
-    }
-    else if (site) {
-      context.log.info(`Web Manifest function is grabbing manifest object for site: ${req.query.site}`);
+      context.log.info(
+        `Web Manifest function is DONE processing for site: ${req.query.site}`
+      );
+    } else if (site) {
+      context.log.info(
+        `Web Manifest function is grabbing manifest object for site: ${req.query.site}`
+      );
       const maniData = await getManifest(site, context);
 
       if (maniData) {
@@ -38,26 +48,27 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
         context.res = {
           status: 200,
           body: {
-            "data": results,
-            "content": maniData
-          }
-        }
+            data: results,
+            content: maniData,
+          },
+        };
 
-        context.log.info(`Web Manifest function is DONE processing for site: ${req.query.site}`);
+        context.log.info(
+          `Web Manifest function is DONE processing for site: ${req.query.site}`
+        );
       }
     }
-  }
-  catch (err) {
-    const error = err as Error;
-    const errorMessage = error?.message || `${err}`;
+  } catch (err) {
     context.res = {
       status: 400,
       body: {
-        "error": { error: err, message: errorMessage }
+        error: { error: err, message: err.message },
       },
     };
 
-    context.log.error(`Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${errorMessage}`);
+    context.log.error(
+      `Web Manifest function has ERRORED while processing for site: ${req.query.site} with this error: ${err.message}`
+    );
   }
 };
 
