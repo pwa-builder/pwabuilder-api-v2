@@ -75,13 +75,19 @@ export async function getManifestTwoWays(
 ): Promise<ManifestInformation | undefined> {
   try {
     const htmlParse = await getManifestWithHTMLParse(site, context);
-    if (htmlParse !== null) {
+    if (htmlParse !== null && htmlParse !== undefined) {
       context.log('HTML PARSE OUTPUT', htmlParse);
       return htmlParse;
     } else {
       const puppeteerResponse = await getManifest(site, context); //This uses puppeteer
       context.log('PUPPETEER OUTPUT', puppeteerResponse);
-      return puppeteerResponse;
+      if (puppeteerResponse !== null && puppeteerResponse !== undefined) {
+        return puppeteerResponse;
+      } else
+        throw ExceptionOf(
+          Type.MANIFEST_NOT_FOUND,
+          new Error('Could not find a manifest')
+        );
     }
   } catch (e) {
     throw ExceptionOf(Type.MANIFEST_NOT_FOUND, e);
