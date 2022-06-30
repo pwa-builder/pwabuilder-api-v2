@@ -1,7 +1,7 @@
-import { Context } from "@azure/functions";
-import puppeteer from "puppeteer";
-import ExceptionOf, { ExceptionType as Type } from "./Exception";
-import { LogMessages } from "./logMessages";
+import { Context } from '@azure/functions';
+import puppeteer from 'puppeteer';
+import ExceptionOf, { ExceptionType as Type } from './Exception';
+import { LogMessages } from './logMessages';
 
 export interface LoadedPage {
   sitePage: puppeteer.Page;
@@ -19,14 +19,16 @@ export default async function loadPage(
   const timeout = 120000;
 
   try {
+    const start = new Date().getTime();
     const browser = await getBrowser(context);
-
+    const elapsed = new Date().getTime() - start;
+    context.log('TIME ELAPSED', elapsed);
     sitePage = await browser.newPage();
 
     await sitePage.setDefaultNavigationTimeout(timeout);
 
     pageResponse = await sitePage.goto(site, {
-      waitUntil: ["domcontentloaded"],
+      waitUntil: ['domcontentloaded'],
     });
 
     if (pageResponse) {
@@ -36,10 +38,10 @@ export default async function loadPage(
         browser: browser,
       };
     } else {
-      throw new Error("Could not get a page response");
+      throw new Error('Could not get a page response');
     }
   } catch (err) {
-    return err;
+    return err as Error;
   }
 }
 
@@ -48,7 +50,7 @@ export async function getBrowser(context: Context): Promise<puppeteer.Browser> {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   return browser;
 }
@@ -63,8 +65,7 @@ export async function closeBrowser(
     try {
       await browser.close();
     } catch (err) {
-      throw ExceptionOf(Type.BROWSER_CLOSE_FAILURE, err);
-      return err;
+      console.warn("Error closing browser", err);
     }
   }
 }

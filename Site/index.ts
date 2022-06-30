@@ -1,34 +1,39 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 
 import getManifestFromFile, {
   ifSupportedFile,
-} from "../utils/getManifestFromFile";
-import getManifest from "../utils/getManifest";
+} from '../utils/getManifestFromFile';
+import { getManifest } from '../utils/getManifest';
 
-import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
-import { Manifest, ManifestFormat, ManifestInfo } from "../utils/interfaces";
-const manifestTools = require("pwabuilder-lib").manifestTools;
+import { ExceptionMessage, ExceptionWrap } from '../utils/Exception';
+import { Manifest, ManifestFormat, ManifestInfo } from '../utils/interfaces';
+const manifestTools = require('pwabuilder-lib').manifestTools;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  context.log.info(`Site function is processing a request for site: ${req.query.site}`);
+  context.log.info(
+    `Site function is processing a request for site: ${req.query.site}`
+  );
 
   try {
-
     let manifestUrl: string;
     let manifest: Manifest | null = null;
     const siteUrl = req.query.site;
 
     // Handle File
-    if (req.method === "POST" && ifSupportedFile(req)) {
-      context.log.info(`Site function is getting the manifest from a file for site: ${req.query.site}`);
+    if (req.method === 'POST' && ifSupportedFile(req)) {
+      context.log.info(
+        `Site function is getting the manifest from a file for site: ${req.query.site}`
+      );
 
       manifest = await getManifestFromFile(req);
     } else {
       // Handle Site
-      context.log.info(`Site function is loading the manifest from the URL for site: ${req.query.site}`);
+      context.log.info(
+        `Site function is loading the manifest from the URL for site: ${req.query.site}`
+      );
 
       const manifestData = await getManifest(siteUrl, context);
 
@@ -50,7 +55,7 @@ const httpTrigger: AzureFunction = async function (
           context.res = {
             status: 400,
             body: {
-              message: "Failed to convert to a w3c standard format",
+              message: 'Failed to convert to a w3c standard format',
             },
           };
           return;
@@ -65,7 +70,7 @@ const httpTrigger: AzureFunction = async function (
               context.res = {
                 status: 400,
                 body: {
-                  message: "Failed to validate and normalize the manifest",
+                  message: 'Failed to validate and normalize the manifest',
                 },
               };
               return;
@@ -88,13 +93,17 @@ const httpTrigger: AzureFunction = async function (
         },
       };
 
-      context.log.error(`Site function errored getting the manifest for site: ${req.query.site} with error: ${exception}`);
+      context.log.error(
+        `Site function errored getting the manifest for site: ${req.query.site} with error: ${exception}`
+      );
     } else {
       context.res = {
         status: 400,
       };
 
-      context.log.error(`Site function errored getting the manifest for site: ${req.query.site}`);
+      context.log.error(
+        `Site function errored getting the manifest for site: ${req.query.site}`
+      );
     }
   }
 };

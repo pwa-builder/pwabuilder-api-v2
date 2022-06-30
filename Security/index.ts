@@ -126,6 +126,10 @@ const httpTrigger: AzureFunction = async function (
       logHttpsResult(site, false, 0, errorMessage, startTime);
     }
   } catch (err) {
+    if (siteData && siteData.browser) {
+      await closeBrowser(context, siteData.browser);
+    }
+
     context.res = {
       status: 500,
       body: {

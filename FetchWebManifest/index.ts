@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { getManifest } from '../utils/getManifest';
+import { getManifestTwoWays } from '../utils/getManifest';
 import testManifest from '../utils/testManifest';
 
 const httpTrigger: AzureFunction = async function (
@@ -40,8 +40,10 @@ const httpTrigger: AzureFunction = async function (
       context.log.info(
         `Web Manifest function is grabbing manifest object for site: ${req.query.site}`
       );
-      const maniData = await getManifest(site, context);
-
+      const start = new Date().getTime();
+      const maniData = await getManifestTwoWays(site, context);
+      const elapsed = new Date().getTime() - start;
+      context.log('TIME ELAPSED', elapsed);
       if (maniData) {
         const results = await testManifest(maniObject);
 
