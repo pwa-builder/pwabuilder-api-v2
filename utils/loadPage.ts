@@ -65,7 +65,7 @@ export async function closeBrowser(
     try {
       await browser.close();
     } catch (err) {
-      console.warn("Error closing browser", err);
+      console.warn('Error closing browser', err);
     }
   }
 }

@@ -136,9 +136,6 @@ const httpTrigger: AzureFunction = async function (
         error: { error: err, message: err.message },
       },
     };
-
-    if (req.secondCall) {
-    }
     const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`;
     context.log.error(errorMessage);
     logHttpsResult(site, false, 0, errorMessage, startTime);
