@@ -1,6 +1,6 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import loadPage, { LoadedPage, closeBrowser } from "../utils/loadPage";
-import { logHttpsResult } from "../utils/urlLogger";
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage';
+import { logHttpsResult } from '../utils/urlLogger';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -32,21 +32,21 @@ const httpTrigger: AzureFunction = async function (
       pageResponse = siteData?.pageResponse;
 
       if (!page) {
-        throw new Error("");
+        throw new Error('');
       }
 
       page.setRequestInterception(true);
 
-      const whiteList = ["document", "plain", "script", "javascript"];
-      page.on("request", (req) => {
+      const whiteList = ['document', 'plain', 'script', 'javascript'];
+      page.on('request', req => {
         const type = req.resourceType();
-        if (whiteList.some((el) => type.indexOf(el) >= 0)) {
+        if (whiteList.some(el => type.indexOf(el) >= 0)) {
           req.continue();
         } else {
           req.abort();
         }
       });
-    } catch (err) {
+    } catch (err: any) {
       if (siteData && siteData.browser) {
         await closeBrowser(context, siteData.browser);
       }
@@ -65,7 +65,7 @@ const httpTrigger: AzureFunction = async function (
         site,
         false,
         0,
-        "Error loading site data: " + err,
+        'Error loading site data: ' + err,
         startTime
       );
     }
@@ -74,12 +74,12 @@ const httpTrigger: AzureFunction = async function (
 
     if (securityDetails) {
       const results = {
-        isHTTPS: site.includes("https"),
+        isHTTPS: site.includes('https'),
         validProtocol:
-          securityDetails.protocol() === "TLS 1.3" ||
-          securityDetails.protocol() === "TLS 1.2" ||
-          securityDetails.protocol() === "_TSL 1.2" ||
-          securityDetails.protocol() === "_TSL 1.3",
+          securityDetails.protocol() === 'TLS 1.3' ||
+          securityDetails.protocol() === 'TLS 1.2' ||
+          securityDetails.protocol() === '_TSL 1.2' ||
+          securityDetails.protocol() === '_TSL 1.3',
         valid: securityDetails.validTo() <= new Date().getTime(),
       };
 
@@ -99,8 +99,8 @@ const httpTrigger: AzureFunction = async function (
         { metric: results.valid, score: 5 },
         { metric: results.validProtocol, score: 5 },
       ]
-        .filter((a) => a.metric)
-        .map((a) => a.score)
+        .filter(a => a.metric)
+        .map(a => a.score)
         .reduce((a, b) => a + b);
       logHttpsResult(
         site,
@@ -117,7 +117,7 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 400,
         body: {
-          error: "Security Details could not be retrieved from the site",
+          error: 'Security Details could not be retrieved from the site',
         },
       };
 
@@ -125,7 +125,7 @@ const httpTrigger: AzureFunction = async function (
       context.log.error(errorMessage);
       logHttpsResult(site, false, 0, errorMessage, startTime);
     }
-  } catch (err) {
+  } catch (err: any) {
     if (siteData && siteData.browser) {
       await closeBrowser(context, siteData.browser);
     }
@@ -137,6 +137,8 @@ const httpTrigger: AzureFunction = async function (
       },
     };
 
+    if (req.secondCall) {
+    }
     const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`;
     context.log.error(errorMessage);
     logHttpsResult(site, false, 0, errorMessage, startTime);
