@@ -1,11 +1,16 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { Browser } from 'puppeteer';
 const lighthouse = require('lighthouse');
 
-import { closeBrowser, getBrowser } from "../utils/loadPage";
+import { closeBrowser, getBrowser } from '../utils/loadPage';
 
-const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
+const httpTrigger: AzureFunction = async function (
+  context: Context,
+  req: HttpRequest
+): Promise<void> {
+  context.log.info(
+    `Service Worker function is processing a request for site: ${req.query.site}`
+  );
 
   const url = req.query.site;
 
@@ -22,28 +27,32 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       context.res = {
         status: 200,
         body: {
-          "data": swInfo
-        }
-      }
+          data: swInfo,
+        },
+      };
 
-      context.log.info(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
+      context.log.info(
+        `Service Worker function is DONE processing a request for site: ${req.query.site}`
+      );
     }
-
-  } catch (error) {
+  } catch (error: any) {
     await closeBrowser(context, currentBrowser);
 
     context.res = {
       status: 500,
       body: {
-        error: error
-      }
+        error: error,
+      },
     };
 
     if (error.name && error.name.indexOf('TimeoutError') > -1) {
-      context
-      context.log.error(`Service Worker function TIMED OUT processing a request for site: ${url}`);
+      context.log.error(
+        `Service Worker function TIMED OUT processing a request for site: ${url}`
+      );
     } else {
-      context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
+      context.log.error(
+        `Service Worker function failed for ${url} with the following error: ${error}`
+      );
     }
   }
 };
@@ -60,7 +69,7 @@ const audit = async (browser: Browser, url: string) => {
     disableDeviceEmulation: true,
     chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
     onlyCategories: ['pwa'],
-    port: (new URL(browser.wsEndpoint())).port
+    port: new URL(browser.wsEndpoint()).port,
   };
 
   const runnerResult = await lighthouse(url, options);
@@ -68,15 +77,15 @@ const audit = async (browser: Browser, url: string) => {
 
   if (audits) {
     swInfo['hasSW'] = audits['service-worker'].score >= 1 ? true : false;
-    swInfo['scope'] = audits['service-worker'].details ? audits['service-worker'].details.scopeUrl : null;
+    swInfo['scope'] = audits['service-worker'].details
+      ? audits['service-worker'].details.scopeUrl
+      : null;
     swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
 
     return swInfo;
-  }
-  else {
+  } else {
     return null;
   }
-
-}
+};
 
 export default httpTrigger;
