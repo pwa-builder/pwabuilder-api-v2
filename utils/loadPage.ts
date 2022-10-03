@@ -14,7 +14,7 @@ export default async function loadPage(
   context: Context
 ): Promise<LoadedPage | undefined | Error> {
   let sitePage: puppeteer.Page;
-  let pageResponse: puppeteer.HTTPResponse | undefined;
+  let pageResponse: puppeteer.HTTPResponse | null;
 
   const timeout = 120000;
 
