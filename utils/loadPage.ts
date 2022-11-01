@@ -1,6 +1,5 @@
-import { Context } from '@azure/functions';
+import { Context } from '@azure/functions/Interfaces';
 import puppeteer from 'puppeteer';
-import ExceptionOf, { ExceptionType as Type } from './Exception';
 import { LogMessages } from './logMessages';
 
 export interface LoadedPage {

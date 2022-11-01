@@ -1,19 +1,29 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
+import { AzureFunction, Context, HttpRequest } from "@azure/functions/Interfaces";
 import { Browser } from 'puppeteer';
 import { OfflineTestData } from "../utils/interfaces";
-const lighthouse = require('lighthouse');
+import lighthouse from 'lighthouse';
 import { closeBrowser, getBrowser } from "../utils/loadPage";
 import { logOfflineResult } from "../utils/urlLogger";
+import { checkParams } from '../utils/checkParams';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
+
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`Offline: ${checkResult.body?.error.message}`);
+    return;
+  }
+
   context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
 
-  const url = req.query.site;
+  const url = req?.query?.site as string;
 
   const currentBrowser = await getBrowser(context);
 
   try {
     // run lighthouse audit
+
     if (currentBrowser) {
       const swInfo = await audit(currentBrowser, url);
       context.res = {

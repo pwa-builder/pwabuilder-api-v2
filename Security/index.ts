@@ -1,4 +1,5 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions/Interfaces';
+import { checkParams } from '../utils/checkParams';
 import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage';
 import { logHttpsResult } from '../utils/urlLogger';
 
@@ -6,11 +7,19 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`Security: ${checkResult.body?.error.message}`);
+    return;
+  }
+
   context.log.info(
     `Security function is processing a request for site: ${req.query.site}`
   );
 
-  const site = req.query.site;
+  const site = req?.query?.site as string;
   let siteData: LoadedPage | undefined;
   const startTime = new Date();
 
@@ -18,7 +27,11 @@ const httpTrigger: AzureFunction = async function (
     let page;
     let pageResponse;
 
+    if (!site)
+      throw new Error('Exception: no site URL');
+
     try {
+
       const response = await loadPage(site, context);
 
       if (!(response instanceof Error)) {
@@ -46,7 +59,7 @@ const httpTrigger: AzureFunction = async function (
           req.abort();
         }
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (siteData && siteData.browser) {
         await closeBrowser(context, siteData.browser);
       }
@@ -54,7 +67,7 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 500,
         body: {
-          error: { error: err, message: err.message },
+          error: { error: err, message: (err instanceof Error && err.message) ? err.message : 'noMessage' },
         },
       };
 
@@ -125,7 +138,7 @@ const httpTrigger: AzureFunction = async function (
       context.log.error(errorMessage);
       logHttpsResult(site, false, 0, errorMessage, startTime);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (siteData && siteData.browser) {
       await closeBrowser(context, siteData.browser);
     }
@@ -133,10 +146,10 @@ const httpTrigger: AzureFunction = async function (
     context.res = {
       status: 500,
       body: {
-        error: { error: err, message: err.message },
+        error: { error: err, message: (err instanceof Error && err.message) ? err.message : 'noMessage' },
       },
     };
-    const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`;
+    const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${(err instanceof Error && err.message) ? err.message : 'noMessage'}`;
     context.log.error(errorMessage);
     logHttpsResult(site, false, 0, errorMessage, startTime);
   }

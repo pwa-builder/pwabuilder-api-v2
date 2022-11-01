@@ -1,4 +1,5 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions/Interfaces';
+import { checkParams } from '../utils/checkParams';
 import { getManifest } from '../utils/getManifest';
 import testManifest from '../utils/testManifest';
 
@@ -6,6 +7,14 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`WebManifest: ${checkResult.body?.error.message}`);
+    return;
+  }
+  
   context.log(
     `Web Manifest function is processing a request for site: ${req?.query?.site}`
   );

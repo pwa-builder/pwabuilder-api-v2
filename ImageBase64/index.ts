@@ -1,4 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions/Interfaces';
 import * as Jimp from 'jimp';
 
 import JSZip from 'jszip';

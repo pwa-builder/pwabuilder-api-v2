@@ -40,10 +40,10 @@
     "jimp": "^0.16.1",
     "jszip": "^3.5.0",
     "klaw": "^3.0.0",
-    "lighthouse": "^6.4.1",
+    "lighthouse": "^9.6.7",
     "node-fetch": "^2.6.0",
     "puppeteer": "^18.0.5",
-    "pwabuilder-lib": "^2.1.9",
+    "pwabuilder-lib": "^2.1.*",
     "svgjs": "^2.6.2",
     "utf8": "^3.0.0"
   }

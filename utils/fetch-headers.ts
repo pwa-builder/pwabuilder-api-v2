@@ -1,4 +1,4 @@
-import { HttpRequest } from '@azure/functions';
+import { HttpRequest } from '@azure/functions/Interfaces';
 
 export enum MimeTypes {
   formData = 'multipart/form-data',
@@ -7,11 +7,11 @@ export enum MimeTypes {
 }
 
 export function getContentType(req: HttpRequest): string {
-  return req.headers['Content-Type'] || req.headers['content-type'];
+  return req.headers['Content-Type'] || req.headers['content-type'] || '';
 }
 
 export function headerHasMimeType(req: HttpRequest, type: MimeTypes): boolean {
-  return (getContentType(req) || '').includes(type);
+  return (getContentType(req)).includes(type);
 }
 
 export function isFormData(req: HttpRequest): boolean {

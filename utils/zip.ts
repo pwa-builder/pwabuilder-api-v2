@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions";
+import { Context } from "@azure/functions/Interfaces";
 import { BlobItem, ContainerClient } from "@azure/storage-blob";
 import JSZip = require("jszip");
 import {

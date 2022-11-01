@@ -1,4 +1,4 @@
-import { HttpRequest } from '@azure/functions';
+import { HttpRequest } from '@azure/functions/Interfaces';
 import ExceptionOf, { ExceptionType as Type } from './Exception';
 import { Manifest } from './interfaces';
 

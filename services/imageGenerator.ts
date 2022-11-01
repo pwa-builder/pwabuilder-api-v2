@@ -1,4 +1,4 @@
-import { Context } from '@azure/functions';
+import { Context } from '@azure/functions/Interfaces';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import FormData from 'form-data';

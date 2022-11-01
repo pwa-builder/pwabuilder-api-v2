@@ -1,18 +1,27 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions/Interfaces';
 import { Browser } from 'puppeteer';
-const lighthouse = require('lighthouse');
+import lighthouse from 'lighthouse';
 
 import { closeBrowser, getBrowser } from '../utils/loadPage';
+import { checkParams } from '../utils/checkParams';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`ServiceWorker: ${checkResult.body?.error.message}`);
+    return;
+  }
+  
   context.log.info(
     `Service Worker function is processing a request for site: ${req.query.site}`
   );
 
-  const url = req.query.site;
+  const url = req?.query?.site as string;
 
   const currentBrowser = await getBrowser(context);
 
@@ -59,7 +68,7 @@ const httpTrigger: AzureFunction = async function (
 
 const audit = async (browser: Browser, url: string) => {
   // empty object that we fill with data below
-  let swInfo: any = {};
+  const swInfo: { hasSW? : boolean, scope?: boolean, offline? : boolean } = {};
 
   // Default options to use when using
   // Puppeteer with Lighthouse
@@ -76,11 +85,11 @@ const audit = async (browser: Browser, url: string) => {
   const audits = runnerResult?.lhr?.audits;
 
   if (audits) {
-    swInfo['hasSW'] = audits['service-worker'].score >= 1 ? true : false;
-    swInfo['scope'] = audits['service-worker'].details
+    swInfo.hasSW = audits['service-worker'].score >= 1 ? true : false;
+    swInfo.scope = audits['service-worker'].details
       ? audits['service-worker'].details.scopeUrl
       : null;
-    swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
+    swInfo.offline = audits['works-offline'].score >= 1 ? true : false;
 
     return swInfo;
   } else {

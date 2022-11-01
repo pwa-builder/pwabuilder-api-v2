@@ -1,4 +1,4 @@
-import { Context } from '@azure/functions';
+import { Context } from '@azure/functions/Interfaces';
 import fetch from 'node-fetch';
 import ExceptionOf, { ExceptionType as Type } from './Exception';
 import { Manifest } from './interfaces';
