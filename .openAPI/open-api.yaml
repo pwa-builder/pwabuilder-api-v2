@@ -1,0 +1,32 @@
+openapi: 3.0.2
+info:
+  title: PWA Builder API
+  version: '2.0'
+servers:
+  - url: /api
+paths:
+  /FetchWebManifest:
+    post:
+      description: ''
+      parameters:
+        - name: site
+          schema: 
+            type: string
+          in: query
+          description: Web application URL
+          required: true
+      responses:
+        '200':
+          description: OK
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties: 
+                  content:
+                    type: object
+                    properties: 
+                      json:
+                        $ref: 'manifest.yaml'
+                      url:
+                        type: string
