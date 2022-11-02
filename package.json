@@ -11,7 +11,8 @@
     "prestart": "npm run build && func extensions install",
     "start:host": "func start",
     "start": "npm-run-all --parallel start:host watch",
-    "test": "echo \"No tests yet...\""
+    "test": "echo \"No tests yet...\"",
+    "open-api": "node .openAPI/swagger-ui-dist.js"
   },
   "description": "",
   "devDependencies": {
@@ -45,6 +46,7 @@
     "puppeteer": "^18.0.5",
     "pwabuilder-lib": "^2.1.*",
     "svgjs": "^2.6.2",
+    "swagger-ui-dist": "^4.15.2",
     "utf8": "^3.0.0"
   }
 }
