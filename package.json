@@ -38,6 +38,7 @@
     "form-data": "^4.0.0",
     "formdata-node": "^2.4.0",
     "fs-extra": "^9.0.1",
+    "http-proxy": "^1.18.1",
     "jimp": "^0.16.1",
     "jszip": "^3.5.0",
     "klaw": "^3.0.0",
