@@ -4,7 +4,7 @@
 # FROM mcr.microsoft.com/azure-functions/node:3.0-node12
 
 # docker build -t api-v2 .
-# docker run -p 80:7071 api-v2
+# docker run -p 80:80 api-v2
 
 FROM mcr.microsoft.com/azure-functions/node:4-node16
 
