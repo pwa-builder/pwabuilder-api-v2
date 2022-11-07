@@ -1,32 +1,115 @@
-openapi: 3.0.2
+openapi: 3.0.3
 info:
   title: PWA Builder API
+  description: Azure functions based API for PWABuilder, Tools and Extensions. [Repository](https://github.com/pwa-builder/pwabuilder-api-v2).
   version: '2.0'
 servers:
   - url: /api
+
+components:
+  schemas: 
+    manifest:
+      $ref: 'manifest.yaml'
+  parameters:
+    site:
+      name: site
+      schema: 
+        type: string
+        default: https://webboard.app
+      in: query
+      description: Web application URL
+      required: true
+  responses:
+    manifestGrab:
+      '200':
+        description: OK
+        content: 
+          application/json:
+            schema: 
+              type: object
+              properties: 
+                content:
+                  type: object
+                  properties: 
+                    json:
+                      $ref: '#/components/schemas/manifest'
+                    url:
+                      type: string
+    manifestGen:
+      '200':
+        description: OK
+        content: 
+          application/json:
+            schema: 
+              type: object
+              properties: 
+                content:
+                  type: object
+                  $ref: 'manifest.yaml'
+                format:
+                  type: string
+                generatedUrl: 
+                  type: string
 paths:
   /FetchWebManifest:
     post:
-      description: ''
+      summary: Grab manifest file
+      description: 'Detect and grab manifest json and url from webapp'
+      tags:
+        - Manifest
       parameters:
-        - name: site
-          schema: 
-            type: string
-          in: query
-          description: Web application URL
-          required: true
+        - $ref: '#/components/parameters/site'
       responses:
         '200':
-          description: OK
-          content: 
-            application/json:
-              schema: 
-                type: object
-                properties: 
-                  content:
-                    type: object
-                    properties: 
-                      json:
-                        $ref: 'manifest.yaml'
-                      url:
-                        type: string
+          $ref: '#/components/responses/manifestGrab/200'
+    get:
+      summary: Grab manifest file
+      description: 'Detect and grab manifest json and url from webapp'
+      tags:
+        - Manifest
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          $ref: '#/components/responses/manifestGrab/200'
+  
+  /GenerateManifest:
+    post:
+      summary: Generate manifest file
+      description: 'Detect and parse or generate manifest json from webapp'
+      tags:
+        - Manifest
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          $ref: '#/components/responses/manifestGen/200'
+    get:
+      summary: Generate manifest file
+      description: 'Detect and parse or generate manifest json from webapp'
+      tags:
+        - Manifest
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          $ref: '#/components/responses/manifestGen/200'
+
+  /WebManifest:
+    post:
+      summary: Test manifest file
+      description: 'Parse and test manifest from file, direct url, or webapp'
+      tags:
+        - Manifest
+      parameters:
+        - $ref: '#/components/parameters/site'
+          required: false
+      requestBody: 
+        content: 
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/manifest'
+              name: manifest
+      responses:
+        '200':
+          $ref: '#/components/responses/manifestGen/200'
