@@ -12,7 +12,7 @@
     "start:host": "func start",
     "start": "npm-run-all --parallel start:host watch",
     "test": "echo \"No tests yet...\"",
-    "open-api": "node .openAPI/swagger-ui-dist.js"
+    "open-api": "node .openAPI/swagger-node-middleware.js"
   },
   "description": "",
   "devDependencies": {
