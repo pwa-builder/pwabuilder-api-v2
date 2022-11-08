@@ -1,4 +1,4 @@
-import { HttpRequest } from "@azure/functions/Interfaces";
+import { HttpRequest } from "@azure/functions";
 
 interface IOutputStatus { status: 200 | 400 | 500, body? : { error: { object: Error, message: string }} };
 

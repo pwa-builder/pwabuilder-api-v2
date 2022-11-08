@@ -1,4 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions/Interfaces";
+import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { Browser } from 'puppeteer';
 import { OfflineTestData } from "../utils/interfaces";
 import lighthouse from 'lighthouse';

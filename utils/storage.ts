@@ -5,7 +5,7 @@ import {
 } from "@azure/storage-blob";
 
 import ExceptionOf, { ExceptionType } from "./Exception";
-import { Context } from "@azure/functions/Interfaces";
+import { Context } from "@azure/functions";
 import { Manifest, Categories } from "./interfaces";
 import { W3CPurpose, MimeType, WidthByHeight, SpaceSeparatedList } from "./w3c";
 

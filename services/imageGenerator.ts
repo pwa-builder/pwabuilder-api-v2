@@ -1,4 +1,4 @@
-import { Context } from '@azure/functions/Interfaces';
+import { Context } from '@azure/functions';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import FormData from 'form-data';
@@ -36,10 +36,15 @@ export async function generateAllImages(
     });
     context.log.info(generate.status, generate.statusText);
 
-    const generateResponse: {
+    const generateResponse = await generate.json() as { 
       Uri?: string | '/api/image/<hash>';
-      Message?: string;
-    } = await generate.json();
+      Message?: string
+    };
+
+    // const generateResponse: {
+    //   Uri?: string | '/api/image/<hash>';
+    //   Message?: string;
+    // } = await generate.json();
 
     context.log.info('after post', generateResponse);
     if (generateResponse.Message) {

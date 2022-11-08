@@ -1,4 +1,4 @@
-import { Context } from "@azure/functions/Interfaces";
+import { Context } from "@azure/functions";
 import {
   BlobServiceClient,
   ContainerSASPermissions,

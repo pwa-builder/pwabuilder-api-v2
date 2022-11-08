@@ -1,4 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions/Interfaces";
+import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
 import { Manifest } from "../utils/interfaces";
 import { manifestTools } from 'pwabuilder-lib';

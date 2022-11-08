@@ -1,4 +1,4 @@
-import { HttpRequest } from '@azure/functions/Interfaces';
+import { HttpRequest } from '@azure/functions';
 
 export enum MimeTypes {
   formData = 'multipart/form-data',

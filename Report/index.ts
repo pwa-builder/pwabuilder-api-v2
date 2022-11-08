@@ -13,15 +13,15 @@ const httpTrigger: AzureFunction = async function (
   const checkResult = checkParams(req, ['site']);
   if (checkResult.status !== 200){
     context.res = checkResult;
-    context.log.error(`ServiceWorker: ${checkResult.body?.error.message}`);
+    context.log.error(`Report: ${checkResult.body?.error.message}`);
     return;
   }
   
   context.log.info(
-    `Service Worker function is processing a request for site: ${req.query.site}`
+    `Report function is processing a request for site: ${req.query.site}`
   );
 
-  const url = req?.query?.site as string;
+  const url = req.query.site as string;
 
   const currentBrowser = await getBrowser(context);
 
@@ -41,7 +41,7 @@ const httpTrigger: AzureFunction = async function (
       };
 
       context.log.info(
-        `Service Worker function is DONE processing a request for site: ${req.query.site}`
+        `Report function is DONE processing a request for site: ${req.query.site}`
       );
     }
   } catch (error: any) {
@@ -56,11 +56,11 @@ const httpTrigger: AzureFunction = async function (
 
     if (error.name && error.name.indexOf('TimeoutError') > -1) {
       context.log.error(
-        `Service Worker function TIMED OUT processing a request for site: ${url}`
+        `Report function TIMED OUT processing a request for site: ${url}`
       );
     } else {
       context.log.error(
-        `Service Worker function failed for ${url} with the following error: ${error}`
+        `Report function failed for ${url} with the following error: ${error}`
       );
     }
   }

@@ -1,4 +1,4 @@
-import Ajv, { ValidateFunction } from "ajv";
+import Ajv, { ValidateFunction, ErrorObject } from "ajv";
 
 function imageResourceSchema() {
   return {
@@ -85,7 +85,7 @@ export function load(schema = WebManifestSchema): ValidateFunction {
 interface ValidateResponse {
   isValid: boolean;
   parsedSuccessfully: boolean;
-  errors?: Array<Ajv.ErrorObject>;
+  errors?: Array<ErrorObject>;
 }
 
 export default function validate(manifestObj: unknown): ValidateResponse {

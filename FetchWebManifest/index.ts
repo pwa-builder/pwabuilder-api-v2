@@ -1,4 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions/Interfaces';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { checkParams } from '../utils/checkParams';
 import { getManifestTwoWays } from '../utils/getManifest';
 import testManifest from '../utils/testManifest';

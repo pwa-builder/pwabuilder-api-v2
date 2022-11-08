@@ -1,4 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions/Interfaces';
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 
 import getManifestFromFile, {
   ifSupportedFile,
