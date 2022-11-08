@@ -50,7 +50,27 @@ components:
                   type: string
                 generatedUrl: 
                   type: string
-paths:
+    security:
+      '200':
+        description: OK
+        content: 
+          application/json:
+            schema: 
+              type: object
+              properties: 
+                data:
+                  type: object
+                  properties:
+                    isHTTPS:
+                      type: boolean
+                    validProtocol:
+                      type: boolean
+                    valid:
+                      type: boolean
+
+
+
+paths:                       
   /FetchWebManifest:
     post:
       summary: Grab manifest file
@@ -95,21 +115,14 @@ paths:
         '200':
           $ref: '#/components/responses/manifestGen/200'
 
-  /WebManifest:
+  /Security:
     post:
-      summary: Test manifest file
-      description: 'Parse and test manifest from file, direct url, or webapp'
+      summary: Check webapp security
+      description: Validate webapp security protocols
       tags:
-        - Manifest
+        - Validate
       parameters:
         - $ref: '#/components/parameters/site'
-          required: false
-      requestBody: 
-        content: 
-          application/json:
-            schema: 
-              $ref: '#/components/schemas/manifest'
-              name: manifest
       responses:
         '200':
-          $ref: '#/components/responses/manifestGen/200'
+          $ref: '#/components/responses/security/200'
