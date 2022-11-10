@@ -89,7 +89,7 @@ const audit = async (browser: Browser, url: string) => {
     swInfo.scope = audits['service-worker'].details
       ? audits['service-worker'].details.scopeUrl
       : null;
-    swInfo.offline = audits['works-offline'].score >= 1 ? true : false;
+    swInfo.offline = audits['installable-manifest'].score >= 1 ? true : false;
 
     return swInfo;
   } else {
