@@ -67,78 +67,67 @@ const httpTrigger: AzureFunction = async function (
 };
 
 const audit = async (browser: Browser, url: string) => {
-  // empty object that we fill with data below
-  const swInfo: { hasSW? : boolean, scope?: boolean, offline? : boolean } = {};
 
-  // Default options to use when using
   // Puppeteer with Lighthouse
   const config = {
     port: new URL(browser.wsEndpoint()).port,
-    logLevel: 'info',  // 'silent'|'error'|'info'|'verbose'
-    output: 'json', // 'json' | 'html' | 'csv'
+    logLevel: 'info', // 'silent' | 'error' | 'info' | 'verbose'
+    output: 'json',   // 'json' | 'html' | 'csv'
     locale: 'en-US',
-    // /** The maximum amount of time to wait for a page content render, in ms. If no content is rendered within this limit, the run is aborted with an error. */
+
     maxWaitForFcp: 15 * 1000,
-    // /** The maximum amount of time to wait for a page to load, in ms. */
     maxWaitForLoad: 30 * 1000,
 
-    /** Disable clearing the browser cache and other storage APIs before a run */
     disableStorageReset: true,
     skipAboutBlank: true,
-    /** How Lighthouse should interpret this run in regards to scoring performance metrics and skipping mobile-only tests in desktop. Must be set even if throttling/emulation is being applied outside of Lighthouse. */
     formFactor: 'desktop', // 'mobile'|'desktop';
-    /** Screen emulation properties (width, height, dpr, mobile viewport) to apply or an object of `{disabled: true}` if Lighthouse should avoid applying screen emulation. If either emulation is applied outside of Lighthouse, or it's being run on a mobile device, it typically should be set to disabled. For desktop, we recommend applying consistent desktop screen emulation. */
     screenEmulation: {disabled: true},  
     throttlingMethod: 'provided', // 'devtools'|'simulate'|'provided';
     throttling: false,
-    // /** If present, the run should only conduct this list of audits. */
     onlyAudits: ['service-worker', 'installable-manifest', 'is-on-https', 'maskable-icon', 'apple-touch-icon', 'splash-screen', 'themed-omnibox', 'viewport'],
     // onlyCategories: ['pwa'] ,
     // skipAudits: ['pwa-cross-browser', 'pwa-each-page-has-url', 'pwa-page-transitions', 'full-page-screenshot', 'network-requests', 'errors-in-console', 'diagnostics'],
   }
   
-  
+  const rawResult = await lighthouse(url, config);
 
-  // const options = {
-  //   output: 'json',
-  //   throttling: false,
-  //   preset: 'desktop',
-  //   logLevel: 'info',
-  //   disableDeviceEmulation: true,
-  //   chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
-  //   onlyCategories: ['pwa'],
-  //   port: new URL(browser.wsEndpoint()).port,
-  // };
+  const audits = rawResult?.lhr?.audits;
+  const artifacts = rawResult?.artifacts;
 
-  const runnerResult = await lighthouse(url, config);
-
-  // clean useless
-  if(runnerResult?.lhr) {
-    delete runnerResult.lhr.categoryGroups;
-    delete runnerResult.lhr.categories;
-    delete runnerResult.lhr.timing;
-  }
-  if(runnerResult?.artifacts) {
-    delete runnerResult.artifacts.devtoolsLogs;
-    delete runnerResult.artifacts.Timing;
-    delete runnerResult.artifacts.Stacks;
-  }
-
-  const audits = runnerResult?.lhr?.audits;
-
-  return runnerResult;
-
-  if (audits) {
-    swInfo.hasSW = audits['service-worker'].score >= 1 ? true : false;
-    swInfo.scope = audits['service-worker'].details
-      ? audits['service-worker'].details.scopeUrl
-      : null;
-    swInfo.offline = audits['works-offline'].score >= 1 ? true : false;
-
-    return swInfo;
-  } else {
+  if (!audits) {
     return null;
   }
+
+  const report = {
+    audits: {
+      isOnHttps: { score: audits['is-on-https']?.score? true : false },
+      installableManifest: { 
+        score: audits['installable-manifest']?.score? true : false,
+        details: { url: audits['installable-manifest']?.details?.debugData?.manifestUrl || '' }
+      },
+      serviceWorker: {
+        score: audits['service-worker']?.score? true : false,
+        details: {
+          url: audits['service-worker']?.details?.scriptUrl || '',
+          scope: audits['service-worker']?.details?.scopeUrl || ''
+        }
+       },
+      appleTouchIcon: { score: audits['apple-touch-icon']?.score? true : false },
+      maskableIcon: { score: audits['maskable-icon']?.score? true : false },
+      splashScreen: { score: audits['splash-screen']?.score? true : false },
+      themedOmnibox: { score: audits['themed-omnibox']?.score? true : false },
+      viewport: { score: audits['viewport']?.score? true : false }
+    },
+    artifacts: {
+      webAppManifest: artifacts?.WebAppManifest,
+      serviceWorker: artifacts?.ServiceWorker,
+      url: artifacts?.URL,
+      linkElements: artifacts?.LinkElements?.map(element => { delete element?.node; return element }),
+      metaElements: artifacts?.MetaElements?.map(element => { delete element?.node; return element })
+    }
+  }
+
+  return report;
 };
 
 export default httpTrigger;

@@ -126,3 +126,27 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/security/200'
+
+  /ServiceWorker:
+    post:
+      summary: Check webapp validation
+      description: Validate webapp
+      tags:
+        - Validate
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          $ref: '#/components/responses/security/200'
+
+  /Report:
+    post:
+      summary: Check webapp validation
+      description: Validate webapp
+      tags:
+        - Validate
+      parameters:
+        - $ref: '#/components/parameters/site'
+      # responses:
+      #   '200':
+      #     $ref: '#/components/responses/security/200'
