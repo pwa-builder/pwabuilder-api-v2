@@ -35,21 +35,21 @@ components:
                       $ref: '#/components/schemas/manifest'
                     url:
                       type: string
-    manifestGen:
-      '200':
-        description: OK
-        content: 
-          application/json:
-            schema: 
-              type: object
-              properties: 
-                content:
-                  type: object
-                  $ref: 'manifest.yaml'
-                format:
-                  type: string
-                generatedUrl: 
-                  type: string
+    # manifestGen:
+    #   '200':
+    #     description: OK
+    #     content: 
+    #       application/json:
+    #         schema: 
+    #           type: object
+    #           properties: 
+    #             content:
+    #               type: object
+    #               $ref: 'manifest.yaml'
+    #             format:
+    #               type: string
+    #             generatedUrl: 
+    #               type: string
     security:
       '200':
         description: OK
@@ -67,6 +67,110 @@ components:
                       type: boolean
                     valid:
                       type: boolean
+    report:
+      '200':
+        description: OK
+        content: 
+          application/json:
+            schema: 
+              type: object
+              properties: 
+                data:
+                  type: object
+                  properties:
+                    audits:
+                      type: object
+                      properties:
+                        isOnHttps:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                        installableManifest:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                            details: 
+                              type: object
+                              properties:
+                                url:
+                                  type: string
+                        serviceWorker:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                            details: 
+                              type: object
+                              properties:
+                                url:
+                                  type: string
+                                scope:
+                                  type: string
+                        appleTouchIcon:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                        maskableIcon:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                        splashScreen:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                        themedOmnibox:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                        viewport:
+                          type: object
+                          properties:
+                            score:
+                              type: boolean
+                    artifacts:
+                      type: object
+                      properties:
+                        webAppManifest:
+                          type: object
+                          properties:
+                            raw:
+                              type: string
+                            url:
+                              type: string
+                            value:
+                              type: object
+                        url: 
+                          type: object
+                          properties:
+                            finalUrl:
+                              type: string
+                            requestedUrl:
+                              type: string
+                        serviceWorker:
+                          type: object
+                          properties:
+                            registrations:
+                              type: array
+                              items:
+                                type: object
+                            versions:
+                              type: array
+                              items:
+                                type: object
+                        linkElements:
+                              type: array
+                              items:
+                                type: object
+                        metaElements:
+                              type: array
+                              items:
+                                type: object
 
 
 
@@ -93,44 +197,10 @@ paths:
         '200':
           $ref: '#/components/responses/manifestGrab/200'
   
-  /GenerateManifest:
-    post:
-      summary: Generate manifest file
-      description: 'Detect and parse or generate manifest json from webapp'
-      tags:
-        - Manifest
-      parameters:
-        - $ref: '#/components/parameters/site'
-      responses:
-        '200':
-          $ref: '#/components/responses/manifestGen/200'
-    get:
-      summary: Generate manifest file
-      description: 'Detect and parse or generate manifest json from webapp'
-      tags:
-        - Manifest
-      parameters:
-        - $ref: '#/components/parameters/site'
-      responses:
-        '200':
-          $ref: '#/components/responses/manifestGen/200'
-
   /Security:
     post:
       summary: Check webapp security
       description: Validate webapp security protocols
-      tags:
-        - Validate
-      parameters:
-        - $ref: '#/components/parameters/site'
-      responses:
-        '200':
-          $ref: '#/components/responses/security/200'
-
-  /ServiceWorker:
-    post:
-      summary: Check webapp validation
-      description: Validate webapp
       tags:
         - Validate
       parameters:
@@ -147,6 +217,6 @@ paths:
         - Validate
       parameters:
         - $ref: '#/components/parameters/site'
-      # responses:
-      #   '200':
-      #     $ref: '#/components/responses/security/200'
+      responses:
+        '200':
+          $ref: '#/components/responses/report/200'

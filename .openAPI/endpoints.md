@@ -21,6 +21,7 @@ Site: [GET,POST] http://localhost:7071/api/Site
 
 ### **🪦Dead:**
 ~~ImageBase64: [GET,POST] http://localhost:7071/api/ImageBase64~~
+
 ~~ServiceWorker: [GET,POST] http://localhost:7071/api/ServiceWorker~~
 
 ~~Validate: [GET,POST] http://localhost:7071/api/Validate~~
