@@ -220,3 +220,15 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/report/200'
+
+  /Hint:
+    post:
+      summary: Check webapp security
+      description: Validate webapp security protocols
+      tags:
+        - Validate
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          $ref: '#/components/responses/security/200'
