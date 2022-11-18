@@ -35,6 +35,45 @@ components:
                       $ref: '#/components/schemas/manifest'
                     url:
                       type: string
+                data: 
+                  type: object
+                  properties:
+                    recommended:
+                      type: object
+                      properties:
+                        background_color:
+                          type: string
+                        categories:
+                          type: string
+                        description:
+                          type: string
+                        iarc_rating:
+                          type: string
+                        maskable_icon:
+                          type: string
+                        orientation:
+                          type: string
+                        prefer_related_applications:
+                          type: string
+                        related_applications:
+                          type: string
+                        screenshots:
+                          type: string
+                        theme_color:
+                          type: string
+                    required:
+                      type: object
+                      properties:
+                        short_name:
+                          type: string
+                        name:
+                          type: string
+                        display:
+                          type: string
+                        start_url:
+                          type: string
+                        icons:
+                          type: string
     # manifestGen:
     #   '200':
     #     description: OK
@@ -176,21 +215,21 @@ components:
 
 paths:                       
   /FetchWebManifest:
-    post:
-      summary: Grab manifest file
-      description: 'Detect and grab manifest json and url from webapp'
-      tags:
-        - Manifest
-      parameters:
-        - $ref: '#/components/parameters/site'
-      responses:
-        '200':
-          $ref: '#/components/responses/manifestGrab/200'
+    # post:
+    #   summary: Manifest file
+    #   description: 'Detect and grab manifest json and url from webapp'
+    #   tags:
+    #     - Generate
+    #   parameters:
+    #     - $ref: '#/components/parameters/site'
+    #   responses:
+    #     '200':
+    #       $ref: '#/components/responses/manifestGrab/200'
     get:
-      summary: Grab manifest file
+      summary: Manifest file
       description: 'Detect and grab manifest json and url from webapp'
       tags:
-        - Manifest
+        - Generate
       parameters:
         - $ref: '#/components/parameters/site'
       responses:
@@ -198,7 +237,7 @@ paths:
           $ref: '#/components/responses/manifestGrab/200'
   
   /Security:
-    post:
+    get:
       summary: Check webapp security
       description: Validate webapp security protocols
       tags:
@@ -209,12 +248,43 @@ paths:
         '200':
           $ref: '#/components/responses/security/200'
 
-  /Report:
+  /WebManifest:
     post:
-      summary: Check webapp validation
-      description: Validate webapp
+      summary: Check webmanifest
+      description: Validate webapp manifest
       tags:
         - Validate
+      parameters:
+        - name: site
+          schema:
+            type: string
+            default: https://webboard.app
+          in: query
+          description: Web application URL
+      requestBody:
+        description: Optional body params
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties: 
+                manifest:
+                  type: object
+                  default: null
+                maniurl:
+                  type: string
+                  default: null
+
+      responses:
+        '200':
+          $ref: '#/components/responses/manifestGrab/200'
+
+  /Report:
+    get:
+      summary: Lighthouse report
+      description: Generate PWA-related Lighthouse report for webapp
+      tags:
+        - Report
       parameters:
         - $ref: '#/components/parameters/site'
       responses:
@@ -222,13 +292,14 @@ paths:
           $ref: '#/components/responses/report/200'
 
   /Hint:
-    post:
-      summary: Check webapp security
-      description: Validate webapp security protocols
+    get:
+      summary: Hint report
+      description: Generate PWA-related Hint report for webapp
       tags:
-        - Validate
+        - Report
       parameters:
         - $ref: '#/components/parameters/site'
       responses:
         '200':
-          $ref: '#/components/responses/security/200'
+          description: OK
+          # $ref: '#/components/responses/security/200'

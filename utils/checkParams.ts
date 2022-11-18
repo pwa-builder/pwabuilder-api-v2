@@ -1,6 +1,6 @@
 import { HttpRequest } from "@azure/functions";
 
-interface IOutputStatus { status: 200 | 400 | 500, body? : { error: { object: Error, message: string }} };
+interface IOutputStatus { status: 200 | 400 | 500, body? : { error: { object: Error, message: string | string[] }} };
 
 export function checkParams(req: HttpRequest, params: Array<string>): IOutputStatus {
 	const output: IOutputStatus = {
