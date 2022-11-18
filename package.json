@@ -50,7 +50,7 @@
     "puppeteer": "^19.2.2",
     "pwabuilder-lib": "^2.1.12",
     "svgjs": "^2.6.2",
-    "swagger-ui-dist": "^4.15.2",
+    "swagger-ui-dist": "^4.15.5",
     "utf8": "^3.0.0"
   }
 }

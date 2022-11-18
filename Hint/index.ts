@@ -83,7 +83,7 @@ const hint = async (url: string) => {
         name: "puppeteer",
         options: {
             // @ts-ignore
-            browser: "Edge",
+            browser: "Chrome",
             headless: true,
             // ignoreHTTPSErrors: true|false,
             // puppeteerOptions: "object",
