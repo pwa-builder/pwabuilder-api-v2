@@ -74,21 +74,21 @@ components:
                           type: string
                         icons:
                           type: string
-    # manifestGen:
-    #   '200':
-    #     description: OK
-    #     content: 
-    #       application/json:
-    #         schema: 
-    #           type: object
-    #           properties: 
-    #             content:
-    #               type: object
-    #               $ref: 'manifest.yaml'
-    #             format:
-    #               type: string
-    #             generatedUrl: 
-    #               type: string
+    manifestGen:
+      '200':
+        description: OK
+        content: 
+          application/json:
+            schema: 
+              type: object
+              properties: 
+                content:
+                  type: object
+                  $ref: 'manifest.yaml'
+                format:
+                  type: string
+                generatedUrl: 
+                  type: string
     security:
       '200':
         description: OK
@@ -235,6 +235,19 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/manifestGrab/200'
+    
+  /GenerateManifest:
+    get:
+      deprecated: true
+      summary: Generate manifest file
+      description: 'Detect and parse or generate manifest json from webapp'
+      tags:
+        - Generate
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          $ref: '#/components/responses/manifestGen/200'
   
   /Security:
     get:
@@ -250,6 +263,7 @@ paths:
 
   /WebManifest:
     post:
+      deprecated: true
       summary: Check webmanifest
       description: Validate webapp manifest
       tags:
@@ -303,3 +317,66 @@ paths:
         '200':
           description: OK
           # $ref: '#/components/responses/security/200'
+  
+  /Offline:
+    get:
+      deprecated: true
+      summary: Check offline
+      description: Validate webapp for offline support
+      tags:
+        - Validate
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          description: 'OK'
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties: 
+                  data:
+                    type: object
+                    properties:
+                      offline:
+                        type: string
+  /Site:
+    get:
+      deprecated: true
+      summary: Custom report
+      description: Custom manifest validation
+      tags:
+        - Report
+      parameters:
+        - $ref: '#/components/parameters/site'
+      responses:
+        '200':
+          description: 'OK'
+          content: 
+            application/json:
+              schema: 
+                type: object
+                properties: 
+                  content:
+                    type: object
+                    $ref: 'manifest.yaml'
+                  format:
+                    type: string
+                  generatedUrl: 
+                    type: string
+                  id: 
+                    type: number
+                  default:
+                    type: object
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                  suggestions:
+                    type: array
+                    items:
+                      type: object
+                  warnings:
+                    type: array
+                    items:
+                      type: object
