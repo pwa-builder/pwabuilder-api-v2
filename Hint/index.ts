@@ -86,7 +86,9 @@ const hint = async (url: string) => {
             browser: "Chrome",
             headless: true,
             // ignoreHTTPSErrors: true|false,
-            // puppeteerOptions: "object",
+            puppeteerOptions: {
+              args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            },
             // waitUntil: "dom|loaded|networkidle0|networkidle2"
         }
       },

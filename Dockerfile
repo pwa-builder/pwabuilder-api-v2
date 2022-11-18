@@ -34,7 +34,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 COPY . /home/site/wwwroot
 
 RUN cd /home/site/wwwroot && \
-    npm install puppeteer && \
+    npm install puppeteer@18.2.1 && \
     npm install && \
     npm run build
 
