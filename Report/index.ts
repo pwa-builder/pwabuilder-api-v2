@@ -78,7 +78,10 @@ const audit = async (browser: Browser, url: string) => {
     maxWaitForFcp: 15 * 1000,
     maxWaitForLoad: 30 * 1000,
 
+    disableDeviceEmulation: true,
     disableStorageReset: true,
+    chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
+
     skipAboutBlank: true,
     formFactor: 'desktop', // 'mobile'|'desktop';
     screenEmulation: {disabled: true},  
