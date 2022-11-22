@@ -1,4 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { checkParams, checkBody } from '../utils/checkParams';
 import { getManifest } from '../utils/getManifest';
 import testManifest from '../utils/testManifest';
 
@@ -6,6 +7,18 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const checkSite = checkParams(req, ['site']);
+  const checkBodyManifest = checkBody(req, ['manifest']);
+  if (checkSite.status !== 200 && checkBodyManifest.status !== 200){
+    const _problem = checkSite
+    _problem.body?.error.message && (_problem.body.error.message = [checkBodyManifest.body?.error.message as string, checkSite.body?.error.message as string])
+    context.res = _problem;
+    context.log.error(`WebManifest: ${checkSite.body?.error.message} or ${checkBodyManifest.body?.error.message}`);
+    return;
+  }
+
+  
   context.log(
     `Web Manifest function is processing a request for site: ${req?.query?.site}`
   );
@@ -42,8 +55,8 @@ const httpTrigger: AzureFunction = async function (
       );
       const maniData = await getManifest(site, context);
 
-      if (maniData) {
-        const results = await testManifest(maniObject);
+      if (maniData?.json) {
+        const results = await testManifest(maniData?.json);
 
         context.res = {
           status: 200,
@@ -58,7 +71,7 @@ const httpTrigger: AzureFunction = async function (
         );
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     context.res = {
       status: 400,
       body: {

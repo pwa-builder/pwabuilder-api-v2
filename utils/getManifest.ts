@@ -89,7 +89,7 @@ export async function getManifestTwoWays(
           new Error('Could not find a manifest')
         );
     }
-  } catch (e) {
+  } catch (e: any) {
     throw ExceptionOf(Type.MANIFEST_NOT_FOUND, e);
   }
 }

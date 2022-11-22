@@ -1,7 +1,12 @@
 # To enable ssh & remote debugging on app service change the base image to the one below
 # FROM mcr.microsoft.com/azure-functions/node:3.0-appservice
 # FROM mcr.microsoft.com/azure-functions/node:3.0
-FROM mcr.microsoft.com/azure-functions/node:3.0-node12
+# FROM mcr.microsoft.com/azure-functions/node:3.0-node12
+
+# docker build -t api-v2 .
+# docker run -p 80:80 api-v2
+
+FROM mcr.microsoft.com/azure-functions/node:4-node16
 
 
 RUN  apt-get update \
@@ -21,11 +26,23 @@ RUN  apt-get update \
     && chmod +x /usr/sbin/wait-for-it.sh
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
+    ASPNETCORE_URLS=http://*:7071
+
+
 
 COPY . /home/site/wwwroot
 
 RUN cd /home/site/wwwroot && \
+    rm -rf node_modules && \
     npm install puppeteer && \
     npm install && \
     npm run build
+
+
+CMD /home/site/wwwroot/docker-startup-tasks.sh
+# ENTRYPOINT ["node", "/home/site/wwwroot/.openAPI/swagger-ui-dist.js"]
+
+# CMD /azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost;node /home/site/wwwroot/.openAPI/swagger-ui-dist.js
+
+# CMD node /home/site/wwwroot/.openAPI/swagger-ui-dist.js; /azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost

@@ -7,12 +7,21 @@ import { getManifest } from '../utils/getManifest';
 
 import { ExceptionMessage, ExceptionWrap } from '../utils/Exception';
 import { Manifest, ManifestFormat, ManifestInfo } from '../utils/interfaces';
-const manifestTools = require('pwabuilder-lib').manifestTools;
+import { manifestTools } from 'pwabuilder-lib';
+import { checkParams } from '../utils/checkParams';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`Site: ${checkResult.body?.error.message}`);
+    return;
+  }
+  
   context.log.info(
     `Site function is processing a request for site: ${req.query.site}`
   );
@@ -20,7 +29,7 @@ const httpTrigger: AzureFunction = async function (
   try {
     let manifestUrl: string;
     let manifest: Manifest | null = null;
-    const siteUrl = req.query.site;
+    const url = req?.query?.site as string;
 
     // Handle File
     if (req.method === 'POST' && ifSupportedFile(req)) {
@@ -35,7 +44,7 @@ const httpTrigger: AzureFunction = async function (
         `Site function is loading the manifest from the URL for site: ${req.query.site}`
       );
 
-      const manifestData = await getManifest(siteUrl, context);
+      const manifestData = await getManifest(url, context);
 
       if (manifestData) {
         manifest = manifestData.json;
@@ -62,7 +71,7 @@ const httpTrigger: AzureFunction = async function (
         }
 
         manifestTools.validateAndNormalizeStartUrl(
-          siteUrl,
+          url,
           resultManifestInfo,
           (err: Error, validatedManifestInfo: ManifestInfo) => {
             if (err) {

@@ -1,3 +1,5 @@
+Please use our [main repository for any issues/bugs/features suggestion](https://github.com/pwa-builder/PWABuilder/issues/new/choose).
+
 # pwabuilder-tests
 
 Azure functions that use Puppeteer + Chromium to test websites to see if they are a Progressive Web App and if so return information about that PWA. These functions power [PWABuilder](https://www.pwabuilder.com), but can also be cloned and run independently.

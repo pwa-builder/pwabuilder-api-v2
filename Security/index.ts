@@ -1,16 +1,25 @@
-import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import loadPage, { LoadedPage, closeBrowser } from "../utils/loadPage";
-import { logHttpsResult } from "../utils/urlLogger";
+import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { checkParams } from '../utils/checkParams';
+import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage';
+import { logHttpsResult } from '../utils/urlLogger';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`Security: ${checkResult.body?.error.message}`);
+    return;
+  }
+
   context.log.info(
     `Security function is processing a request for site: ${req.query.site}`
   );
 
-  const site = req.query.site;
+  const site = req?.query?.site as string;
   let siteData: LoadedPage | undefined;
   const startTime = new Date();
 
@@ -18,7 +27,11 @@ const httpTrigger: AzureFunction = async function (
     let page;
     let pageResponse;
 
+    if (!site)
+      throw new Error('Exception: no site URL');
+
     try {
+
       const response = await loadPage(site, context);
 
       if (!(response instanceof Error)) {
@@ -32,21 +45,21 @@ const httpTrigger: AzureFunction = async function (
       pageResponse = siteData?.pageResponse;
 
       if (!page) {
-        throw new Error("");
+        throw new Error('');
       }
 
       page.setRequestInterception(true);
 
-      const whiteList = ["document", "plain", "script", "javascript"];
-      page.on("request", (req) => {
+      const whiteList = ['document', 'plain', 'script', 'javascript'];
+      page.on('request', req => {
         const type = req.resourceType();
-        if (whiteList.some((el) => type.indexOf(el) >= 0)) {
+        if (whiteList.some(el => type.indexOf(el) >= 0)) {
           req.continue();
         } else {
           req.abort();
         }
       });
-    } catch (err) {
+    } catch (err: unknown) {
       if (siteData && siteData.browser) {
         await closeBrowser(context, siteData.browser);
       }
@@ -54,7 +67,7 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 500,
         body: {
-          error: { error: err, message: err.message },
+          error: { error: err, message: (err instanceof Error && err.message) ? err.message : 'noMessage' },
         },
       };
 
@@ -65,7 +78,7 @@ const httpTrigger: AzureFunction = async function (
         site,
         false,
         0,
-        "Error loading site data: " + err,
+        'Error loading site data: ' + err,
         startTime
       );
     }
@@ -74,12 +87,12 @@ const httpTrigger: AzureFunction = async function (
 
     if (securityDetails) {
       const results = {
-        isHTTPS: site.includes("https"),
+        isHTTPS: site.includes('https'),
         validProtocol:
-          securityDetails.protocol() === "TLS 1.3" ||
-          securityDetails.protocol() === "TLS 1.2" ||
-          securityDetails.protocol() === "_TSL 1.2" ||
-          securityDetails.protocol() === "_TSL 1.3",
+          securityDetails.protocol() === 'TLS 1.3' ||
+          securityDetails.protocol() === 'TLS 1.2' ||
+          securityDetails.protocol() === '_TSL 1.2' ||
+          securityDetails.protocol() === '_TSL 1.3',
         valid: securityDetails.validTo() <= new Date().getTime(),
       };
 
@@ -99,8 +112,8 @@ const httpTrigger: AzureFunction = async function (
         { metric: results.valid, score: 5 },
         { metric: results.validProtocol, score: 5 },
       ]
-        .filter((a) => a.metric)
-        .map((a) => a.score)
+        .filter(a => a.metric)
+        .map(a => a.score)
         .reduce((a, b) => a + b);
       logHttpsResult(
         site,
@@ -117,7 +130,7 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 400,
         body: {
-          error: "Security Details could not be retrieved from the site",
+          error: 'Security Details could not be retrieved from the site',
         },
       };
 
@@ -125,7 +138,7 @@ const httpTrigger: AzureFunction = async function (
       context.log.error(errorMessage);
       logHttpsResult(site, false, 0, errorMessage, startTime);
     }
-  } catch (err) {
+  } catch (err: unknown) {
     if (siteData && siteData.browser) {
       await closeBrowser(context, siteData.browser);
     }
@@ -133,11 +146,10 @@ const httpTrigger: AzureFunction = async function (
     context.res = {
       status: 500,
       body: {
-        error: { error: err, message: err.message },
+        error: { error: err, message: (err instanceof Error && err.message) ? err.message : 'noMessage' },
       },
     };
-
-    const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`;
+    const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${(err instanceof Error && err.message) ? err.message : 'noMessage'}`;
     context.log.error(errorMessage);
     logHttpsResult(site, false, 0, errorMessage, startTime);
   }

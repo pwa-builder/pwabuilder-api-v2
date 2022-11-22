@@ -1,6 +1,5 @@
 import { Context } from '@azure/functions';
 import puppeteer from 'puppeteer';
-import ExceptionOf, { ExceptionType as Type } from './Exception';
 import { LogMessages } from './logMessages';
 
 export interface LoadedPage {
@@ -14,7 +13,7 @@ export default async function loadPage(
   context: Context
 ): Promise<LoadedPage | undefined | Error> {
   let sitePage: puppeteer.Page;
-  let pageResponse: puppeteer.HTTPResponse | undefined;
+  let pageResponse: puppeteer.HTTPResponse | null;
 
   const timeout = 120000;
 
@@ -65,7 +64,7 @@ export async function closeBrowser(
     try {
       await browser.close();
     } catch (err) {
-      console.warn("Error closing browser", err);
+      console.warn('Error closing browser', err);
     }
   }
 }

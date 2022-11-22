@@ -1,6 +1,6 @@
 import { Context } from "@azure/functions";
-import { BlobItem, ContainerClient } from "@azure/storage-blob";
-import JSZip = require("jszip");
+import { BlobItem, ContainerClient } from "@azure/storage-blob/dist";
+import JSZip from "jszip";
 import {
   IconManifestImageResource,
   Manifest,
