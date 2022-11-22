@@ -75,7 +75,6 @@ const audit = async (browser: Browser, url: string): Promise<OfflineTestData | n
   const audits = runnerResult?.lhr?.audits;
 
   if (audits) {
-    // swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
     swInfo.offline = audits['installable-manifest'].score >= 1 ? true : false;
 
     return swInfo;
