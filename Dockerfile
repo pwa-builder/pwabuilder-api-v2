@@ -40,7 +40,7 @@ RUN cd /home/site/wwwroot && \
     npm run build
 
 
-CMD /home/site/wwwroot/docker-startup-tasks.sh
+# CMD /home/site/wwwroot/docker-startup-tasks.sh
 # ENTRYPOINT ["node", "/home/site/wwwroot/.openAPI/swagger-ui-dist.js"]
 
 # CMD /azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost;node /home/site/wwwroot/.openAPI/swagger-ui-dist.js
