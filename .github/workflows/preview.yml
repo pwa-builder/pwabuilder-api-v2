@@ -2,27 +2,33 @@ name: Deploy to Preview
 
 on:
   push:
-    branches:
-      - dev   
+    branches: [ dev ]
   pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - dev
+    branches: [ dev ]
 
 jobs:
 
   build:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+
     runs-on: ubuntu-latest
-    name: Preview build
+    if: github.event_name == 'push'
+
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag pwabuilder.azurecr.io/pwabuildertests-dev:preview
+      run: docker build . --file Dockerfile --tag pwabuilder.azurecr.io/pwabuildertests-dev:dev
       
     - name: Login
       run: docker login pwabuilder.azurecr.io -u pwabuilder --password ${{secrets.azure}}
       
     - name: Push
-      run: docker push pwabuilder.azurecr.io/pwabuildertests-dev:preview
+      run: docker push pwabuilder.azurecr.io/pwabuildertests-dev:dev
       
+  build-pr:
+    runs-on: ubuntu-latest
+    if: github.event.name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker Image for a PR
+      run: docker build . --file Dockerfile
