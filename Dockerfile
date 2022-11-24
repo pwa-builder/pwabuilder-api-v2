@@ -39,7 +39,7 @@ RUN cd /home/site/wwwroot && \
     npm install && \
     npm run build
 
-
+RUN ["chmod", "+x", "/home/site/wwwroot/docker-startup-tasks.sh"]
 CMD /home/site/wwwroot/docker-startup-tasks.sh
 # ENTRYPOINT ["node", "/home/site/wwwroot/.openAPI/swagger-ui-dist.js"]
 
