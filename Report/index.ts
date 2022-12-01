@@ -1,9 +1,11 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { Browser } from 'puppeteer';
 import lighthouse from 'lighthouse';
+import { screenEmulationMetrics, userAgents } from 'lighthouse/lighthouse-core/config/constants.js'
 
 import { closeBrowser, getBrowser } from '../utils/loadPage';
 import { checkParams } from '../utils/checkParams';
+import { analyzeServiceWorker } from '../utils/analyzeServiceWorker';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -22,6 +24,7 @@ const httpTrigger: AzureFunction = async function (
   );
 
   const url = req.query.site as string;
+  const desktop = req.query.desktop == 'true'? true : undefined;
 
   const currentBrowser = await getBrowser(context);
 
@@ -29,7 +32,7 @@ const httpTrigger: AzureFunction = async function (
     // run lighthouse audit
 
     if (currentBrowser) {
-      const swInfo = await audit(currentBrowser, url);
+      const swInfo = await audit(currentBrowser, url, desktop);
 
       await closeBrowser(context, currentBrowser);
 
@@ -66,7 +69,7 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-const audit = async (browser: Browser, url: string) => {
+const audit = async (browser: Browser, url: string, desktop?: boolean) => {
 
   // Puppeteer with Lighthouse
   const config = {
@@ -78,13 +81,14 @@ const audit = async (browser: Browser, url: string) => {
     maxWaitForFcp: 15 * 1000,
     maxWaitForLoad: 30 * 1000,
 
-    disableDeviceEmulation: true,
-    disableStorageReset: true,
-    chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
+    // disableDeviceEmulation: true,
+    // disableStorageReset: true,
+    // chromeFlags: [/*'--disable-mobile-emulation',*/ '--disable-storage-reset'],
 
     skipAboutBlank: true,
-    formFactor: 'desktop', // 'mobile'|'desktop';
-    screenEmulation: {disabled: true},  
+    formFactor: desktop ? 'desktop' : 'mobile', // 'mobile'|'desktop';
+    screenEmulation: desktop ? screenEmulationMetrics.desktop : screenEmulationMetrics.mobile,  
+    emulatedUserAgent: desktop ? userAgents.desktop : userAgents.mobile,  
     throttlingMethod: 'provided', // 'devtools'|'simulate'|'provided';
     throttling: false,
     onlyAudits: ['service-worker', 'installable-manifest', 'is-on-https', 'maskable-icon', 'apple-touch-icon', 'splash-screen', 'themed-omnibox', 'viewport'],
@@ -96,7 +100,7 @@ const audit = async (browser: Browser, url: string) => {
 
   const audits = rawResult?.lhr?.audits;
   const artifacts = rawResult?.artifacts;
-
+  
   if (!audits) {
     return null;
   }
@@ -106,13 +110,14 @@ const audit = async (browser: Browser, url: string) => {
       isOnHttps: { score: audits['is-on-https']?.score? true : false },
       installableManifest: { 
         score: audits['installable-manifest']?.score? true : false,
-        details: { url: audits['installable-manifest']?.details?.debugData?.manifestUrl || '' }
+        details: { url: audits['installable-manifest']?.details?.debugData?.manifestUrl || null }
       },
       serviceWorker: {
         score: audits['service-worker']?.score? true : false,
         details: {
-          url: audits['service-worker']?.details?.scriptUrl || '',
-          scope: audits['service-worker']?.details?.scopeUrl || ''
+          url: audits['service-worker']?.details?.scriptUrl || null,
+          scope: audits['service-worker']?.details?.scopeUrl || null,
+          features: audits['service-worker']?.details?.scriptUrl? await analyzeServiceWorker(audits['service-worker'].details.scriptUrl) : null
         }
        },
       appleTouchIcon: { score: audits['apple-touch-icon']?.score? true : false },

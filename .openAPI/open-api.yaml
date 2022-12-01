@@ -301,6 +301,13 @@ paths:
         - Report
       parameters:
         - $ref: '#/components/parameters/site'
+        - name: desktop
+          schema: 
+            type: boolean
+            # default: ''
+          in: query
+          description: Use desktop form factor
+          required: false
       responses:
         '200':
           $ref: '#/components/responses/report/200'
