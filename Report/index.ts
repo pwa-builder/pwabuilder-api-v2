@@ -5,7 +5,7 @@ import { screenEmulationMetrics, userAgents } from 'lighthouse/lighthouse-core/c
 
 import { closeBrowser, getBrowser } from '../utils/loadPage';
 import { checkParams } from '../utils/checkParams';
-import { analyzeServiceWorker } from '../utils/analyzeServiceWorker';
+import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -32,14 +32,14 @@ const httpTrigger: AzureFunction = async function (
     // run lighthouse audit
 
     if (currentBrowser) {
-      const swInfo = await audit(currentBrowser, url, desktop);
+      const webAppReport = await audit(currentBrowser, url, desktop);
 
       await closeBrowser(context, currentBrowser);
 
       context.res = {
         status: 200,
         body: {
-          data: swInfo,
+          data: webAppReport,
         },
       };
 
@@ -105,19 +105,32 @@ const audit = async (browser: Browser, url: string, desktop?: boolean) => {
     return null;
   }
 
+  let swFeatures: AnalyzeServiceWorkerResponce | null = null;
+  if (audits['service-worker']?.details?.scriptUrl) {
+    try{
+      swFeatures = audits['service-worker']?.details?.scriptUrl? await analyzeServiceWorker(audits['service-worker'].details.scriptUrl) : null;
+    }
+    catch(error: any){
+      swFeatures = {
+        error: error
+      }
+    }
+  }
+   
+
   const report = {
     audits: {
       isOnHttps: { score: audits['is-on-https']?.score? true : false },
       installableManifest: { 
         score: audits['installable-manifest']?.score? true : false,
-        details: { url: audits['installable-manifest']?.details?.debugData?.manifestUrl || null }
+        details: { url: audits['installable-manifest']?.details?.debugData?.manifestUrl || undefined }
       },
       serviceWorker: {
         score: audits['service-worker']?.score? true : false,
         details: {
-          url: audits['service-worker']?.details?.scriptUrl || null,
-          scope: audits['service-worker']?.details?.scopeUrl || null,
-          features: audits['service-worker']?.details?.scriptUrl? await analyzeServiceWorker(audits['service-worker'].details.scriptUrl) : null
+          url: audits['service-worker']?.details?.scriptUrl || undefined,
+          scope: audits['service-worker']?.details?.scopeUrl || undefined,
+          features: swFeatures? {...swFeatures, raw: undefined} : undefined
         }
        },
       appleTouchIcon: { score: audits['apple-touch-icon']?.score? true : false },
@@ -128,7 +141,7 @@ const audit = async (browser: Browser, url: string, desktop?: boolean) => {
     },
     artifacts: {
       webAppManifest: artifacts?.WebAppManifest,
-      serviceWorker: artifacts?.ServiceWorker,
+      serviceWorker: {...artifacts?.ServiceWorker, raw: (swFeatures as { raw: string})?.raw || undefined },
       url: artifacts?.URL,
       linkElements: artifacts?.LinkElements?.map(element => { delete element?.node; return element }),
       metaElements: artifacts?.MetaElements?.map(element => { delete element?.node; return element })
