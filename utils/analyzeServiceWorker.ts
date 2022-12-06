@@ -18,6 +18,50 @@ const serviceWorkerRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]/m),
 ];
 
+async function findAndFetchImportScripts(code: string, origin?: string): Promise<string[]|unknown[]> {
+  // Use a regular expression to find all importScripts statements in the code
+  const importScripts = code.match(/importScripts\s*\((.+?)\)/g);
+
+  // If there are no import statements, return an empty array
+  if (!importScripts) {
+    return [];
+  }
+
+  // For each import statement, extract the URL of the imported script
+  let urls = importScripts.flatMap(statement => {
+    const matches = statement.match(/\(\s*(["'](.+)["'])\s*\)/);
+    if (matches && matches.length > 2) {
+      return matches[2];
+    }
+		return [];
+  }) as string[];
+
+	// Parse the URLs and remove any invalid ones
+	if (urls?.length){
+		urls = urls.flatMap((url) => {
+			if (/(https:)/.test(url)) {
+				try { return new URL(url).href } catch (error) {  }
+			}
+			else if (origin) {
+				try { return new URL(url, origin).href } catch (error) {  }
+			}
+
+			return [];
+		})
+
+	}
+
+  // Fetch the content of each script
+  const fetchPromises = urls.map(url => fetch(url));
+  const responses = await Promise.all(fetchPromises);
+
+  // Return the content of the scripts as an array of strings
+  const responcePromises = responses.map(response => response.text());
+	const contents = await Promise.all(responcePromises);
+
+	return contents;
+}
+
 export type AnalyzeServiceWorkerResponce = {
 	detectedBackgroundSync?: boolean,
 	detectedPeriodicBackgroundSync?: boolean,
@@ -33,7 +77,17 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 		const response = await fetch(serviceWorkerUrl);
 		content = response.status == 200 ? await response.text() : undefined;
 	}
-	if (content?.length && typeof content == 'string'){
+	if (content?.length && typeof content == 'string') {
+		try {
+			// expand main SW content with imported scripts
+			const scriptsContent = await findAndFetchImportScripts(content, serviceWorkerUrl? new URL(serviceWorkerUrl).origin: undefined);
+			scriptsContent.forEach(scriptContent => {
+				(content as string) += scriptContent;
+			});
+		} catch (error) {
+		}
+			
+
 		return {
 			detectedBackgroundSync: backgroundSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPeriodicBackgroundSync: periodicSyncRegexes.some((reg) => reg.test(content as string)),
@@ -47,29 +101,3 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 		error: `analyzeServiceWorker: no content of Service Worker or it's unreachable`
 	}
 }
-
-
-// function fetchImportedScripts(code: string): string[] {
-//   // Use a regular expression to find all importScripts statements in the code
-//   const importStatements = code.match(/importScripts\((.*?)\)/g);
-
-//   // If there are no import statements, return an empty array
-//   if (!importStatements) {
-//     return [];
-//   }
-
-//   // For each import statement, extract the URL of the imported script
-//   const urls = importStatements.map(statement => {
-//     const matches = statement.match(/'(.*?)'/);
-//     if (matches && matches.length > 1) {
-//       return matches[1];
-//     }
-//   });
-
-//   // Fetch the content of each script
-//   const promises = urls.map(url => fetch(url));
-//   const responses = await Promise.all(promises);
-
-//   // Return the content of the scripts as an array of strings
-//   return responses.map(response => response.text());
-// }
