@@ -1,11 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { Browser } from 'puppeteer';
 import lighthouse from 'lighthouse';
-import { screenEmulationMetrics, userAgents } from 'lighthouse/lighthouse-core/config/constants.js'
+import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/lighthouse-core/config/constants.js';
 
 import { closeBrowser, getBrowser } from '../utils/loadPage';
 import { checkParams } from '../utils/checkParams';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker';
+
+
+const userAgents = {
+  desktop: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42',
+  mobile: 'Mozilla/5.0 (Linux; Android 12; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36 Edg/108.0.1462.42'
+}
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -27,13 +33,14 @@ const httpTrigger: AzureFunction = async function (
   const desktop = req.query.desktop == 'true'? true : undefined;
 
   const currentBrowser = await getBrowser(context);
+  // context.log(await currentBrowser.userAgent());
 
   try {
     // run lighthouse audit
 
     if (currentBrowser) {
       const webAppReport = await audit(currentBrowser, url, desktop);
-
+      // context.log(await currentBrowser.userAgent());
       await closeBrowser(context, currentBrowser);
 
       context.res = {
@@ -69,17 +76,17 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-const audit = async (browser: Browser, url: string, desktop?: boolean) => {
+const audit = async (browser: any, url: string, desktop?: boolean) => {
 
   // Puppeteer with Lighthouse
   const config = {
-    port: new URL(browser.wsEndpoint()).port,
+    port: browser.port, //new URL(browser.wsEndpoint()).port,
     logLevel: 'info', // 'silent' | 'error' | 'info' | 'verbose'
     output: 'json',   // 'json' | 'html' | 'csv'
     locale: 'en-US',
 
-    maxWaitForFcp: 15 * 1000,
-    maxWaitForLoad: 30 * 1000,
+    maxWaitForFcp: 30 * 1000,
+    maxWaitForLoad: 60 * 1000,
 
     // disableDeviceEmulation: true,
     // disableStorageReset: true,

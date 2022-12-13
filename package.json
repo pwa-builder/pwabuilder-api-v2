@@ -2,7 +2,7 @@
   "name": "api-v2",
   "version": "13.0.0",
   "engines": {
-    "node": ">=16.*"
+    "node": ">=18.*"
   },
   "scripts": {
     "clean": "del-cli dist",
@@ -35,6 +35,7 @@
     "@azure/storage-blob": "^12.12.0",
     "@azure/storage-queue": "^12.11.0",
     "ajv": "^8.11.0",
+    "chrome-launcher": "^0.15.1",
     "durable-functions": "^2.1.0",
     "form-data": "^4.0.0",
     "formdata-node": "^5.0.0",
@@ -46,7 +47,9 @@
     "klaw": "^4.0.1",
     "lighthouse": "^9.6.8",
     "node-fetch": "2.6.7",
-    "puppeteer": "19.2.2",
+    "puppeteer": "19.4.0",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
     "pwabuilder-lib": "^2.1.12",
     "svgjs": "^2.6.2",
     "swagger-ui-dist": "^4.15.5",
