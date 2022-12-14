@@ -147,6 +147,19 @@ components:
                                   type: string
                                 scope:
                                   type: string
+                                features:
+                                  type: object
+                                  properties:
+                                    detectedBackgroundSync:
+                                      type: boolean
+                                    detectedPeriodicBackgroundSync:
+                                      type: boolean
+                                    detectedPushRegistration:
+                                      type: boolean
+                                    detectedSignsOfLogic:
+                                      type: boolean
+                                    error:
+                                      type: string
                         appleTouchIcon:
                           type: object
                           properties:
@@ -194,6 +207,8 @@ components:
                         serviceWorker:
                           type: object
                           properties:
+                            raw:
+                              type: string
                             registrations:
                               type: array
                               items:
@@ -301,6 +316,13 @@ paths:
         - Report
       parameters:
         - $ref: '#/components/parameters/site'
+        - name: desktop
+          schema: 
+            type: boolean
+            # default: ''
+          in: query
+          description: Use desktop form factor
+          required: false
       responses:
         '200':
           $ref: '#/components/responses/report/200'

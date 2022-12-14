@@ -2,7 +2,6 @@ import { Context } from '@azure/functions';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import FormData from 'form-data';
-import fetch, { Response } from 'node-fetch';
 import ExceptionOf, { ExceptionType } from '../utils/Exception';
 import {
   ImageGeneratorImageSpec,
@@ -32,7 +31,7 @@ export async function generateAllImages(
       method: 'POST',
       headers: form.getHeaders(),
       body: form.getBuffer(),
-      compress: false,
+      // compress: false,
     });
     context.log.info(generate.status, generate.statusText);
 

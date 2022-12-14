@@ -1,19 +1,19 @@
 import { Context } from '@azure/functions';
-import puppeteer from 'puppeteer';
+import { Page, HTTPResponse, Browser, launch } from 'puppeteer';
 import { LogMessages } from './logMessages';
 
 export interface LoadedPage {
-  sitePage: puppeteer.Page;
-  pageResponse: puppeteer.HTTPResponse;
-  browser: puppeteer.Browser;
+  sitePage: Page;
+  pageResponse: HTTPResponse;
+  browser: Browser;
 }
 
 export default async function loadPage(
   site: string,
   context: Context
 ): Promise<LoadedPage | undefined | Error> {
-  let sitePage: puppeteer.Page;
-  let pageResponse: puppeteer.HTTPResponse | null;
+  let sitePage: Page;
+  let pageResponse: HTTPResponse | null;
 
   const timeout = 120000;
 
@@ -44,10 +44,10 @@ export default async function loadPage(
   }
 }
 
-export async function getBrowser(context: Context): Promise<puppeteer.Browser> {
+export async function getBrowser(context: Context): Promise<Browser> {
   context.log.info(LogMessages.OPENING_BROWSER);
 
-  const browser = await puppeteer.launch({
+  const browser = await launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
@@ -56,7 +56,7 @@ export async function getBrowser(context: Context): Promise<puppeteer.Browser> {
 
 export async function closeBrowser(
   context: Context,
-  browser: puppeteer.Browser
+  browser: Browser
 ): Promise<void> {
   if (browser) {
     context.log.info(LogMessages.CLOSING_BROWSER);
