@@ -67,22 +67,26 @@ export type AnalyzeServiceWorkerResponce = {
 	detectedPeriodicBackgroundSync?: boolean,
 	detectedPushRegistration?: boolean,
 	detectedSignsOfLogic?: boolean,
-	raw?: string,
+	raw?: string[],
 	error?: string
 }
 
 export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWorkerContent?: string): Promise<AnalyzeServiceWorkerResponce> {
 	let content = serviceWorkerContent;
+	const separateContent: string[] = [];
 	if (serviceWorkerUrl) {
 		const response = await fetch(serviceWorkerUrl);
 		content = response.status == 200 ? await response.text() : undefined;
 	}
 	if (content?.length && typeof content == 'string') {
+		separateContent.push(content);
+
 		try {
 			// expand main SW content with imported scripts
 			const scriptsContent = await findAndFetchImportScripts(content, serviceWorkerUrl? new URL(serviceWorkerUrl).origin: undefined);
 			scriptsContent.forEach(scriptContent => {
 				(content as string) += scriptContent;
+				separateContent.push(scriptContent as string);
 			});
 		} catch (error) {
 		}
@@ -94,7 +98,7 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 			detectedPushRegistration: pushRegexes.some((reg) => reg.test(content as string)),
 			detectedSignsOfLogic: serviceWorkerRegexes.some((reg) => reg.test(content as string)),
 
-			raw: Buffer.from(content).length / 1000 < 2048 ? content: 'Service Worker is bigger than 2048Kb'
+			raw: Buffer.from(content).length / 1000 < 2048 ? separateContent: undefined
 		}
 	}
 	return {

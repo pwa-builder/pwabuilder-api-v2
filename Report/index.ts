@@ -1,17 +1,20 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { Browser } from 'puppeteer';
 import lighthouse from 'lighthouse';
 import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/lighthouse-core/config/constants.js';
 
-import { closeBrowser, getBrowser } from '../utils/loadPage';
+import { closeBrowser, getBrowser } from '../utils/browserLauncher';
 import { checkParams } from '../utils/checkParams';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker';
 
 
+// custom use agents
 const userAgents = {
   desktop: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42',
   mobile: 'Mozilla/5.0 (Linux; Android 12; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36 Edg/108.0.1462.42'
 }
+
+const MAX_WAIT_FOR_LOAD = 25; //seconds
+const MAX_WAIT_FOR_FCP = 10; //seconds
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -33,14 +36,13 @@ const httpTrigger: AzureFunction = async function (
   const desktop = req.query.desktop == 'true'? true : undefined;
 
   const currentBrowser = await getBrowser(context);
-  // context.log(await currentBrowser.userAgent());
 
   try {
     // run lighthouse audit
 
     if (currentBrowser) {
       const webAppReport = await audit(currentBrowser, url, desktop);
-      // context.log(await currentBrowser.userAgent());
+
       await closeBrowser(context, currentBrowser);
 
       context.res = {
@@ -85,8 +87,8 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     output: 'json',   // 'json' | 'html' | 'csv'
     locale: 'en-US',
 
-    maxWaitForFcp: 30 * 1000,
-    maxWaitForLoad: 60 * 1000,
+    maxWaitForFcp: MAX_WAIT_FOR_FCP * 1000,
+    maxWaitForLoad: MAX_WAIT_FOR_LOAD * 1000,
 
     // disableDeviceEmulation: true,
     // disableStorageReset: true,
@@ -148,7 +150,7 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     },
     artifacts: {
       webAppManifest: artifacts?.WebAppManifest,
-      serviceWorker: {...artifacts?.ServiceWorker, raw: (swFeatures as { raw: string})?.raw || undefined },
+      serviceWorker: {...artifacts?.ServiceWorker, raw: (swFeatures as { raw: string[]})?.raw || undefined },
       url: artifacts?.URL,
       linkElements: artifacts?.LinkElements?.map(element => { delete element?.node; return element }),
       metaElements: artifacts?.MetaElements?.map(element => { delete element?.node; return element })
