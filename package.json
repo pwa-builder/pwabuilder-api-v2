@@ -46,7 +46,6 @@
     "jszip": "^3.10.1",
     "klaw": "^4.0.1",
     "lighthouse": "^9.6.8",
-    "node-fetch": "2.6.7",
     "puppeteer": "19.4.0",
     "pwabuilder-lib": "^2.1.12",
     "svgjs": "^2.6.2",

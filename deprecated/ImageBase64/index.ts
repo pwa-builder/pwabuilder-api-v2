@@ -2,7 +2,6 @@ import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import * as Jimp from 'jimp';
 
 import JSZip from 'jszip';
-import fetch from 'node-fetch';
 import {
   generateAllImages,
   getBase64Images,
