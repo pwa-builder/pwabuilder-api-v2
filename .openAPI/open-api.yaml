@@ -1,269 +1,85 @@
 openapi: 3.0.3
 info:
   title: PWA Builder API
-  description: Azure functions based API for PWABuilder, Tools and Extensions. [Repository](https://github.com/pwa-builder/pwabuilder-api-v2).
-  version: '2.0'
+  description: Azure functions based API for PWABuilder, Tools and Extensions.
+    [Repository](https://github.com/pwa-builder/pwabuilder-api-v2).
+  version: 2.1.0
 servers:
   - url: /api
-
-components:
-  schemas: 
-    manifest:
-      $ref: 'manifest.yaml'
-  parameters:
-    site:
-      name: site
-      schema: 
-        type: string
-        default: https://webboard.app
-      in: query
-      description: Web application URL
-      required: true
-  responses:
-    manifestGrab:
-      '200':
-        description: OK
-        content: 
-          application/json:
-            schema: 
-              type: object
-              properties: 
-                content:
-                  type: object
-                  properties: 
-                    json:
-                      $ref: '#/components/schemas/manifest'
-                    url:
-                      type: string
-                data: 
-                  type: object
-                  properties:
-                    recommended:
-                      type: object
-                      properties:
-                        background_color:
-                          type: string
-                        categories:
-                          type: string
-                        description:
-                          type: string
-                        iarc_rating:
-                          type: string
-                        maskable_icon:
-                          type: string
-                        orientation:
-                          type: string
-                        prefer_related_applications:
-                          type: string
-                        related_applications:
-                          type: string
-                        screenshots:
-                          type: string
-                        theme_color:
-                          type: string
-                    required:
-                      type: object
-                      properties:
-                        short_name:
-                          type: string
-                        name:
-                          type: string
-                        display:
-                          type: string
-                        start_url:
-                          type: string
-                        icons:
-                          type: string
-    manifestGen:
-      '200':
-        description: OK
-        content: 
-          application/json:
-            schema: 
-              type: object
-              properties: 
-                content:
-                  type: object
-                  $ref: 'manifest.yaml'
-                format:
-                  type: string
-                generatedUrl: 
-                  type: string
-    security:
-      '200':
-        description: OK
-        content: 
-          application/json:
-            schema: 
-              type: object
-              properties: 
-                data:
-                  type: object
-                  properties:
-                    isHTTPS:
-                      type: boolean
-                    validProtocol:
-                      type: boolean
-                    valid:
-                      type: boolean
-    report:
-      '200':
-        description: OK
-        content: 
-          application/json:
-            schema: 
-              type: object
-              properties: 
-                data:
-                  type: object
-                  properties:
-                    audits:
-                      type: object
-                      properties:
-                        isOnHttps:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                        installableManifest:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                            details: 
-                              type: object
-                              properties:
-                                url:
-                                  type: string
-                        serviceWorker:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                            details: 
-                              type: object
-                              properties:
-                                url:
-                                  type: string
-                                scope:
-                                  type: string
-                                features:
-                                  type: object
-                                  properties:
-                                    detectedBackgroundSync:
-                                      type: boolean
-                                    detectedPeriodicBackgroundSync:
-                                      type: boolean
-                                    detectedPushRegistration:
-                                      type: boolean
-                                    detectedSignsOfLogic:
-                                      type: boolean
-                                    error:
-                                      type: string
-                        appleTouchIcon:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                        maskableIcon:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                        splashScreen:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                        themedOmnibox:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                        viewport:
-                          type: object
-                          properties:
-                            score:
-                              type: boolean
-                    artifacts:
-                      type: object
-                      properties:
-                        webAppManifest:
-                          type: object
-                          properties:
-                            raw:
-                              type: string
-                            url:
-                              type: string
-                            value:
-                              type: object
-                        url: 
-                          type: object
-                          properties:
-                            finalUrl:
-                              type: string
-                            requestedUrl:
-                              type: string
-                        serviceWorker:
-                          type: object
-                          properties:
-                            raw:
-                              type: string
-                            registrations:
-                              type: array
-                              items:
-                                type: object
-                            versions:
-                              type: array
-                              items:
-                                type: object
-                        linkElements:
-                              type: array
-                              items:
-                                type: object
-                        metaElements:
-                              type: array
-                              items:
-                                type: object
-
-
-
-paths:                       
+paths:
   /FetchWebManifest:
-    # post:
-    #   summary: Manifest file
-    #   description: 'Detect and grab manifest json and url from webapp'
-    #   tags:
-    #     - Generate
-    #   parameters:
-    #     - $ref: '#/components/parameters/site'
-    #   responses:
-    #     '200':
-    #       $ref: '#/components/responses/manifestGrab/200'
     get:
       summary: Manifest file
-      description: 'Detect and grab manifest json and url from webapp'
+      description: Detect and grab manifest json and url from webapp
       tags:
         - Generate
       parameters:
-        - $ref: '#/components/parameters/site'
+        - $ref: components.yaml#/parameters/site
       responses:
-        '200':
-          $ref: '#/components/responses/manifestGrab/200'
-    
+        "200":
+          $ref: components.yaml#/responses/manifestGrab/200
   /GenerateManifest:
     get:
       deprecated: true
       summary: Generate manifest file
-      description: 'Detect and parse or generate manifest json from webapp'
+      description: Detect and parse or generate manifest json from webapp
       tags:
         - Generate
       parameters:
-        - $ref: '#/components/parameters/site'
+        - $ref: components.yaml#/parameters/site
       responses:
-        '200':
-          $ref: '#/components/responses/manifestGen/200'
-  
+        "200":
+          $ref: components.yaml#/responses/manifestGen/200
+  /Hint:
+    get:
+      summary: Hint report
+      description: Generate PWA-related Hint report for webapp
+      tags:
+        - Report
+      parameters:
+        - $ref: components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+  /Offline:
+    get:
+      deprecated: true
+      summary: Check offline
+      description: Validate webapp for offline support
+      tags:
+        - Validate
+      parameters:
+        - $ref: components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      offline:
+                        type: string
+  /Report:
+    get:
+      summary: Lighthouse report
+      description: Generate PWA-related Lighthouse report for webapp
+      tags:
+        - Report
+      parameters:
+        - $ref: components.yaml#/parameters/site
+        - name: desktop
+          schema:
+            type: boolean
+          in: query
+          description: Use desktop form factor
+          required: false
+      responses:
+        "200":
+          $ref: components.yaml#/responses/report/200
   /Security:
     get:
       summary: Check webapp security
@@ -271,11 +87,50 @@ paths:
       tags:
         - Validate
       parameters:
-        - $ref: '#/components/parameters/site'
+        - $ref: components.yaml#/parameters/site
       responses:
-        '200':
-          $ref: '#/components/responses/security/200'
-
+        "200":
+          $ref: components.yaml#/responses/security/200
+  /Site:
+    get:
+      deprecated: true
+      summary: Custom report
+      description: Custom manifest validation
+      tags:
+        - Report
+      parameters:
+        - $ref: components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    $ref: manifest.yaml
+                  format:
+                    type: string
+                  generatedUrl:
+                    type: string
+                  id:
+                    type: number
+                  default:
+                    type: object
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                  suggestions:
+                    type: array
+                    items:
+                      type: object
+                  warnings:
+                    type: array
+                    items:
+                      type: object
   /WebManifest:
     post:
       deprecated: true
@@ -294,111 +149,17 @@ paths:
         description: Optional body params
         content:
           application/json:
-            schema: 
+            schema:
               type: object
-              properties: 
+              properties:
                 manifest:
                   type: object
                   default: null
                 maniurl:
                   type: string
                   default: null
-
       responses:
-        '200':
-          $ref: '#/components/responses/manifestGrab/200'
-
-  /Report:
-    get:
-      summary: Lighthouse report
-      description: Generate PWA-related Lighthouse report for webapp
-      tags:
-        - Report
-      parameters:
-        - $ref: '#/components/parameters/site'
-        - name: desktop
-          schema: 
-            type: boolean
-            # default: ''
-          in: query
-          description: Use desktop form factor
-          required: false
-      responses:
-        '200':
-          $ref: '#/components/responses/report/200'
-
-  /Hint:
-    get:
-      summary: Hint report
-      description: Generate PWA-related Hint report for webapp
-      tags:
-        - Report
-      parameters:
-        - $ref: '#/components/parameters/site'
-      responses:
-        '200':
-          description: OK
-          # $ref: '#/components/responses/security/200'
-  
-  /Offline:
-    get:
-      deprecated: true
-      summary: Check offline
-      description: Validate webapp for offline support
-      tags:
-        - Validate
-      parameters:
-        - $ref: '#/components/parameters/site'
-      responses:
-        '200':
-          description: 'OK'
-          content: 
-            application/json:
-              schema: 
-                type: object
-                properties: 
-                  data:
-                    type: object
-                    properties:
-                      offline:
-                        type: string
-  /Site:
-    get:
-      deprecated: true
-      summary: Custom report
-      description: Custom manifest validation
-      tags:
-        - Report
-      parameters:
-        - $ref: '#/components/parameters/site'
-      responses:
-        '200':
-          description: 'OK'
-          content: 
-            application/json:
-              schema: 
-                type: object
-                properties: 
-                  content:
-                    type: object
-                    $ref: 'manifest.yaml'
-                  format:
-                    type: string
-                  generatedUrl: 
-                    type: string
-                  id: 
-                    type: number
-                  default:
-                    type: object
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                  suggestions:
-                    type: array
-                    items:
-                      type: object
-                  warnings:
-                    type: array
-                    items:
-                      type: object
+        "200":
+          $ref: components.yaml#/responses/manifestGrab/200
+components: {}
+tags: []

@@ -161,3 +161,25 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /Report:
+ *    get:
+ *      summary: Lighthouse report
+ *      description: Generate PWA-related Lighthouse report for webapp
+ *      tags:
+ *        - Report
+ *      parameters:
+ *        - $ref: components.yaml#/parameters/site
+ *        - name: desktop
+ *          schema: 
+ *            type: boolean
+ *            # default: ''
+ *          in: query
+ *          description: Use desktop form factor
+ *          required: false
+ *      responses:
+ *        '200':
+ *          $ref: components.yaml#/responses/report/200
+ */​

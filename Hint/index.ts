@@ -110,3 +110,18 @@ const hint = async (url: string) => {
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /Hint:
+ *    get:
+ *      summary: Hint report
+ *      description: Generate PWA-related Hint report for webapp
+ *      tags:
+ *        - Report
+ *      parameters:
+ *        - $ref: components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          description: OK
+ */​

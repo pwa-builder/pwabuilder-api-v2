@@ -156,3 +156,18 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /Security:
+ *    get:
+ *      summary: Check webapp security
+ *      description: Validate webapp security protocols
+ *      tags:
+ *        - Validate
+ *      parameters:
+ *        - $ref: components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          $ref: components.yaml#/responses/security/200
+ */

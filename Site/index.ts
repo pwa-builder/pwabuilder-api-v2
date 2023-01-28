@@ -118,3 +118,47 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /Site:
+ *    get:
+ *      deprecated: true
+ *      summary: Custom report
+ *      description: Custom manifest validation
+ *      tags:
+ *        - Report
+ *      parameters:
+ *        - $ref: components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          description: 'OK'
+ *          content: 
+ *            application/json:
+ *              schema: 
+ *                type: object
+ *                properties: 
+ *                  content:
+ *                    type: object
+ *                    $ref: 'manifest.yaml'
+ *                  format:
+ *                    type: string
+ *                  generatedUrl: 
+ *                    type: string
+ *                  id: 
+ *                    type: number
+ *                  default:
+ *                    type: object
+ *                  errors:
+ *                    type: array
+ *                    items:
+ *                      type: object
+ *                  suggestions:
+ *                    type: array
+ *                    items:
+ *                      type: object
+ *                  warnings:
+ *                    type: array
+ *                    items:
+ *                      type: object
+ */​

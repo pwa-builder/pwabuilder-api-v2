@@ -49,7 +49,9 @@
     "puppeteer": "19.4.0",
     "pwabuilder-lib": "^2.1.12",
     "svgjs": "^2.6.2",
+    "swagger-jsdoc": "^7.0.0-rc.6",
     "swagger-ui-dist": "^4.15.5",
-    "utf8": "^3.0.0"
+    "utf8": "^3.0.0",
+    "yaml": "^2.2.1"
   }
 }

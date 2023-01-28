@@ -86,3 +86,29 @@ const audit = async (browser: Browser, url: string): Promise<OfflineTestData | n
 }
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /Offline:
+ *    get:
+ *      deprecated: true
+ *      summary: Check offline
+ *      description: Validate webapp for offline support
+ *      tags:
+ *        - Validate
+ *      parameters:
+ *        - $ref: components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          description: 'OK'
+ *          content: 
+ *            application/json:
+ *              schema: 
+ *                type: object
+ *                properties: 
+ *                  data:
+ *                    type: object
+ *                    properties:
+ *                      offline:
+ *                        type: string
+ */​

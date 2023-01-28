@@ -1,0 +1,16 @@
+{
+  "name": "swagger-jsdoc-cli",
+  "description": "cli for swagger-jsdoc",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "bin": "cli.js",
+  "scripts": {
+    "run": "node ./cli.js  -config ./config.js"},
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {
+    "swagger-jsdoc": "^7.0.0-rc.6"
+  }
+}
