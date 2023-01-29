@@ -8,14 +8,14 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
 
-  const checkResult = checkParams(req, ['site']);
+  const checkResult = checkParams(req, ['url']);
   if (checkResult.status !== 200){
     context.res = checkResult;
     context.log.error(`AuditServiceWorker: ${checkResult.body?.error.message}`);
     return;
   }
 
-  const url = req?.query?.site;
+  const url = req?.query?.url;
 
   context.log(
     `AuditServiceWorker: function is processing a request for url: ${url}`
@@ -54,3 +54,24 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /AuditServiceWorker:
+ *    get:
+ *      summary: Audit service worker
+ *      description: Generate features audit report for service worker by url
+ *      tags:
+ *        - Report
+ *      parameters:
+ *         - name: url
+ *           schema: 
+ *             type: string
+ *             default: https://webboard.app/sw.js
+ *           in: query
+ *           description: Service worker file URL
+ *           required: true
+ *      responses:
+ *        '200':
+ *          description: OK
+ */

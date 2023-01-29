@@ -85,9 +85,24 @@ const httpTrigger: AzureFunction = async function (
     };
 
     context.log.error(
-      `FindServiceWorker function has ERRORED while processing for site: ${site} with this error: ${err.message}`
+      `FindServiceWorker: function has ERRORED while processing for site: ${site} with this error: ${err.message}`
     );
   }
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /FindServiceWorker:
+ *    get:
+ *      summary: Fast service worker detection
+ *      description: Try to detect service worker and return it url and raw content
+ *      tags:
+ *        - Generate
+ *      parameters:
+ *        - $ref: components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          description: OK
+ */

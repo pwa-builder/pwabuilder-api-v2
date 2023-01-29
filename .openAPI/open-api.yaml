@@ -7,6 +7,23 @@ info:
 servers:
   - url: /api
 paths:
+  /AuditServiceWorker:
+    get:
+      summary: Audit service worker
+      description: Generate features audit report for service worker by url
+      tags:
+        - Report
+      parameters:
+        - name: url
+          schema:
+            type: string
+            default: https://webboard.app/sw.js
+          in: query
+          description: Service worker file URL
+          required: true
+      responses:
+        "200":
+          description: OK
   /FetchWebManifest:
     get:
       summary: Manifest file
@@ -18,6 +35,28 @@ paths:
       responses:
         "200":
           $ref: components.yaml#/responses/manifestGrab/200
+  /FindServiceWorker:
+    get:
+      summary: Fast service worker detection
+      description: Try to detect service worker and return it url and raw content
+      tags:
+        - Generate
+      parameters:
+        - $ref: components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+  /FindWebManifest:
+    get:
+      summary: Fast web manifest detection
+      description: Try to detect web manifest and return it url, raw and json content
+      tags:
+        - Generate
+      parameters:
+        - $ref: components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
   /GenerateManifest:
     get:
       deprecated: true

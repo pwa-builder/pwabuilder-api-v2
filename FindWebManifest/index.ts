@@ -1,4 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { JSDOM } from 'jsdom';
 import { checkParams } from '../utils/checkParams';
 
 
@@ -25,27 +26,40 @@ const httpTrigger: AzureFunction = async function (
     const response = await fetch(site);
     const html = await response.text();
 
-    const document = new DOMParser().parseFromString(html, "text/html");
+    const document = new JSDOM(html).window.document;
+    
 
     const element = document.querySelector('link[rel="manifest"]');
-    const link = element? element.getAttribute("href") : null;
-    let manifest: unknown | null = null;
+    let link = element? element.getAttribute("href") : null;
+    let json: unknown | null = null;
+    let raw: string | null = null;
+
+    if (link) {
+      if (link.startsWith('/')) {
+        link = site + link;
+      }
+      else if (!link.startsWith('http')) {
+        link = site + '/' + link;
+      }
+    }
     
     if (element && link) {
       try {
         const response = await fetch(link);
-        manifest = await response.json();
+        raw = await response.text();
+        json = JSON.parse(raw);
       } catch (error) {
         
       }
     }
 
-    if (manifest || link) {
+    if (json || link || raw) {
       context.res = {
         status: 200,
         body: {
           content: {
-            json: manifest,
+            json,
+            raw,
             url: link,
           },
         },
@@ -83,3 +97,18 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /FindWebManifest:
+ *    get:
+ *      summary: Fast web manifest detection
+ *      description: Try to detect web manifest and return it url, raw and json content
+ *      tags:
+ *        - Generate
+ *      parameters:
+ *        - $ref: components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          description: OK
+ */
