@@ -29,9 +29,11 @@ const httpTrigger: AzureFunction = async function (
       status: 200,
       body: {
         content: {
-          features: swFeatures,
           score: !swFeatures.error ? true : false,
-          url: url,
+          details: {
+            url: url,
+            features: swFeatures,
+          }
         },
       },
     };
@@ -83,10 +85,13 @@ export default httpTrigger;
  *                       content:
  *                           type: object
  *                           properties:
- *                             url:
- *                               type: string
- *                             scope:
+ *                             score:
  *                               type: boolean
- *                             features: 
- *                               $ref: components.yaml#/properties/sw_features
+ *                             details:
+ *                               type: object
+ *                               properties:
+ *                                  url:
+ *                                    type: string
+ *                                  features: 
+ *                                    $ref: components.yaml#/properties/sw_features
  */
