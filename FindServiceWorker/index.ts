@@ -105,4 +105,16 @@ export default httpTrigger;
  *      responses:
  *        '200':
  *          description: OK
+ *          content: 
+ *             application/json:
+ *               schema: 
+ *                 type: object
+ *                 properties:
+ *                       content:
+ *                           type: object
+ *                           properties:
+ *                             url:
+ *                               type: string
+ *                             raw:
+ *                               type: string
  */

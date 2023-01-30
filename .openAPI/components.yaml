@@ -10,6 +10,22 @@ parameters:
     in: query
     description: Web application URL
     required: true
+properties:
+  sw_features:
+    type: object
+    properties:
+      detectedBackgroundSync:
+        type: boolean
+      detectedPeriodicBackgroundSync:
+        type: boolean
+      detectedPushRegistration:
+        type: boolean
+      detectedSignsOfLogic:
+        type: boolean
+      raw:
+        type: string
+      error:
+        type: string
 responses:
   manifestGrab:
     '200':
@@ -137,20 +153,9 @@ responses:
                               url:
                                 type: string
                               scope:
-                                type: string
-                              features:
-                                type: object
-                                properties:
-                                  detectedBackgroundSync:
-                                    type: boolean
-                                  detectedPeriodicBackgroundSync:
-                                    type: boolean
-                                  detectedPushRegistration:
-                                    type: boolean
-                                  detectedSignsOfLogic:
-                                    type: boolean
-                                  error:
-                                    type: string
+                                type: boolean
+                              features: 
+                                $ref: '#/properties/sw_features'
                       appleTouchIcon:
                         type: object
                         properties:

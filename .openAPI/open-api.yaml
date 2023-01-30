@@ -24,8 +24,23 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      scope:
+                        type: boolean
+                      features:
+                        $ref: components.yaml#/properties/sw_features
   /FetchWebManifest:
     get:
+      deprecated: true
       summary: Manifest file
       description: Detect and grab manifest json and url from webapp
       tags:
@@ -46,6 +61,18 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      raw:
+                        type: string
   /FindWebManifest:
     get:
       summary: Fast web manifest detection
@@ -57,6 +84,18 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      json:
+                        $ref: components.yaml#/schemas/manifest
   /GenerateManifest:
     get:
       deprecated: true
@@ -121,6 +160,7 @@ paths:
           $ref: components.yaml#/responses/report/200
   /Security:
     get:
+      deprecated: true
       summary: Check webapp security
       description: Validate webapp security protocols
       tags:

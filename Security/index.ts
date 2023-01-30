@@ -161,6 +161,7 @@ export default httpTrigger;
  * @openapi
  *  /Security:
  *    get:
+ *      deprecated: true
  *      summary: Check webapp security
  *      description: Validate webapp security protocols
  *      tags:

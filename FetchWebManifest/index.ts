@@ -89,6 +89,7 @@ export default httpTrigger;
  * @openapi                     
  *   /FetchWebManifest:
  *     get:
+ *       deprecated: true
  *       summary: Manifest file
  *       description: 'Detect and grab manifest json and url from webapp'
  *       tags:
