@@ -84,3 +84,19 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi                     
+ *   /FetchWebManifest:
+ *     get:
+ *       deprecated: true
+ *       summary: Manifest file
+ *       description: 'Detect and grab manifest json and url from webapp'
+ *       tags:
+ *         - Generate
+ *       parameters:
+ *         - $ref: 'components.yaml#/parameters/site'
+ *       responses:
+ *         '200':
+ *           $ref: 'components.yaml#/responses/manifestGrab/200'
+ */

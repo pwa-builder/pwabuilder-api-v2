@@ -1,0 +1,16 @@
+{
+  "definition": {
+    "openapi": "3.0.3",
+    "info": {
+      "title": "PWA Builder API",
+      "description": "Azure functions based API for PWABuilder, Tools and Extensions. [Repository](https://github.com/pwa-builder/pwabuilder-api-v2).",
+      "version": "2.1.0"
+    },
+    "servers": [
+      {
+        "url": "/api"
+      }
+    ]
+  },
+	"apis": ["./[A-Z]*/index.ts"]
+}

@@ -62,3 +62,21 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *   /GenerateManifest:
+ *     get:
+ *       deprecated: true
+ *       summary: Generate manifest file
+ *       description: 'Detect and parse or generate manifest json from webapp'
+ *       tags:
+ *         - Generate
+ *       parameters:
+ *         - $ref: 'components.yaml#/parameters/site'
+ *       responses:
+ *         '200':
+ *           $ref: 'components.yaml#/responses/manifestGen/200'
+ */​
+
+ 

@@ -86,3 +86,37 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /WebManifest:
+ *    post:
+ *      deprecated: true
+ *      summary: Check webmanifest
+ *      description: Validate webapp manifest
+ *      tags:
+ *        - Validate
+ *      parameters:
+ *        - name: site
+ *          schema:
+ *            type: string
+ *            default: https://webboard.app
+ *          in: query
+ *          description: Web application URL
+ *      requestBody:
+ *        description: Optional body params
+ *        content:
+ *          application/json:
+ *            schema: 
+ *              type: object
+ *              properties: 
+ *                manifest:
+ *                  type: object
+ *                  default: null
+ *                maniurl:
+ *                  type: string
+ *                  default: null
+ *      responses:
+ *        '200':
+ *          $ref: components.yaml#/responses/manifestGrab/200
+ */​
