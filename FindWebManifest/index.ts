@@ -35,11 +35,12 @@ const httpTrigger: AzureFunction = async function (
     let raw: string | null = null;
 
     if (link) {
+      var base = site.endsWith('/') ? site.slice(0, -1) : site;
       if (link.startsWith('/')) {
-        link = site + link;
+        link = base + link;
       }
       else if (!link.startsWith('http')) {
-        link = site + '/' + link;
+        link = base + '/' + link;
       }
     }
     
