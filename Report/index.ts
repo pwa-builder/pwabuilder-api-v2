@@ -5,6 +5,11 @@ import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/lighthouse-co
 import { closeBrowser, getBrowser } from '../utils/browserLauncher';
 import { checkParams } from '../utils/checkParams';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker';
+import { LaunchedChrome } from 'chrome-launcher';
+
+import childProcess from 'child_process';
+import util from 'util';
+const exec = util.promisify(childProcess.exec);
 
 
 // custom use agents
@@ -34,11 +39,12 @@ const httpTrigger: AzureFunction = async function (
 
   const url = req.query.site as string;
   const desktop = req.query.desktop == 'true'? true : undefined;
-
-  const currentBrowser = await getBrowser(context);
+  let currentBrowser: LaunchedChrome | undefined = undefined;
 
   try {
     // run lighthouse audit
+
+    currentBrowser = await getBrowser(context);
 
     if (currentBrowser) {
       const webAppReport = await audit(currentBrowser, url, desktop);
@@ -62,7 +68,7 @@ const httpTrigger: AzureFunction = async function (
     context.res = {
       status: 500,
       body: {
-        error: error,
+        error: error?.toString?.() || error,
       },
     };
 
@@ -93,7 +99,7 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     // disableDeviceEmulation: true,
     // disableStorageReset: true,
     // chromeFlags: [/*'--disable-mobile-emulation',*/ '--disable-storage-reset'],
-
+    
     skipAboutBlank: true,
     formFactor: desktop ? 'desktop' : 'mobile', // 'mobile'|'desktop';
     screenEmulation: desktop ? screenEmulationMetrics.desktop : screenEmulationMetrics.mobile,  
@@ -104,11 +110,63 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     // onlyCategories: ['pwa'] ,
     // skipAudits: ['pwa-cross-browser', 'pwa-each-page-has-url', 'pwa-page-transitions', 'full-page-screenshot', 'network-requests', 'errors-in-console', 'diagnostics'],
   }
-  
-  const rawResult = await lighthouse(url, config);
+  const onlyAudits = `--only-audits=${[
+    'service-worker',
+    'installable-manifest',
+    'is-on-https',
+    'maskable-icon',
+    'apple-touch-icon',
+    'splash-screen',
+    'themed-omnibox', 
+    'viewport'
+  ].join(',')}`;
+  const chromeFlags = `--chrome-flags=${[
+    '--headless',
+   	'--no-sandbox',
+	 	'--enable-automation',
+    '--disable-background-networking',
+    '--enable-features=NetworkServiceInProcess2',
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-breakpad',
+    '--disable-client-side-phishing-detection',
+    '--disable-component-extensions-with-background-pages',
+    '--disable-component-update',
+    '--disable-default-apps',
+    '--disable-dev-shm-usage',
+    '--disable-domain-reliability',
+    '--disable-extensions',
+    '--disable-features=Translate,BackForwardCache,AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync',
+    '--disable-hang-monitor',
+    '--disable-ipc-flooding-protection',
+    '--disable-popup-blocking',
+    '--disable-prompt-on-repost',
+    '--disable-renderer-backgrounding',
+    '--disable-sync',
+    '--force-color-profile=srgb',
+    '--metrics-recording-only',
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--mute-audio',
+    '--password-store=basic',
+    '--use-mock-keychain',
+    '--enable-blink-features=IdleDetection',
+    '--export-tagged-pdf',
+    '--disabe-gpu',
+  ].join(' ')}`;
+  const throttling = '--throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0'
 
-  const audits = rawResult?.lhr?.audits;
-  const artifacts = rawResult?.artifacts;
+  let { stdout, stderr } = await exec(`lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot`);
+  const rawResult = JSON.parse(stdout.toString());
+
+  const audits = rawResult?.audits;
+  const artifacts: {
+    WebAppManifest?: {
+      raw?: string,
+      url?: string,
+      json?: null
+    }
+  } = {};
   
   if (!audits) {
     return null;
@@ -124,6 +182,20 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
         error: error
       }
     }
+  }
+ 
+  if (audits['installable-manifest']?.details?.debugData?.manifestUrl) {
+    artifacts.WebAppManifest = {
+      url: audits['installable-manifest']?.details?.debugData?.manifestUrl,
+    };
+
+    try{
+      artifacts.WebAppManifest.raw = await (await fetch(artifacts.WebAppManifest.url!)).text();
+      artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
+    } catch{}
+  }
+  else {
+    delete artifacts.WebAppManifest;
   }
    
 
@@ -150,10 +222,7 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     },
     artifacts: {
       webAppManifest: artifacts?.WebAppManifest,
-      serviceWorker: {...artifacts?.ServiceWorker, raw: (swFeatures as { raw: string[]})?.raw || undefined },
-      url: artifacts?.URL,
-      linkElements: artifacts?.LinkElements?.map(element => { delete element?.node; return element }),
-      metaElements: artifacts?.MetaElements?.map(element => { delete element?.node; return element })
+      serviceWorker: {url: audits['service-worker']?.details?.scriptUrl, raw: (swFeatures as { raw: string[]})?.raw || undefined },
     }
   }
 

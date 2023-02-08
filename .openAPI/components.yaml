@@ -191,33 +191,12 @@ responses:
                             type: string
                           url:
                             type: string
-                          value:
+                          json:
                             type: object
-                      url: 
-                        type: object
-                        properties:
-                          finalUrl:
-                            type: string
-                          requestedUrl:
-                            type: string
                       serviceWorker:
                         type: object
                         properties:
                           raw:
                             type: string
-                          registrations:
-                            type: array
-                            items:
-                              type: object
-                          versions:
-                            type: array
-                            items:
-                              type: object
-                      linkElements:
-                            type: array
-                            items:
-                              type: object
-                      metaElements:
-                            type: array
-                            items:
-                              type: object
+                          url:
+                            type: string

@@ -78,7 +78,7 @@ const httpTrigger: AzureFunction = async function (
         },
       };
 
-      context.log.error(
+      context.log.warn(
         `FindWebManifest: function has ERRORED while processing for site: ${site} with this error: No manifest found`
       );
     }
