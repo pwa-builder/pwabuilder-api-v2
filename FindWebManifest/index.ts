@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { JSDOM } from 'jsdom';
+// import { JSDOM } from 'jsdom';
 import { checkParams } from '../utils/checkParams';
 
 
@@ -25,12 +25,15 @@ const httpTrigger: AzureFunction = async function (
 
     const response = await fetch(site);
     const html = await response.text();
+    
+    const match = html.match(/<link\s+rel="manifest"\s+href="(.*?\.json)".*\/?>/);
+    let link = match? match[1] : null;
 
-    const document = new JSDOM(html).window.document;
+    // const document = new JSDOM(html).window.document;
     
 
-    const element = document.querySelector('link[rel="manifest"]');
-    let link = element? element.getAttribute("href") : null;
+    // const element = document.querySelector('link[rel="manifest"]');
+    // let link = element? element.getAttribute("href") : null;
     let json: unknown | null = null;
     let raw: string | null = null;
 
@@ -44,7 +47,7 @@ const httpTrigger: AzureFunction = async function (
       }
     }
     
-    if (element && link) {
+    if (link) {
       try {
         const response = await fetch(link);
         raw = await response.text();
@@ -78,7 +81,7 @@ const httpTrigger: AzureFunction = async function (
         },
       };
 
-      context.log.error(
+      context.log.warn(
         `FindWebManifest: function has ERRORED while processing for site: ${site} with this error: No manifest found`
       );
     }

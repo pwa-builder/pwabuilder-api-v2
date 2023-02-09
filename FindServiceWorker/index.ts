@@ -71,7 +71,7 @@ const httpTrigger: AzureFunction = async function (
         },
       };
 
-      context.log.error(
+      context.log.warn(
         `FindServiceWorker: function has ERRORED while processing for site: ${site} with this error: No service worker found`
       );
     }

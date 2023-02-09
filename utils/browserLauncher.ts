@@ -8,7 +8,8 @@ import { launch, LaunchedChrome } from 'chrome-launcher';
 export async function getBrowser(context: Context): Promise<LaunchedChrome> {
   context.log.info(LogMessages.OPENING_BROWSER);
 
-  return await launch({chromeFlags: ['--headless',
+  return await launch({chromeFlags: [
+    '--headless',
    	'--no-sandbox',
 	 	'--enable-automation',
     '--disable-background-networking',
@@ -45,7 +46,7 @@ export async function getBrowser(context: Context): Promise<LaunchedChrome> {
 
 export async function closeBrowser(
   context: Context,
-  browser: LaunchedChrome
+  browser?: LaunchedChrome
 ): Promise<void> {
   if (browser) {
     context.log.info(LogMessages.CLOSING_BROWSER);
