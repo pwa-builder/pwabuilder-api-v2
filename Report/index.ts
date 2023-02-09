@@ -48,6 +48,8 @@ const httpTrigger: AzureFunction = async function (
 
     if (currentBrowser) {
       const webAppReport = await audit(currentBrowser, url, desktop);
+      if (!webAppReport)
+        throw new Error('Lighthouse audit failed');
 
       await closeBrowser(context, currentBrowser);
 
@@ -156,47 +158,69 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
   ].join(' ')}`;
   const throttling = '--throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0'
 
-  let { stdout, stderr } = await exec(`lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot`);
-  const rawResult = JSON.parse(stdout.toString());
+  let { stdout, stderr } = await exec(`lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot --disable-storage-reset`);
+  let rawResult: { audits?: unknown} = {};
 
-  const audits = rawResult?.audits;
+  if (stdout)
+    try {
+      rawResult = JSON.parse(stdout);
+    } catch (error) {
+      return null;
+    }
+
+  const audits = rawResult?.audits || null;
+  if (!audits)
+    return null;
+
   const artifacts: {
     WebAppManifest?: {
       raw?: string,
       url?: string,
       json?: null
+    },
+    ServiceWorker?: {
+      raw?: string[],
+      url?: string,
     }
   } = {};
-  
-  if (!audits) {
-    return null;
-  }
-
   let swFeatures: AnalyzeServiceWorkerResponce | null = null;
-  if (audits['service-worker']?.details?.scriptUrl) {
-    try{
-      swFeatures = audits['service-worker']?.details?.scriptUrl? await analyzeServiceWorker(audits['service-worker'].details.scriptUrl) : null;
-    }
-    catch(error: any){
-      swFeatures = {
-        error: error
-      }
-    }
-  }
- 
-  if (audits['installable-manifest']?.details?.debugData?.manifestUrl) {
-    artifacts.WebAppManifest = {
-      url: audits['installable-manifest']?.details?.debugData?.manifestUrl,
-    };
+  
 
-    try{
-      artifacts.WebAppManifest.raw = await (await fetch(artifacts.WebAppManifest.url!)).text();
-      artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
-    } catch{}
+
+  const processServiceWorker = async () => {
+    if (audits['service-worker']?.details?.scriptUrl) {
+      artifacts.ServiceWorker = {
+        url: audits['service-worker']?.details?.scriptUrl,
+      };
+      try{
+        swFeatures = await analyzeServiceWorker(artifacts.ServiceWorker.url);
+      }
+      catch(error: any){
+        swFeatures = {
+          error: error
+        }
+      }
+      artifacts.ServiceWorker.raw = swFeatures?.raw;
+    }
   }
-  else {
-    delete artifacts.WebAppManifest;
+  
+  const processManifest = async () => {
+    if (audits['installable-manifest']?.details?.debugData?.manifestUrl) {
+      artifacts.WebAppManifest = {
+        url: audits['installable-manifest']?.details?.debugData?.manifestUrl,
+      };
+
+      try{
+        artifacts.WebAppManifest.raw = await (await fetch(artifacts.WebAppManifest.url!)).text();
+        artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
+      } catch{}
+    }
+    else {
+      delete artifacts.WebAppManifest;
+    }
   }
+
+  await Promise.allSettled([processServiceWorker(), processManifest()]);
    
 
   const report = {
@@ -211,7 +235,7 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
         details: {
           url: audits['service-worker']?.details?.scriptUrl || undefined,
           scope: audits['service-worker']?.details?.scopeUrl || undefined,
-          features: swFeatures? {...swFeatures, raw: undefined} : undefined
+          features: swFeatures? {...(swFeatures as object), raw: undefined} : undefined
         }
        },
       appleTouchIcon: { score: audits['apple-touch-icon']?.score? true : false },
@@ -222,7 +246,7 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     },
     artifacts: {
       webAppManifest: artifacts?.WebAppManifest,
-      serviceWorker: {url: audits['service-worker']?.details?.scriptUrl, raw: (swFeatures as { raw: string[]})?.raw || undefined },
+      serviceWorker: artifacts?.ServiceWorker,
     }
   }
 
