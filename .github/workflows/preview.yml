@@ -1,6 +1,7 @@
 name: Deploy to Preview
 
 on:
+  workflow_dispatch:
   push:
     branches: [ dev ]
   pull_request:
@@ -11,7 +12,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == "workflow_dispatch"
 
     steps:
     - uses: actions/checkout@v2
