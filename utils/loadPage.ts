@@ -1,6 +1,6 @@
 import { Context } from '@azure/functions';
 import { Page, HTTPResponse, Browser, launch } from 'puppeteer';
-import { LogMessages } from './logMessages';
+import { LogMessages } from './logMessages.js';
 
 export interface LoadedPage {
   sitePage: Page;

@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { checkParams, checkBody } from '../utils/checkParams';
-import { getManifest } from '../utils/getManifest';
-import testManifest from '../utils/testManifest';
+import { checkParams, checkBody } from '../utils/checkParams.js';
+import { getManifest } from '../utils/getManifest.js';
+import testManifest from '../utils/testManifest.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,

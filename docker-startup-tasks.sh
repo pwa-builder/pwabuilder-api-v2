@@ -4,7 +4,7 @@
 set -m
   
 # Start the primary process and put it in the background
-/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost &
+# /azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost &
   
 # Start the helper process
 node /home/site/wwwroot/.openAPI/swagger-node-middleware.js

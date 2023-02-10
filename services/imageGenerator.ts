@@ -2,16 +2,16 @@ import { Context } from '@azure/functions';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import FormData from 'form-data';
-import ExceptionOf, { ExceptionType } from '../utils/Exception';
+import ExceptionOf, { ExceptionType } from '../utils/Exception.js';
 import {
   ImageGeneratorImageSpec,
   ImageGeneratorManifestImageResource,
   ImageGeneratorSources,
   IconManifestImageResource,
   ZipResult,
-} from '../utils/interfaces';
-import { setIntersection } from '../utils/set';
-import { ManifestImageResource } from '../utils/w3c';
+} from '../utils/interfaces.js';
+import { setIntersection } from '../utils/set.js';
+import { ManifestImageResource } from '../utils/w3c.js';
 
 const baseUrl = 'https://appimagegenerator-prod.azurewebsites.net';
 const uriUrl = `${baseUrl}/api/image`;

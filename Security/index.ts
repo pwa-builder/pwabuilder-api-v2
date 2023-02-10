@@ -1,7 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { checkParams } from '../utils/checkParams';
-import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage';
-import { logHttpsResult } from '../utils/urlLogger';
+import { checkParams } from '../utils/checkParams.js';
+import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage.js';
+import { logHttpsResult } from '../utils/urlLogger.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
