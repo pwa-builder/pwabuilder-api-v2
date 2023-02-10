@@ -1,6 +1,7 @@
 name: Deploy to Preview
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - dev   
@@ -12,11 +13,11 @@ on:
 jobs:
 
   build:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == "workflow_dispatch" || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Preview build
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag pwabuilder.azurecr.io/pwabuildertests-dev:latest
       
