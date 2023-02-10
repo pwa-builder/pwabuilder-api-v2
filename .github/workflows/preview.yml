@@ -12,7 +12,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == "workflow_dispatch"
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
     steps:
     - uses: actions/checkout@v2
