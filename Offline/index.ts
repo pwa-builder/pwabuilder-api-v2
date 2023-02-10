@@ -1,10 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { Browser } from 'puppeteer';
-import { OfflineTestData } from "../utils/interfaces";
+import { OfflineTestData } from "../utils/interfaces.js";
 import lighthouse from 'lighthouse';
-import { closeBrowser, getBrowser } from "../utils/loadPage";
-import { logOfflineResult } from "../utils/urlLogger";
-import { checkParams } from '../utils/checkParams';
+import { closeBrowser, getBrowser } from "../utils/loadPage.js";
+import { logOfflineResult } from "../utils/urlLogger.js";
+import { checkParams } from '../utils/checkParams.js';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
@@ -68,14 +68,15 @@ const audit = async (browser: Browser, url: string): Promise<OfflineTestData | n
     chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
     onlyAudits: ['installable-manifest'],
     output: 'json',
-    port: (new URL(browser.wsEndpoint())).port
+    port: Number((new URL(browser.wsEndpoint())).port)
   };
-
+  // @ts-ignore
   const runnerResult = await lighthouse(url, options);
   const audits = runnerResult?.lhr?.audits;
 
   if (audits) {
-    swInfo.offline = audits['installable-manifest'].score >= 1 ? true : false;
+    // @ts-ignore
+    swInfo.offline = audits['installable-manifest']?.score >= 1 ? true : false;
 
     return swInfo;
   }

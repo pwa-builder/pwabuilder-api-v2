@@ -1,8 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import { ExceptionMessage, ExceptionWrap } from "../utils/Exception";
-import { Manifest } from "../utils/interfaces";
-import { manifestTools } from 'pwabuilder-lib';
-import { checkParams } from "../utils/checkParams";
+import { ExceptionMessage, ExceptionWrap } from "../utils/Exception.js";
+import { Manifest } from "../utils/interfaces.js";
+import { checkParams } from "../utils/checkParams.js";
+
+import pkg from 'pwabuilder-lib';
+const { manifestTools } = pkg;
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   

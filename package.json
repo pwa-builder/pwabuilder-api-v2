@@ -4,6 +4,7 @@
   "engines": {
     "node": ">=18.*"
   },
+  "type": "module",
   "scripts": {
     "clean": "del-cli dist",
     "build": "npm run clean && tsc",
@@ -46,7 +47,7 @@
     "jsdom": "^21.1.0",
     "jszip": "^3.10.1",
     "klaw": "^4.0.1",
-    "lighthouse": "^9.6.8",
+    "lighthouse": "^10.0.0",
     "puppeteer": "19.4.0",
     "pwabuilder-lib": "^2.1.12",
     "svgjs": "^2.6.2",

@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 // import { JSDOM } from 'jsdom';
-import { checkParams } from '../utils/checkParams';
+import { checkParams } from '../utils/checkParams.js';
 
 
 const httpTrigger: AzureFunction = async function (

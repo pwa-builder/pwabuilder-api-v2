@@ -1,6 +1,6 @@
 import { HttpRequest } from '@azure/functions';
-import ExceptionOf, { ExceptionType as Type } from './Exception';
-import { Manifest } from './interfaces';
+import ExceptionOf, { ExceptionType as Type } from './Exception.js';
+import { Manifest } from './interfaces.js';
 
 export enum ValidContentType {
   webmanifest = 'application/manifest+json',

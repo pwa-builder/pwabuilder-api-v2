@@ -1,7 +1,7 @@
 import { Context } from '@azure/functions';
-import ExceptionOf, { ExceptionType as Type } from './Exception';
-import { Manifest } from './interfaces';
-import loadPage, { closeBrowser } from './loadPage';
+import ExceptionOf, { ExceptionType as Type } from './Exception.js';
+import { Manifest } from './interfaces.js';
+import loadPage, { closeBrowser } from './loadPage.js';
 
 export interface ManifestInformation {
   json: Manifest;

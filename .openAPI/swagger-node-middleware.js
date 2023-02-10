@@ -1,8 +1,8 @@
 const express = require("express")
-const httpProxy = require('http-proxy')
-const apiProxy = httpProxy.createProxyServer(
-  {target: { host: '0.0.0.0', port: 7071, protocol: 'http' }, changeOrigin: true}
-)
+// const httpProxy = require('http-proxy')
+// const apiProxy = httpProxy.createProxyServer(
+//   {target: { host: '0.0.0.0', port: 7071, protocol: 'http' }, changeOrigin: true}
+// )
 
 const fs = require("fs")
 const path = require('path')
@@ -18,8 +18,8 @@ app.get("/swagger-initializer.js", (req, res) => res.send(indexContent))
 app.use(express.static(pathToSwaggerUi))
 app.use('/openAPI', express.static(path.join(__dirname, '.')))
 
-app.all(/\/api\/*/, function(req, res) {
-  apiProxy.web(req, res);
-});
+// app.all(/\/api\/*/, function(req, res) {
+//   apiProxy.web(req, res);
+// });
 
 app.listen(80)

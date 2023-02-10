@@ -4,9 +4,12 @@
 # FROM mcr.microsoft.com/azure-functions/node:3.0-node12
 
 # docker build -t api-v2 .
-# docker run -p 80:80 api-v2
+# docker run -p 80:7071 api-v2
 
 FROM mcr.microsoft.com/azure-functions/node:4-node18
+
+# EXPOSE 7071
+# EXPOSE 80
 
 
 RUN  apt-get update \
@@ -35,14 +38,8 @@ COPY . /home/site/wwwroot
 
 RUN cd /home/site/wwwroot && \
     rm -rf node_modules && \
-    npm install puppeteer && \
     npm install && \
     npm run build
 
-RUN ["chmod", "+x", "/home/site/wwwroot/docker-startup-tasks.sh"]
-CMD /home/site/wwwroot/docker-startup-tasks.sh
-# ENTRYPOINT ["node", "/home/site/wwwroot/.openAPI/swagger-ui-dist.js"]
-
-# CMD /azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost;node /home/site/wwwroot/.openAPI/swagger-ui-dist.js
-
-# CMD node /home/site/wwwroot/.openAPI/swagger-ui-dist.js; /azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost
+# RUN ["chmod", "+x", "/home/site/wwwroot/docker-startup-tasks.sh"]
+# CMD /home/site/wwwroot/docker-startup-tasks.sh

@@ -3,7 +3,7 @@ import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { Analyzer } from 'hint';
 import { UserConfig, AnalyzerResult } from 'hint';
 
-import { checkParams } from '../utils/checkParams';
+import { checkParams } from '../utils/checkParams.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,

@@ -5,7 +5,7 @@ import {
   IconManifestImageResource,
   Manifest,
   ScreenshotManifestImageResource,
-} from "./interfaces";
+} from "./interfaces.js";
 import { ImageProperties } from "./platform";
 import { getTagMetadataProperties } from "./storage";
 import { ManifestImageResource } from "./w3c";

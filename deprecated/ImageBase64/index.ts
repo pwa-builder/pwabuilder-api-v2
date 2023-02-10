@@ -6,9 +6,9 @@ import {
   generateAllImages,
   getBase64Images,
   setupFormData,
-} from '../../services/imageGenerator';
-import { ManifestImageResource } from '../../utils/w3c';
-import ExceptionOf, { ExceptionType } from '../../utils/Exception';
+} from '../../services/imageGenerator.js';
+import { ManifestImageResource } from '../../utils/w3c.js';
+import ExceptionOf, { ExceptionType } from '../../utils/Exception.js';
 
 interface ImageBase64ResponseBody {
   icons: Array<ManifestImageResource>;

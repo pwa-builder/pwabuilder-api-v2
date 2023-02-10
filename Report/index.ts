@@ -1,15 +1,18 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import lighthouse from 'lighthouse';
-import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/lighthouse-core/config/constants.js';
+// import lighthouse from 'lighthouse';
+// import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/core/config/constants.js';
 
-import { closeBrowser, getBrowser } from '../utils/browserLauncher';
-import { checkParams } from '../utils/checkParams';
-import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker';
+import { closeBrowser, getBrowser } from '../utils/browserLauncher.js';
+import { checkParams } from '../utils/checkParams.js';
+import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
 import { LaunchedChrome } from 'chrome-launcher';
 
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import childProcess from 'child_process';
 import util from 'util';
 const exec = util.promisify(childProcess.exec);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 
 // custom use agents
@@ -104,7 +107,7 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     
     skipAboutBlank: true,
     formFactor: desktop ? 'desktop' : 'mobile', // 'mobile'|'desktop';
-    screenEmulation: desktop ? screenEmulationMetrics.desktop : screenEmulationMetrics.mobile,  
+    // screenEmulation: desktop ? screenEmulationMetrics.desktop : screenEmulationMetrics.mobile,  
     emulatedUserAgent: desktop ? userAgents.desktop : userAgents.mobile,  
     throttlingMethod: 'provided', // 'devtools'|'simulate'|'provided';
     throttling: false,
@@ -117,12 +120,12 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     'installable-manifest',
     'is-on-https',
     'maskable-icon',
-    'apple-touch-icon',
+    // 'apple-touch-icon',
     'splash-screen',
     'themed-omnibox', 
     'viewport'
   ].join(',')}`;
-  const chromeFlags = `--chrome-flags=${[
+  const chromeFlags = `--chrome-flags="${[
     '--headless',
    	'--no-sandbox',
 	 	'--enable-automation',
@@ -155,10 +158,14 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     '--enable-blink-features=IdleDetection',
     '--export-tagged-pdf',
     '--disabe-gpu',
-  ].join(' ')}`;
+  ].join(' ')}"`;
   const throttling = '--throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0'
 
-  let { stdout, stderr } = await exec(`lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot --disable-storage-reset`);
+  let { stdout, stderr } = await exec(
+    `${__dirname}/../../node_modules/.bin/lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot --disable-storage-reset`
+    // ,
+    // { cwd: '/home/site/wwwroot/node_modules/.bin' }
+    );
   let rawResult: { audits?: unknown} = {};
 
   if (stdout)
@@ -238,7 +245,7 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
           features: swFeatures? {...(swFeatures as object), raw: undefined} : undefined
         }
        },
-      appleTouchIcon: { score: audits['apple-touch-icon']?.score? true : false },
+      // appleTouchIcon: { score: audits['apple-touch-icon']?.score? true : false },
       maskableIcon: { score: audits['maskable-icon']?.score? true : false },
       splashScreen: { score: audits['splash-screen']?.score? true : false },
       themedOmnibox: { score: audits['themed-omnibox']?.score? true : false },

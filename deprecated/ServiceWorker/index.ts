@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { Browser } from 'puppeteer';
 import lighthouse from 'lighthouse';
 
-import { closeBrowser, getBrowser } from '../../utils/loadPage';
+import { closeBrowser, getBrowser } from '../../utils/loadPage.js';
 import { checkParams } from '../../utils/checkParams';
 
 const httpTrigger: AzureFunction = async function (
