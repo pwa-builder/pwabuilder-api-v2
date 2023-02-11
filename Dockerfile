@@ -36,10 +36,12 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 
 COPY . /home/site/wwwroot
 
-RUN cd /home/site/wwwroot && \
-    rm -rf node_modules && \
+
+WORKDIR /home/site/wwwroot
+RUN rm -rf node_modules && \
     npm install && \
     npm run build
 
-# RUN ["chmod", "+x", "/home/site/wwwroot/docker-startup-tasks.sh"]
-# CMD /home/site/wwwroot/docker-startup-tasks.sh
+
+RUN ["chmod", "+x", "docker-startup-tasks.sh"]
+CMD docker-startup-tasks.sh
