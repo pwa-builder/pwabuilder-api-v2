@@ -1,13 +1,16 @@
-const express = require("express")
-// const httpProxy = require('http-proxy')
-// const apiProxy = httpProxy.createProxyServer(
-//   {target: { host: '0.0.0.0', port: 7071, protocol: 'http' }, changeOrigin: true}
-// )
+import express from 'express'
+import httpProxy from 'http-proxy'
+const apiProxy = httpProxy.createProxyServer(
+  {target: { host: '0.0.0.0', port: 7071, protocol: 'http' }, changeOrigin: true}
+)
 
-const fs = require("fs")
-const path = require('path')
+import fs from 'fs'
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { absolutePath } from 'swagger-ui-dist'
 
-const pathToSwaggerUi = require("swagger-ui-dist").absolutePath()
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pathToSwaggerUi = absolutePath();
 
 const indexContent = fs.readFileSync(`${pathToSwaggerUi}/swagger-initializer.js`)
   .toString()
@@ -18,8 +21,8 @@ app.get("/swagger-initializer.js", (req, res) => res.send(indexContent))
 app.use(express.static(pathToSwaggerUi))
 app.use('/openAPI', express.static(path.join(__dirname, '.')))
 
-// app.all(/\/api\/*/, function(req, res) {
-//   apiProxy.web(req, res);
-// });
+app.all(/\/api\/*/, function(req, res) {
+  apiProxy.web(req, res);
+});
 
 app.listen(80)
