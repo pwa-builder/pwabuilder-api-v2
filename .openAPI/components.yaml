@@ -156,11 +156,6 @@ responses:
                                 type: boolean
                               features: 
                                 $ref: '#/properties/sw_features'
-                      appleTouchIcon:
-                        type: object
-                        properties:
-                          score:
-                            type: boolean
                       maskableIcon:
                         type: object
                         properties:

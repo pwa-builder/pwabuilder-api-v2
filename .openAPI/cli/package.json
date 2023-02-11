@@ -6,7 +6,7 @@
   "type": "module",
   "bin": "cli.js",
   "scripts": {
-    "run": "node ./cli.js  -config ./config.js"},
+    "run": "node ./cli.js  --config ./config.json"},
   "engines": {
     "node": ">=12.0.0"
   },
