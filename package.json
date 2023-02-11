@@ -14,7 +14,8 @@
     "start:host": "func start --cors *",
     "start": "npm-run-all --parallel start:host watch",
     "test": "echo \"No tests yet...\"",
-    "open-api": "node .openAPI/swagger-node-middleware.js"
+    "open-api": "node .openAPI/swagger-node-middleware.js",
+    "open-api:generate": "npx .openAPI/cli --config .openAPI/cli/config.json"
   },
   "description": "",
   "devDependencies": {
