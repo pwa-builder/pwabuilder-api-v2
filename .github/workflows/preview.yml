@@ -17,13 +17,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag pwabuilder.azurecr.io/pwabuildertests-dev:preview
+      run: docker build . --file Dockerfile --tag pwabuilder.azurecr.io/pwabuildertests-dev:newest
       
     - name: Login
       run: docker login pwabuilder.azurecr.io -u pwabuilder --password ${{secrets.azure}}
       
     - name: Push
-      run: docker push pwabuilder.azurecr.io/pwabuildertests-dev:dev
+      run: docker push pwabuilder.azurecr.io/pwabuildertests-dev:newest
       
   build-pr:
     runs-on: ubuntu-latest
