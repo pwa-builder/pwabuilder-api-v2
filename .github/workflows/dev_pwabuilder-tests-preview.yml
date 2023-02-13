@@ -23,14 +23,14 @@ jobs:
       uses: docker/login-action@v1
       with:
         registry: https://pwabuilder.azurecr.io/
-        username: ${{ secrets.AzureAppService_ContainerUsername_b977703aa18d488abc6ad8710d6ef521 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_34a3183b26fd487da869b7fbf71c9af7 }}
+        username: ${{ secrets.AzureAppService_ContainerUsername_dce3d8caecc4457e961e27e2438bfaa7 }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_9b93d634613d4ce0938a467433f96719 }}
 
     - name: Build and push container image to registry
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: pwabuilder.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_b977703aa18d488abc6ad8710d6ef521 }}/pwabuilder/pwabuildertests-dev:${{ github.sha }}
+        tags: pwabuilder.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_dce3d8caecc4457e961e27e2438bfaa7 }}/pwabuilder/pwabuildertests-dev:${{ github.sha }}
         file: ./Dockerfile
 
   deploy:
@@ -47,5 +47,5 @@ jobs:
       with:
         app-name: 'pwabuilder-tests-preview'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_37daeee0d399418a81e6f9fcb05c2f24 }}
-        images: 'pwabuilder.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_b977703aa18d488abc6ad8710d6ef521 }}/pwabuilder/pwabuildertests-dev:${{ github.sha }}'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_0b341e663e154fd78347e98088638661 }}
+        images: 'pwabuilder.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_dce3d8caecc4457e961e27e2438bfaa7 }}/pwabuilder/pwabuildertests-dev:${{ github.sha }}'
