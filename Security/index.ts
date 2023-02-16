@@ -10,7 +10,8 @@ const httpTrigger: AzureFunction = async function (
     `Security function is processing a request for site: ${req.query.site}`
   );
 
-  const site = req.query.site;
+  const site = req.query.site || "";
+  
   let siteData: LoadedPage | undefined;
   const startTime = new Date();
 
