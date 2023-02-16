@@ -6,7 +6,7 @@ export enum MimeTypes {
   jpeg = 'image/jpeg',
 }
 
-export function getContentType(req: HttpRequest): string {
+export function getContentType(req: HttpRequest): string | undefined {
   return req.headers['Content-Type'] || req.headers['content-type'];
 }
 

@@ -8,7 +8,7 @@ import { logOfflineResult } from "../utils/urlLogger";
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
   context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
 
-  const url = req.query.site;
+  const url = req.query.site || '';
 
   const currentBrowser = await getBrowser(context);
 
@@ -50,7 +50,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 const audit = async (browser: Browser, url: string): Promise<OfflineTestData | null> => {
   // empty object that we fill with data below
-  let swInfo: any = {};
+  const swInfo: any = {};
 
   const options = {
     logLevel: 'info',

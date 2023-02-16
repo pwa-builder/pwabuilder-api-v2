@@ -20,7 +20,7 @@ const httpTrigger: AzureFunction = async function (
   try {
     let manifestUrl: string;
     let manifest: Manifest | null = null;
-    const siteUrl = req.query.site;
+    const siteUrl = req.query.site || "";
 
     // Handle File
     if (req.method === 'POST' && ifSupportedFile(req)) {

@@ -12,7 +12,7 @@ const httpTrigger: AzureFunction = async function (
     `Service Worker function is processing a request for site: ${req.query.site}`
   );
 
-  const url = req.query.site;
+  const url = req.query.site || "";
 
   const currentBrowser = await getBrowser(context);
 
@@ -59,7 +59,7 @@ const httpTrigger: AzureFunction = async function (
 
 const audit = async (browser: Browser, url: string) => {
   // empty object that we fill with data below
-  let swInfo: any = {};
+  const swInfo: any = {};
 
   // Default options to use when using
   // Puppeteer with Lighthouse
