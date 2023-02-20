@@ -8,20 +8,8 @@
       }
     }
   },
-  "concurrency": { 
-    "dynamicConcurrencyEnabled": true, 
-    "snapshotPersistenceEnabled": true 
-  },
-  "functionTimeout": "00:03:00",
-  "healthMonitor": {
-    "enabled": true,
-    "healthCheckInterval": "00:01:00",
-    "healthCheckWindow": "00:03:00",
-    "healthCheckThreshold": 6,
-    "counterThreshold": 0.80
-  },
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
-    "version": "[3.3.0, 4.0.0)"
+    "version": "[2.*, 3.0.0)"
   }
 }
