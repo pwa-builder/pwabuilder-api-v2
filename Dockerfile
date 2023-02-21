@@ -42,5 +42,5 @@ RUN rm -rf node_modules && \
     npm run build
 
 
-RUN ["chmod", "+x", "docker-startup-tasks.bash"]
-CMD /bin/bash docker-startup-tasks.bash
+# RUN ["chmod", "+x", "docker-startup-tasks.bash"]
+# CMD /bin/bash docker-startup-tasks.bash
