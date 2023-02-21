@@ -1,4 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import fetch from 'node-fetch';
 // import lighthouse from 'lighthouse';
 // import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/core/config/constants.js';
 

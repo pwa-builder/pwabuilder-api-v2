@@ -1,4 +1,5 @@
 import { Context } from '@azure/functions';
+import fetch, { Response } from 'node-fetch';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import FormData from 'form-data';
@@ -54,9 +55,7 @@ export async function generateAllImages(
         new Error(generateResponse.Message)
       );
     } else if (generateResponse.Uri) {
-      return fetch(`${baseUrl}${generateResponse.Uri}`, {
-        method: 'GET',
-      });
+      return fetch(`${baseUrl}${generateResponse.Uri}`);
     }
   } catch (e) {
     context.log.error(e);
