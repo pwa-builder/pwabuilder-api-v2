@@ -2,7 +2,7 @@
   "name": "api-v2",
   "version": "13.0.0",
   "engines": {
-    "node": ">=18.*"
+    "node": ">=16.*"
   },
   "type": "module",
   "scripts": {
@@ -49,6 +49,7 @@
     "jszip": "^3.10.1",
     "klaw": "^4.0.1",
     "lighthouse": "^10.0.0",
+    "node-fetch": "^3.3.0",
     "puppeteer": "19.4.0",
     "pwabuilder-lib": "^2.1.12",
     "svgjs": "^2.6.2",

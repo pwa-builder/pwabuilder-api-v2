@@ -4,12 +4,13 @@
 # docker build -t api-v2 .
 # docker run -p 80:80 api-v2
 
-# functions api port
-# EXPOSE 7071
-# swaggerUI + middleware for api
-# EXPOSE 80
+FROM mcr.microsoft.com/azure-functions/node:4-node16
 
-FROM mcr.microsoft.com/azure-functions/node:4-node18
+
+# functions api port
+EXPOSE 7071
+# swaggerUI + middleware for api
+EXPOSE 80
 
 
 RUN  apt-get update \
@@ -33,9 +34,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     ASPNETCORE_URLS=http://*:7071
 
 
-
 COPY . /home/site/wwwroot
-
 
 WORKDIR /home/site/wwwroot
 RUN rm -rf node_modules && \
