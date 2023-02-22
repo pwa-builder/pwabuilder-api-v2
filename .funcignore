@@ -1,6 +1,10 @@
+.cache
+node_modules
+dist
+deprecated
 *.js.map
-*.ts
 .git*
 .vscode
 local.settings.json
 test
+temp
