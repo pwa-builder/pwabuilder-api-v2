@@ -1,6 +1,7 @@
 name: Deploy to Preview
 
 on:
+  workflow_dispatch:
   push:
     branches: [ dev ]
   pull_request:
@@ -11,18 +12,18 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag pwabuilder.azurecr.io/pwabuildertests-dev:dev
+      run: docker build . --file Dockerfile --tag pwabuilder.azurecr.io/pwabuildertests-dev:newest
       
     - name: Login
       run: docker login pwabuilder.azurecr.io -u pwabuilder --password ${{secrets.azure}}
       
     - name: Push
-      run: docker push pwabuilder.azurecr.io/pwabuildertests-dev:dev
+      run: docker push pwabuilder.azurecr.io/pwabuildertests-dev:newest
       
   build-pr:
     runs-on: ubuntu-latest
