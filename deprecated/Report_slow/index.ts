@@ -4,8 +4,8 @@ import lighthouse, { OutputMode } from 'lighthouse';
 import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/core/config/constants.js';
 
 // import { closeBrowser, getBrowser } from '../utils/browserLauncher';
-import { checkParams } from '../utils/checkParams.js';
-import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
+import { checkParams } from '../../utils/checkParams.js';
+import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../../utils/analyzeServiceWorker.js';
 
 
 // custom use agents

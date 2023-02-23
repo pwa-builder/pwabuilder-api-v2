@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/Report_v2/index.js"
+  "scriptFile": "../dist/Report_slow/index.js"
 }
