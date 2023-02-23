@@ -1,16 +1,12 @@
-# To enable ssh & remote debugging on app service change the base image to the one below
-# FROM mcr.microsoft.com/azure-functions/node:4-node18-appservice
-
+# Docker is for some debuggin puproses only (to check under WSL for example), not for production
 # docker build -t api-v2 .
-# docker run -p 80:80 api-v2
+# docker run -p 80:7071 api-v2
 
 FROM mcr.microsoft.com/azure-functions/node:4-node18
 
 
 # functions api port
 EXPOSE 7071
-# swaggerUI + middleware for api
-EXPOSE 80
 
 
 RUN  apt-get update \
@@ -40,7 +36,3 @@ WORKDIR /home/site/wwwroot
 RUN rm -rf node_modules && \
     npm install && \
     npm run build
-
-
-RUN ["chmod", "+x", "docker-startup-tasks.bash"]
-CMD /bin/bash docker-startup-tasks.bash

@@ -1,5 +1,4 @@
 import { Context } from '@azure/functions';
-import fetch from 'node-fetch';
 import ExceptionOf, { ExceptionType as Type } from './Exception.js';
 import { Manifest } from './interfaces.js';
 import loadPage, { closeBrowser } from './loadPage.js';

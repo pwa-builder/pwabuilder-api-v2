@@ -1,6 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { checkParams } from '../utils/checkParams.js';
-import fetch from 'node-fetch';
 
 
 const httpTrigger: AzureFunction = async function (

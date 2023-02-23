@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 const pushRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]push['"]/m), // .addEventListener('push') or .addEventListener("push") or [new line] addEventListener('push')
 	new RegExp(/[.|\n\s*]onpush\s*=/m) // self.onpush = ... [new line] onpush = ...

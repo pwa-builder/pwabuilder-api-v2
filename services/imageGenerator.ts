@@ -1,5 +1,4 @@
 import { Context } from '@azure/functions';
-import fetch, { Response } from 'node-fetch';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import FormData from 'form-data';
