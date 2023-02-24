@@ -231,7 +231,7 @@ export default httpTrigger;
  *      tags:
  *        - Report
  *      parameters:
- *        - $ref: components.yaml#/parameters/site
+ *        - $ref: ?file=components.yaml#/parameters/site
  *        - name: desktop
  *          schema: 
  *            type: boolean
@@ -241,5 +241,5 @@ export default httpTrigger;
  *          required: false
  *      responses:
  *        '200':
- *          $ref: components.yaml#/responses/report/200
+ *          $ref: ?file=components.yaml#/responses/report/200
  */​

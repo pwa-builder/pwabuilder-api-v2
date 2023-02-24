@@ -1,6 +1,6 @@
 schemas: 
   manifest:
-    $ref: 'manifest.yaml'
+    $ref: ?file=manifest.yaml
 parameters:
   site:
     name: site
@@ -91,7 +91,7 @@ responses:
             properties: 
               content:
                 type: object
-                $ref: 'manifest.yaml'
+                $ref: ?file=manifest.yaml
               format:
                 type: string
               generatedUrl: 

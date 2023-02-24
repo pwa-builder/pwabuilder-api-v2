@@ -167,8 +167,8 @@ export default httpTrigger;
  *      tags:
  *        - Validate
  *      parameters:
- *        - $ref: components.yaml#/parameters/site
+ *        - $ref: ?file=components.yaml#/parameters/site
  *      responses:
  *        '200':
- *          $ref: components.yaml#/responses/security/200
+ *          $ref: ?file=components.yaml#/responses/security/200
  */

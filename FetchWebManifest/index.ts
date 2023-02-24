@@ -95,8 +95,8 @@ export default httpTrigger;
  *       tags:
  *         - Generate
  *       parameters:
- *         - $ref: 'components.yaml#/parameters/site'
+ *         - $ref: '?file=components.yaml#/parameters/site'
  *       responses:
  *         '200':
- *           $ref: 'components.yaml#/responses/manifestGrab/200'
+ *           $ref: '?file=components.yaml#/responses/manifestGrab/200'
  */

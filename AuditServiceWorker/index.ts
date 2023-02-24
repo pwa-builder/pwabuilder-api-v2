@@ -93,5 +93,5 @@ export default httpTrigger;
  *                                  url:
  *                                    type: string
  *                                  features: 
- *                                    $ref: components.yaml#/properties/sw_features
+ *                                    $ref: ?file=components.yaml#/properties/sw_features
  */

@@ -110,7 +110,7 @@ export default httpTrigger;
  *      tags:
  *        - Generate
  *      parameters:
- *        - $ref: components.yaml#/parameters/site
+ *        - $ref: ?file=components.yaml#/parameters/site
  *      responses:
  *        '200':
  *          description: OK
@@ -125,5 +125,5 @@ export default httpTrigger;
  *                             url:
  *                               type: string
  *                             json:
- *                               $ref: components.yaml#/schemas/manifest
+ *                               $ref: ?file=components.yaml#/schemas/manifest
  */
