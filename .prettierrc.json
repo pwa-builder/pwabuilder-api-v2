@@ -5,7 +5,7 @@
   "singleQuote": true,
   "quoteProps": "consistent",
   "trailingComma": "es5",
-  "endOfLine": "crlf",
+  "endOfLine": "lf",
   "bracketSpacing": true,
   "arrowParens": "avoid"
 }
