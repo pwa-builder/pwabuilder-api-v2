@@ -1,6 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { checkParams } from '../utils/checkParams.js';
-
+import puppeteer from 'puppeteer';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -25,14 +25,9 @@ const httpTrigger: AzureFunction = async function (
     const response = await fetch(site);
     const html = await response.text();
     
-    const match = html.match(/<link\s+rel="manifest"\s+href="(.*?\.json)".*\/?>/);
+    const match = html.match(/<link\s+rel=\\*"manifest\\*"\s+.*?href=\\*"(.*?)\\*"/);
     let link = match? match[1] : null;
 
-    // const document = new JSDOM(html).window.document;
-    
-
-    // const element = document.querySelector('link[rel="manifest"]');
-    // let link = element? element.getAttribute("href") : null;
     let json: unknown | null = null;
     let raw: string | null = null;
 
@@ -44,15 +39,37 @@ const httpTrigger: AzureFunction = async function (
       else if (!link.startsWith('http')) {
         link = base + '/' + link;
       }
-    }
-    
-    if (link) {
-      try {
-        const response = await fetch(link);
-        raw = await response.text();
-        json = JSON.parse(raw);
-      } catch (error) {
-        
+
+      if (/\.(json|webmanifest)/.test(link)){
+        try {
+          const response = await fetch(link);
+          json = await response.json();
+          raw = JSON.stringify(json);
+        } catch (error) {
+          context.log.error(error)
+        }
+      }
+      else {
+        try {
+          const browser = await puppeteer.launch({headless: true});
+          const page = await browser.newPage();
+          await page.goto(link, {timeout: 5000, waitUntil: 'networkidle2'});
+
+          raw = await page.evaluate(() =>  {
+              return document.querySelector('body')?.innerText; 
+          }) || await page.content();
+
+          try {
+            json = JSON.parse(raw);
+          } catch (error) {
+            throw error;
+          }
+          
+          browser.close();
+        }
+        catch (error) {
+          context.log.error(`FindWebManifest: ${error}`)
+        }
       }
     }
 

@@ -29,7 +29,7 @@ const httpTrigger: AzureFunction = async function (
   }
   
   context.log.info(
-    `Report function is processing a request for site: ${req.query.site}`
+    `Report: function is processing a request for site: ${req.query.site}`
   );
 
   const url = req.query.site as string;
@@ -48,7 +48,7 @@ const httpTrigger: AzureFunction = async function (
     };
 
     context.log.info(
-      `Report function is DONE processing a request for site: ${req.query.site}`
+      `Report: function is DONE processing a request for site: ${req.query.site}`
     );
     
   } catch (error: any) {
@@ -61,11 +61,11 @@ const httpTrigger: AzureFunction = async function (
 
     if (error.name && error.name.indexOf('TimeoutError') > -1) {
       context.log.error(
-        `Report function TIMED OUT processing a request for site: ${url}`
+        `Report: function TIMED OUT processing a request for site: ${url}`
       );
     } else {
       context.log.error(
-        `Report function failed for ${url} with the following error: ${error}`
+        `Report: function failed for ${url} with the following error: ${error}`
       );
     }
   }
@@ -178,10 +178,36 @@ const audit = async (url: string, desktop?: boolean) => {
         url: audits['installable-manifest']?.details?.debugData?.manifestUrl,
       };
 
-      try{
-        artifacts.WebAppManifest.raw = await (await fetch(artifacts.WebAppManifest.url!)).text();
-        artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
-      } catch{}
+      if (artifacts.WebAppManifest.url){
+        try {
+          if (/\.(json|webmanifest)/.test(artifacts.WebAppManifest.url)){
+            try {
+              artifacts.WebAppManifest.raw = await (await fetch(artifacts.WebAppManifest.url)).text();
+              artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
+            } catch (error) {}
+          }
+          else {
+            try {
+              const browser = await puppeteer.launch({headless: true});
+              const page = await browser.newPage();
+              await page.goto(artifacts.WebAppManifest.url, {timeout: 5000, waitUntil: 'networkidle2'});
+    
+              artifacts.WebAppManifest.raw = await page.evaluate(() =>  {
+                  return document.querySelector('body')?.innerText; 
+              }) || await page.content();
+    
+              try {
+                artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
+              } catch (error) {
+                throw error;
+              }
+              
+              browser.close();
+            }
+            catch (error) {}
+          }
+        } catch (error) {}
+      }
     }
     else {
       delete artifacts.WebAppManifest;
