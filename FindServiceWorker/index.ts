@@ -29,11 +29,8 @@ const httpTrigger: AzureFunction = async function (
     let serviceWorker: unknown | null;
     
     if (link) {
-      if (link.startsWith('/')) {
-        link = site + link;
-      }
-      else if (!link.startsWith('http')) {
-        link = site + '/' + link;
+      if (!link.startsWith('http') && !link.startsWith('data:')) {
+        link = new URL(link, site).href;
       }
     }
 
