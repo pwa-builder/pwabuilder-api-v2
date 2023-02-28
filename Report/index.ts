@@ -11,6 +11,7 @@ const exec = util.promisify(childProcess.exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 import puppeteer from 'puppeteer';
+import { getManifestByLink } from '../utils/getManifestByLink.js';
 const browserFetcher = puppeteer.createBrowserFetcher();
 const localRevisions = await browserFetcher.localRevisions();
 const firstRevision = localRevisions?.length? browserFetcher.revisionInfo(localRevisions[0]) : null;
@@ -146,7 +147,7 @@ const audit = async (url: string, desktop?: boolean) => {
     WebAppManifest?: {
       raw?: string,
       url?: string,
-      json?: null
+      json?: unknown
     },
     ServiceWorker?: {
       raw?: string[],
@@ -179,34 +180,11 @@ const audit = async (url: string, desktop?: boolean) => {
       };
 
       if (artifacts.WebAppManifest.url){
-        try {
-          if (/\.(json|webmanifest)/.test(artifacts.WebAppManifest.url)){
-            try {
-              artifacts.WebAppManifest.raw = await (await fetch(artifacts.WebAppManifest.url)).text();
-              artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
-            } catch (error) {}
-          }
-          else {
-            try {
-              const browser = await puppeteer.launch({headless: true});
-              const page = await browser.newPage();
-              await page.goto(artifacts.WebAppManifest.url, {timeout: 5000, waitUntil: 'networkidle2'});
-    
-              artifacts.WebAppManifest.raw = await page.evaluate(() =>  {
-                  return document.querySelector('body')?.innerText; 
-              }) || await page.content();
-    
-              try {
-                artifacts.WebAppManifest.json = JSON.parse(artifacts.WebAppManifest.raw);
-              } catch (error) {
-                throw error;
-              }
-              
-              browser.close();
-            }
-            catch (error) {}
-          }
-        } catch (error) {}
+        const results = await getManifestByLink(artifacts.WebAppManifest.url, url);
+        if (results && !results.error) {
+          artifacts.WebAppManifest.raw = results.raw;
+          artifacts.WebAppManifest.json = results.json;
+        }
       }
     }
     else {

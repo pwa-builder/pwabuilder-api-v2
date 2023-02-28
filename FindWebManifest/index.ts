@@ -2,7 +2,7 @@ import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { checkParams } from '../utils/checkParams.js';
 import puppeteer from 'puppeteer';
 import { JSDOM } from 'jsdom';
-import { getManifestByLink } from './helpers.js';
+import { getManifestByLink } from '../utils/getManifestByLink.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
