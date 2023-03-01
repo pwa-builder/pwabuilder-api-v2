@@ -24,7 +24,7 @@ const httpTrigger: AzureFunction = async function (
     const response = await fetch(site);
     const html = await response.text();
 
-    const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*)['"]\s*/);
+    const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*?)['"]/);
     let link = match? match[1] : null;
     let serviceWorker: unknown | null;
     
