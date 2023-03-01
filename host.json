@@ -8,6 +8,10 @@
       }
     }
   },
+  "concurrency": { 
+    "dynamicConcurrencyEnabled": true, 
+    "snapshotPersistenceEnabled": true 
+  },
   "functionTimeout": "00:02:00",
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
