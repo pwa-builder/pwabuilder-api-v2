@@ -85,8 +85,9 @@ const audit = async (url: string, desktop?: boolean) => {
     'viewport'
   ].join(',')}`;
   const chromeFlags = `--chrome-flags="${[
-    '--headless',
+    '--headless=new',
    	'--no-sandbox',
+    '--deny-permission-prompts',
 	 	'--enable-automation',
     '--disable-background-networking',
     '--enable-features=NetworkServiceInProcess2',
