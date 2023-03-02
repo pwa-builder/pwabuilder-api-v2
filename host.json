@@ -9,8 +9,7 @@
     }
   },
   "concurrency": { 
-    "dynamicConcurrencyEnabled": true, 
-    "snapshotPersistenceEnabled": true 
+    "dynamicConcurrencyEnabled": true
   },
   "functionTimeout": "00:02:00",
   "extensionBundle": {

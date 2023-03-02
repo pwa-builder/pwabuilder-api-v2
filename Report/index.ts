@@ -84,44 +84,29 @@ const audit = async (url: string, desktop?: boolean) => {
     'themed-omnibox', 
     'viewport'
   ].join(',')}`;
+
+  // adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
+  // on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
   const chromeFlags = `--chrome-flags="${[
     '--headless=new',
    	'--no-sandbox',
-    '--no-first-run',
-    '--no-default-browser-check',
     '--no-pings',
-    '--deny-permission-prompts',
-	 	'--enable-automation',
-    '--enable-features=NetworkServiceInProcess2',
+    '--enable-automation',
+    // '--enable-features=NetworkServiceInProcess2',
     '--allow-pre-commit-input',
-    '--disable-background-networking',
-    '--disable-background-timer-throttling',
-    '--disable-backgrounding-occluded-windows',
+    '--deny-permission-prompts',
     '--disable-breakpad',
-    '--disable-client-side-phishing-detection',
-    '--disable-component-extensions-with-background-pages',
-    '--disable-component-update',
-    '--disable-extensions',
-    '--disable-default-apps',
     '--disable-dev-shm-usage',
     '--disable-domain-reliability',
-    '--disable-features=Translate,BackForwardCache,AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,CertificateTransparencyComponentUpdater,AutofillServerCommunication,OptimizationHints,MediaRouter',
     '--disable-hang-monitor',
     '--disable-ipc-flooding-protection',
     '--disable-popup-blocking',
     '--disable-prompt-on-repost',
     '--disable-renderer-backgrounding',
-    '--disable-sync',
     '--disabe-gpu',
     '--disable-dev-shm-usage',
     '--block-new-web-contents',
-    '--force-color-profile=srgb',
-    '--metrics-recording-only',
-    '--mute-audio',
-    '--password-store=basic',
-    '--use-mock-keychain',
-    '--export-tagged-pdf',
-    '--single-process',
+    // '--single-process',
   ].join(' ')}"`;
   const throttling = '--throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0'
   
