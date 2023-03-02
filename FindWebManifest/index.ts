@@ -27,7 +27,8 @@ const httpTrigger: AzureFunction = async function (
     const response = await fetch(site);
     const rawHTML = await response.text();
     const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
-		const headerHTML = /<head>(.*)<\/head>/.test(html)? (html.match(/<head>(.*)<\/head>/) as string[])[0] : null;
+    const headRegexp = /<head\s*>(.*?|[\r\n\s\S]*?)<\/head>/;
+		const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
 
     if (!headerHTML) {
       throw new Error('No <head> tag found');
