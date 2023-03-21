@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 
 import { checkParams } from '../utils/checkParams.js';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
+import { Report } from './type.js';
 
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -72,7 +73,7 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-const audit = async (url: string, desktop?: boolean) => {
+const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
 
   const onlyAudits = `--only-audits=${[
     'service-worker',
@@ -199,7 +200,7 @@ const audit = async (url: string, desktop?: boolean) => {
           scope: audits['service-worker']?.details?.scopeUrl || undefined,
           features: swFeatures? {...(swFeatures as object), raw: undefined} : undefined
         }
-       },
+      },
       maskableIcon: { score: audits['maskable-icon']?.score? true : false },
       splashScreen: { score: audits['splash-screen']?.score? true : false },
       themedOmnibox: { score: audits['themed-omnibox']?.score? true : false },

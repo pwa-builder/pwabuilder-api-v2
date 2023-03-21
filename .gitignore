@@ -52,3 +52,6 @@ __blobstorage__
 __queuestorage__
 __azurite_db_queue__.json
 __azurite_db_queue_extent__.json
+/test-results/
+/playwright-report/
+/playwright/.cache/

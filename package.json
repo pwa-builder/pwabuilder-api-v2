@@ -6,7 +6,7 @@
   },
   "type": "module",
   "scripts": {
-    "clean": "del-cli dist",
+    "clean": "del-cli dist && del-cli temp",
     "build": "npm run clean && tsc",
     "build:production": "npm run prestart && npm prune --production",
     "watch": "tsc --w",
@@ -20,6 +20,7 @@
   "description": "",
   "devDependencies": {
     "@azure/functions": "^3.2.0",
+    "@playwright/test": "^1.31.2",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
     "del-cli": "^5.0.0",
