@@ -18,5 +18,5 @@
     "experimentalSpecifierResolution": "node",
   },
   "include": ["**/*.ts", "**/*.mts"],
-  "exclude": ["node_modules", "deprecated", "dist"]
+  "exclude": ["node_modules", "deprecated", "dist", "tests"]
 }
