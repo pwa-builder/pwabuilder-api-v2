@@ -111,24 +111,23 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
   ].join(' ')}"`;
   const throttling = '--throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0'
   
-  let { stdout, stderr } = await exec(
-    `${__dirname}/../../node_modules/.bin/lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot --disable-storage-reset`,
-    { env: { 
-        ...process.env, 
-        CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
-        TEMP: `${__dirname}/../../temp`,
-        PATCHED: 'true',
-      } 
-    });
-
   let rawResult: { audits?: unknown} = {};
+  try {
+    let { stdout, stderr } = await exec(
+      `${__dirname}/../../node_modules/.bin/lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot --disable-storage-reset`,
+      { env: { 
+          ...process.env, 
+          CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
+          TEMP: `${__dirname}/../../temp`,
+          PATCHED: 'true',
+        } 
+      });
+      if (stdout)
 
-  if (stdout)
-    try {
-      rawResult = JSON.parse(stdout);
-    } catch (error) {
-      return null;
-    }
+    rawResult = JSON.parse(stdout);
+  } catch (error) {
+    return null;
+  }
 
   const audits = rawResult?.audits || null;
   if (!audits)

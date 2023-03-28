@@ -28,7 +28,7 @@ export async function getManifestByLink(link: string, site: string): Promise<{li
 		}
 		else {
 			try {
-				const browser = await puppeteer.launch({headless: true});
+				const browser = await puppeteer.launch({headless: 'new'});
 				const page = await browser.newPage();
 				await page.goto(link, {timeout: 5000, waitUntil: 'domcontentloaded'});
 

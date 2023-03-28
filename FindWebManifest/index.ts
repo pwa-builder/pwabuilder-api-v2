@@ -54,7 +54,7 @@ const httpTrigger: AzureFunction = async function (
     }
     else {
       try {
-        const browser = await puppeteer.launch({headless: true});
+        const browser = await puppeteer.launch({headless: 'new'});
         const page = await browser.newPage();
         await page.goto(site, {timeout: 10000, waitUntil: 'load'});
 
