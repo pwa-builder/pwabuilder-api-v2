@@ -36,14 +36,14 @@ export async function getManifestByLink(link: string, site: string): Promise<{li
 						return document.querySelector('body')?.innerText; 
 				}) || await page.content();
 
+				browser.close();
+
 				try {
 					json = JSON.parse(raw);
 				} catch (err) {
 					throw err;
 				}
 				
-				browser.close();
-
 				return {
 					link,
 					json,

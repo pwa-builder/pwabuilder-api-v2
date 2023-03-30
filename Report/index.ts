@@ -1,4 +1,6 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { promises as fs } from 'fs';
+import crypto from 'crypto';
 
 import { checkParams } from '../utils/checkParams.js';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
@@ -6,9 +8,9 @@ import { Report } from './type.js';
 
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import childProcess from 'child_process';
-import util from 'util';
-const exec = util.promisify(childProcess.exec);
+import childProcess, { ChildProcess, exec, spawn } from 'child_process';
+// import util from 'util';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 import puppeteer from 'puppeteer';
@@ -16,6 +18,8 @@ import { getManifestByLink } from '../utils/getManifestByLink.js';
 const browserFetcher = puppeteer.createBrowserFetcher();
 const localRevisions = await browserFetcher.localRevisions();
 const firstRevision = localRevisions?.length? browserFetcher.revisionInfo(localRevisions[0]) : null;
+
+const AZURE_FUNC_TIMEOUT = 2 * 60 * 1000;
 
 
 const httpTrigger: AzureFunction = async function (
@@ -73,6 +77,35 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
+const lighthouse = (params: string[], options: childProcess.SpawnOptions): {child: ChildProcess, promise: Promise<number | null> } => {
+  const child = spawn(
+    `npx`,
+    params, 
+    options) as ChildProcess;
+  
+  // let output = '';
+
+  return {
+    child,
+    promise: new Promise((resolveFunc) => {
+      // child.stdout.on("data", (chunk) => {
+      //   output += chunk.toString();
+      // });
+      
+      // child.stdio[1].on("data", (chunk) => {
+      //   output += chunk.toString();
+      // });
+      child.on("exit", (code) => {
+        resolveFunc(code);
+      });
+      // child.on("error", (err) => {
+      //   child.kill();
+      // });
+    })
+  }
+   
+}
+
 const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
 
   const onlyAudits = `--only-audits=${[
@@ -112,21 +145,52 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
   const throttling = '--throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0'
   
   let rawResult: { audits?: unknown} = {};
-  try {
-    let { stdout, stderr } = await exec(
-      `${__dirname}/../../node_modules/.bin/lighthouse ${throttling} ${url} --output json${desktop? ' --preset=desktop':''} ${onlyAudits} ${chromeFlags} --disable-full-page-screenshot --disable-storage-reset`,
-      { env: { 
-          ...process.env, 
-          CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
-          TEMP: `${__dirname}/../../temp`,
-          PATCHED: 'true',
-        } 
-      });
-      if (stdout)
+  let spawnResult: {child: ChildProcess, promise: Promise<number | null>} | undefined;
 
-    rawResult = JSON.parse(stdout);
+  const reportId = crypto.randomUUID();
+  const tempFolder = `${__dirname}/../../temp`;
+  const reportFile = `${tempFolder}/${reportId}_report.json`;
+
+  try {
+    await fs.mkdir(tempFolder).catch(() => {});
+
+    spawnResult = lighthouse(
+      [...`lighthouse --quiet=true ${throttling} ${url} --output=json --output-path=${reportFile}${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
+      { env: { 
+        ...process.env,
+        CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
+        TEMP: `${__dirname}/../../temp`,
+        PATCHED: 'true',
+      },
+      cwd: `${__dirname}/../../node_modules/.bin/`,
+      shell: true,
+      windowsHide: true,
+      stdio: 'ignore',
+      detached: true
+    });
+
+    setTimeout(() => {
+      if (spawnResult?.child?.pid){
+        if(process.platform == "win32"){
+          exec(`taskkill /PID ${spawnResult.child.pid} /T /F`)
+        }
+        else{
+            process.kill(-spawnResult.child.pid);
+        }
+      }
+    }, AZURE_FUNC_TIMEOUT - 10 * 1000);
+
+    await spawnResult.promise;
+
+    rawResult = JSON.parse((await fs.readFile(reportFile)).toString());
+
   } catch (error) {
-    return null;
+    if (spawnResult?.child?.pid) {
+      process.kill(-spawnResult.child.pid);
+    }
+    console.error(error, spawnResult?.child?.pid);
+  } finally{
+    fs.unlink(reportFile).catch(() => {});
   }
 
   const audits = rawResult?.audits || null;
