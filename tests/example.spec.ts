@@ -10,60 +10,58 @@ array.forEach(async (url: string, index: number) => {
   // let index = 0;
   // let url = ' https://webboard.app';
 
+  test(`${index}:api/FindWebManifest: url, raw, json`, async ({ request, baseURL }) => {
+    const apiCall = await request.get(`${baseURL}/api/FindWebManifest?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
+    let result = await apiCall.json();
 
+    await fs.appendFile('./tests/results.txt',
+    `${index}:findmani:manifest-${result.content?.url?'true':'false'}:raw-${result.content?.raw?'true':'false'}:json-${result.content?.json?'true':'false'},`, (err) => {});
   
-  // test(`${index}:api/FindWebManifest: url, raw, json`, async ({ request, baseURL }) => {
-  //   const apiCall = await request.get(`${baseURL}/api/FindWebManifest?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
-  //   let result = await apiCall.json();
+    expect(apiCall.status(), 'status 200').toBe(200);
+  
+    expect(result.content?.url, 'url').toBeTruthy();
+    expect(result.content?.raw, 'raw').toBeTruthy();
+    expect(result.content?.json, 'json').toBeTruthy();
+  });
 
-  //   await fs.appendFile('./tests/results.txt',
-  //   `${index}:findmani:manifest-${result.content?.url?'true':'false'}:raw-${result.content?.raw?'true':'false'}:json-${result.content?.json?'true':'false'},`, (err) => {});
-  
-  //   expect(apiCall.status(), 'status 200').toBe(200);
-  
-  //   expect(result.content?.url, 'url').toBeTruthy();
-  //   expect(result.content?.raw, 'raw').toBeTruthy();
-  //   expect(result.content?.json, 'json').toBeTruthy();
-  // });
+  test(`${index}:api/FetchWebManifest: url, raw, json`, async ({ request, baseURL }) => {
+    const apiCall = await request.get(`${baseURL}/api/FetchWebManifest?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
+    let result = await apiCall.json();
 
-  // test(`${index}:api/FetchWebManifest: url, raw, json`, async ({ request, baseURL }) => {
-  //   const apiCall = await request.get(`${baseURL}/api/FetchWebManifest?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
-  //   let result = await apiCall.json();
+    await fs.appendFile('./tests/results.txt',
+    `${index}:old_fetchmani:manifest-${result.content?.url?'true':'false'}:json-${result.content?.json?'true':'false'},`, (err) => {});
+  
+    expect(apiCall.status(), 'status 200').toBe(200);
+  
+    expect(result.content?.url, 'url').toBeTruthy();
+    expect(result.content?.json, 'json').toBeTruthy();
+  });
 
-  //   await fs.appendFile('./tests/results.txt',
-  //   `${index}:old_fetchmani:manifest-${result.content?.url?'true':'false'}:json-${result.content?.json?'true':'false'},`, (err) => {});
-  
-  //   expect(apiCall.status(), 'status 200').toBe(200);
-  
-  //   expect(result.content?.url, 'url').toBeTruthy();
-  //   expect(result.content?.json, 'json').toBeTruthy();
-  // });
+  test(`${index}:api/Security: isHTTPS`, async ({ request, baseURL }) => {
+    const apiCall = await request.get(`${baseURL}/api/Security?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
+    let result = await apiCall.json();
 
-  // test(`${index}:api/Security: isHTTPS`, async ({ request, baseURL }) => {
-  //   const apiCall = await request.get(`${baseURL}/api/Security?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
-  //   let result = await apiCall.json();
+    await fs.appendFile('./tests/results.txt',
+    `${index}:old_security:isHTTPS-${result.data?.isHTTPS?'true':'false'},`, (err) => {});
+  
+    expect(apiCall.status(), 'status 200').toBe(200);
+  
+    expect(result.data?.isHTTPS, 'isHTTPS').toBeTruthy();
+    expect(result.data?.valid, 'valid').toBeTruthy();
+    expect(result.data?.validProtocol, 'validProtocol').toBeTruthy();
+  });
 
-  //   await fs.appendFile('./tests/results.txt',
-  //   `${index}:old_security:isHTTPS-${result.data?.isHTTPS?'true':'false'},`, (err) => {});
-  
-  //   expect(apiCall.status(), 'status 200').toBe(200);
-  
-  //   expect(result.data?.isHTTPS, 'isHTTPS').toBeTruthy();
-  //   expect(result.data?.valid, 'valid').toBeTruthy();
-  //   expect(result.data?.validProtocol, 'validProtocol').toBeTruthy();
-  // });
+  test(`${index}:api/runAllChecks: SW`, async ({ request, baseURL }) => {
+    const apiCall = await request.get(`https://localhost:44328/serviceWorker/runAllChecks?url=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
+    let result = await apiCall.json();
 
-  // test(`${index}:api/runAllChecks: SW`, async ({ request, baseURL }) => {
-  //   const apiCall = await request.get(`https://localhost:44328/serviceWorker/runAllChecks?url=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
-  //   let result = await apiCall.json();
-
-  //   await fs.appendFile('./tests/results.txt',
-  //   `${index}:old_all_checks:SW-${result.hasSW?'true':'false'},`, (err) => {});
+    await fs.appendFile('./tests/results.txt',
+    `${index}:old_all_checks:SW-${result.hasSW?'true':'false'},`, (err) => {});
   
-  //   expect(apiCall.status(), 'status 200').toBe(200);
+    expect(apiCall.status(), 'status 200').toBe(200);
   
-  //   expect(result.hasSW, 'hasSW').toBeTruthy();
-  // });
+    expect(result.hasSW, 'hasSW').toBeTruthy();
+  });
 
   await test(`${index}:api/Report: SW, manifest, isOnHttps, isInstallable`, async ({ request, baseURL }) => {
     const apiCall = await request.get(`${baseURL}/api/Report?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });

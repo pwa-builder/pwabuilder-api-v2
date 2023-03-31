@@ -106,6 +106,16 @@ const lighthouse = (params: string[], options: childProcess.SpawnOptions): {chil
    
 }
 
+const killProcess = (pid?: number) => {
+  if (pid)
+    if(process.platform == "win32"){
+      exec(`taskkill /PID ${pid} /T /F`)
+    }
+    else{
+        process.kill(-pid);
+    }
+}
+
 const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
 
   const onlyAudits = `--only-audits=${[
@@ -170,14 +180,7 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
     });
 
     setTimeout(() => {
-      if (spawnResult?.child?.pid){
-        if(process.platform == "win32"){
-          exec(`taskkill /PID ${spawnResult.child.pid} /T /F`)
-        }
-        else{
-            process.kill(-spawnResult.child.pid);
-        }
-      }
+      killProcess(spawnResult?.child?.pid);
     }, AZURE_FUNC_TIMEOUT - 10 * 1000);
 
     await spawnResult.promise;
@@ -185,10 +188,7 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
     rawResult = JSON.parse((await fs.readFile(reportFile)).toString());
 
   } catch (error) {
-    if (spawnResult?.child?.pid) {
-      process.kill(-spawnResult.child.pid);
-    }
-    console.error(error, spawnResult?.child?.pid);
+    killProcess(spawnResult?.child?.pid);
   } finally{
     fs.unlink(reportFile).catch(() => {});
   }
