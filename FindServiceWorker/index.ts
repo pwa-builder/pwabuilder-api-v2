@@ -14,7 +14,7 @@ const httpTrigger: AzureFunction = async function (
     return;
   }
 
-  const site = req?.query?.site;
+  let site = req?.query?.site;
 
   context.log(
     `FindServiceWorker: function is processing a request for site: ${site}`
@@ -30,6 +30,7 @@ const httpTrigger: AzureFunction = async function (
     
     if (link) {
       if (!link.startsWith('http') && !link.startsWith('data:')) {
+        site = response.url;
         link = new URL(link, site).href;
       }
     }
