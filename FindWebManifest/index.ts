@@ -16,7 +16,7 @@ const httpTrigger: AzureFunction = async function (
     return;
   }
 
-  const site = req?.query?.site;
+  let site = req?.query?.site;
 
   context.log(
     `FindWebManifest: function is processing a request for site: ${site}`
@@ -29,12 +29,13 @@ const httpTrigger: AzureFunction = async function (
     const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
     const headRegexp = /<head\s*>(.*?|[\r\n\s\S]*?)<\/head>/;
 		const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
-
+    
     if (!headerHTML) {
       throw new Error('No <head> tag found');
     }
 
-    const dom = new JSDOM(headerHTML);
+    site = response.url;
+    const dom = new JSDOM(headerHTML, {url: site});
 
     let link = dom.window.document.querySelector('link[rel=manifest]')?.href || null;
 
