@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 export function logOfflineResult(url: string, offlineDetected: boolean): Promise<any> {
     const args = {
         url: url,

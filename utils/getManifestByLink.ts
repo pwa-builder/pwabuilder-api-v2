@@ -1,10 +1,11 @@
 import puppeteer from 'puppeteer';
+import fetch from 'node-fetch';
 
 export async function getManifestByLink(link: string, site: string): Promise<{link?: string, json?: unknown, raw?: string, error?: unknown}> {
 	let error: unknown = 'no manifest or site link provided';
 
 	if (link && site) {
-		let json = null;
+		let json: unknown | null = null;
 		let raw = '';
 
 		if (!link.startsWith('http') && !link.startsWith('data:')) {
@@ -13,7 +14,7 @@ export async function getManifestByLink(link: string, site: string): Promise<{li
 
 		if (/\.(json|webmanifest)/.test(link)){
 			try {
-				const response = await fetch(link);
+				const response = await fetch(link, { redirect: 'follow' });
 				json = await response.json();
 				raw = JSON.stringify(json);
 

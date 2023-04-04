@@ -41,6 +41,7 @@
     "jsdom": "^21.1.0",
     "jszip": "^3.10.1",
     "lighthouse": "10.0.2",
+    "node-fetch": "^3.3.1",
     "puppeteer": "19.7.2",
     "pwabuilder-lib": "^2.1.12",
     "swagger-jsdoc": "^7.0.0-rc.6",

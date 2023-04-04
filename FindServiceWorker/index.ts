@@ -1,5 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import fetch from 'node-fetch';
 import { checkParams } from '../utils/checkParams.js';
+
 
 
 const httpTrigger: AzureFunction = async function (
@@ -38,7 +40,7 @@ const httpTrigger: AzureFunction = async function (
     if (link) {
       try {
         const response = await fetch(link);
-        if (response.status == 200) {
+        if (response.ok) {
           serviceWorker = await response.text();
         }
       } catch (error) {

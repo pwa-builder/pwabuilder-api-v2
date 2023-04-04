@@ -1,4 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import fetch from 'node-fetch';
 import { checkParams } from '../utils/checkParams.js';
 import puppeteer from 'puppeteer';
 import { JSDOM } from 'jsdom';
@@ -24,20 +25,21 @@ const httpTrigger: AzureFunction = async function (
 
   try {
 
-    const response = await fetch(site);
+    const response = await fetch(site, { redirect: 'follow' });
     const rawHTML = await response.text();
-    const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
-    const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
-		const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
+    // const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
+    // const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
+		// const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
     
-    if (!headerHTML) {
-      throw new Error('No <head> tag found');
-    }
+    // if (!headerHTML) {
+    //   throw new Error('No <head> tag found');
+    // }
 
     site = response.url;
-    const dom = new JSDOM(headerHTML, {url: site});
-
-    let link = dom.window.document.querySelector('link[rel=manifest]')?.href || null;
+    const dom = JSDOM.fragment(rawHTML);
+    let link = dom.querySelector('link[rel=manifest]')?.href || null;
+    // const dom = new JSDOM(headerHTML, {url: site, storageQuota: 0});
+    // let link = dom.window.document.querySelector('link[rel=manifest]')?.href || null;
 
     let json: unknown | null = null;
     let raw: string | null = null;
@@ -63,12 +65,7 @@ const httpTrigger: AzureFunction = async function (
         const href = await page.evaluate(link => link?.href, manifestHandle);
         await manifestHandle?.dispose();
 
-        // const manifest = await page.evaluate(() =>  {
-        //     return document.querySelector('link[rel=manifest]'); 
-        // });
-
         if (href) {
-          // link = manifest.getAttribute('href');
           const results = await getManifestByLink(href, site);
           if (results && !results.error) {
             link = results.link || href;

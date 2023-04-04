@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 const pushRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]push['"]/m), // .addEventListener('push') or .addEventListener("push") or [new line] addEventListener('push')
 	new RegExp(/[.|\n\s*]onpush\s*=/m) // self.onpush = ... [new line] onpush = ...
@@ -76,7 +78,7 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 	const separateContent: string[] = [];
 	if (serviceWorkerUrl) {
 		const response = await fetch(serviceWorkerUrl);
-		content = response.status == 200 ? await response.text() : undefined;
+		content = response.ok ? await response.text() : undefined;
 	}
 	if (content?.length && typeof content == 'string') {
 		separateContent.push(content);
