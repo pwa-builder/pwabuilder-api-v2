@@ -1,9 +1,17 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import fetch from 'node-fetch';
-import { checkParams } from '../utils/checkParams.js';
 import puppeteer from 'puppeteer';
 import { JSDOM } from 'jsdom';
+import { userAgents } from 'lighthouse/core/config/constants.js';
+
+import { checkParams } from '../utils/checkParams.js';
 import { getManifestByLink } from '../utils/getManifestByLink.js';
+
+/**
+ * Workaround for https://github.com/jsdom/jsdom/issues/2005
+ */
+import { implementation } from 'jsdom/lib/jsdom/living/nodes/HTMLStyleElement-impl.js';
+implementation.prototype._updateAStyleBlock = () => {};
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -25,21 +33,21 @@ const httpTrigger: AzureFunction = async function (
 
   try {
 
-    const response = await fetch(site, { redirect: 'follow' });
+    const response = await fetch(site, { redirect: 'follow', headers: { 'User-Agent': userAgents.desktop } });
     const rawHTML = await response.text();
-    // const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
+    const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
     // const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
 		// const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
     
-    // if (!headerHTML) {
+    // if (!html) {
     //   throw new Error('No <head> tag found');
     // }
 
     site = response.url;
-    const dom = JSDOM.fragment(rawHTML);
-    let link = dom.querySelector('link[rel=manifest]')?.href || null;
-    // const dom = new JSDOM(headerHTML, {url: site, storageQuota: 0});
-    // let link = dom.window.document.querySelector('link[rel=manifest]')?.href || null;
+    // const dom = JSDOM.fragment(rawHTML);
+    // let link = dom.querySelector('link[rel=manifest]')?.href || null;
+    const dom = new JSDOM(html, {url: site, storageQuota: 0});
+    let link = dom.window.document.querySelector('link[rel=manifest]')?.href || null;
 
     let json: unknown | null = null;
     let raw: string | null = null;
@@ -57,7 +65,7 @@ const httpTrigger: AzureFunction = async function (
     }
     else {
       try {
-        const browser = await puppeteer.launch({headless: 'new'});
+        const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
         const page = await browser.newPage();
         await page.goto(site, {timeout: 10000, waitUntil: 'load'});
 

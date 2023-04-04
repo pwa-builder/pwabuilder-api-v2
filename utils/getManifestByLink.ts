@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import fetch from 'node-fetch';
+import { userAgents } from 'lighthouse/core/config/constants.js';
 
 export async function getManifestByLink(link: string, site: string): Promise<{link?: string, json?: unknown, raw?: string, error?: unknown}> {
 	let error: unknown = 'no manifest or site link provided';
@@ -12,11 +13,11 @@ export async function getManifestByLink(link: string, site: string): Promise<{li
 			link = new URL(link, site).href;
 		}
 
-		if (/\.(json|webmanifest)/.test(link)){
+		if (/\.(json|webmanifest)/.test(link) || link.startsWith('data:')){
 			try {
-				const response = await fetch(link, { redirect: 'follow' });
-				json = await response.json();
-				raw = JSON.stringify(json);
+				const response = await fetch(link, { redirect: 'follow', headers: { 'User-Agent': userAgents.desktop } });
+				raw = await response.text();
+				json = JSON.parse(raw);
 
 				return {
 					link,
@@ -29,7 +30,7 @@ export async function getManifestByLink(link: string, site: string): Promise<{li
 		}
 		else {
 			try {
-				const browser = await puppeteer.launch({headless: 'new'});
+				const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
 				const page = await browser.newPage();
 				await page.goto(link, {timeout: 5000, waitUntil: 'domcontentloaded'});
 

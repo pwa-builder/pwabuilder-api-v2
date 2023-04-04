@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import fetch from 'node-fetch';
 import { checkParams } from '../utils/checkParams.js';
+import { userAgents } from 'lighthouse/core/config/constants.js';
 
 
 
@@ -23,7 +24,7 @@ const httpTrigger: AzureFunction = async function (
   );
 
   try {
-    const response = await fetch(site);
+    const response = await fetch(site, { redirect: 'follow', headers: { 'User-Agent': userAgents.desktop } });
     const html = await response.text();
 
     const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*?)['"]/) || html.match(/new Workbox\s*\(\s*['"](.*)['"]/);
@@ -39,7 +40,7 @@ const httpTrigger: AzureFunction = async function (
 
     if (link) {
       try {
-        const response = await fetch(link);
+        const response = await fetch(link, { headers: { 'User-Agent': userAgents.desktop }});
         if (response.ok) {
           serviceWorker = await response.text();
         }
