@@ -1,5 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 import puppeteer from 'puppeteer';
 import { JSDOM } from 'jsdom';
 import { userAgents } from 'lighthouse/core/config/constants.js';
@@ -12,6 +12,8 @@ import { getManifestByLink } from '../utils/getManifestByLink.js';
  */
 import { implementation } from 'jsdom/lib/jsdom/living/nodes/HTMLStyleElement-impl.js';
 implementation.prototype._updateAStyleBlock = () => {};
+
+const MANIFEST_QUERY = "link[rel*=manifest]";
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -32,22 +34,41 @@ const httpTrigger: AzureFunction = async function (
   );
 
   try {
+    let link: string | null = null;
+    try {
+      const response = await fetch(site, { redirect: 'follow', follow: 3, headers: { 'User-Agent': userAgents.desktop, 'Accept': 'text/html' } });
 
-    const response = await fetch(site, { redirect: 'follow', headers: { 'User-Agent': userAgents.desktop } });
-    const rawHTML = await response.text();
-    const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
+      const rawHTML = await response.text();
+      const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
+
+      site = response.url;
+      const dom = new JSDOM(html, {url: site, storageQuota: 0});
+      const manifests: NodeList = dom.window.document.querySelectorAll(MANIFEST_QUERY);
+      if (manifests.length > 0) {
+        manifests.forEach((manifest: Node) => {
+          if (manifest.nodeName == 'LINK' && (manifest as HTMLLinkElement).rel.trim() == 'manifest'){
+            link = (manifest as HTMLLinkElement).href;
+          }
+        })
+      }
+      // link = dom.window.document.querySelectorAll(MANIFEST_QUERY)?.href || null;
+    } catch (error) {
+      context.log.error(`FindWebManifest: ${error}`);
+    }
+
     // const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
 		// const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
     
     // if (!html) {
     //   throw new Error('No <head> tag found');
     // }
-
-    site = response.url;
+    
     // const dom = JSDOM.fragment(rawHTML);
     // let link = dom.querySelector('link[rel=manifest]')?.href || null;
-    const dom = new JSDOM(html, {url: site, storageQuota: 0});
-    let link = dom.window.document.querySelector('link[rel=manifest]')?.href || null;
+
 
     let json: unknown | null = null;
     let raw: string | null = null;
@@ -67,11 +88,24 @@ const httpTrigger: AzureFunction = async function (
       try {
         const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
         const page = await browser.newPage();
-        await page.goto(site, {timeout: 10000, waitUntil: 'load'});
+        page.setUserAgent(userAgents.desktop);
+        let href: string | undefined;
 
-        const manifestHandle = await page.$('link[rel=manifest]');
-        const href = await page.evaluate(link => link?.href, manifestHandle);
-        await manifestHandle?.dispose();
+        try {
+          await page.goto(site, {timeout: 10000, waitUntil: 'domcontentloaded'});
+
+          const manifestHandles = await page.$$(MANIFEST_QUERY);
+          if (manifestHandles.length > 0){
+            await manifestHandles.forEach(async (handle) => {
+              href = await page.evaluate(link => { if (link?.rel.trim() == 'manifest') return link?.href } , handle) || href;
+              await handle?.dispose();
+            });
+          }
+        } catch (error) {
+          throw error;
+        } finally {
+          await browser.close();
+        }
 
         if (href) {
           const results = await getManifestByLink(href, site);
@@ -84,8 +118,6 @@ const httpTrigger: AzureFunction = async function (
             throw results?.error;
           }
         }
-        
-        browser.close();
       }
       catch (error) {
         context.log.error(`FindWebManifest: ${error}`)
