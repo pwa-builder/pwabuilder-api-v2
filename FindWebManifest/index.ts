@@ -1,4 +1,4 @@
-import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import { AzureFunction, Context, Exception, HttpRequest } from '@azure/functions';
 import fetch, { Response } from 'node-fetch';
 import puppeteer from 'puppeteer';
 import { JSDOM } from 'jsdom';
@@ -34,6 +34,7 @@ const httpTrigger: AzureFunction = async function (
   );
 
   try {
+    let links: string[] = [];
     let link: string | null = null;
     try {
       const response = await fetch(site, { redirect: 'follow', follow: 3, headers: { 'User-Agent': userAgents.desktop, 'Accept': 'text/html' } });
@@ -45,82 +46,48 @@ const httpTrigger: AzureFunction = async function (
       const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
 
       site = response.url;
-      const dom = new JSDOM(html, {url: site, storageQuota: 0});
+      const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
+		  const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
+      const dom = new JSDOM(headerHTML || html, {url: site, storageQuota: 0});
       const manifests: NodeList = dom.window.document.querySelectorAll(MANIFEST_QUERY);
       if (manifests.length > 0) {
         manifests.forEach((manifest: Node) => {
           if (manifest.nodeName == 'LINK' && (manifest as HTMLLinkElement).rel.trim() == 'manifest'){
-            link = (manifest as HTMLLinkElement).href;
+            let href = (manifest as HTMLLinkElement).href;
+            href && links.push(href);
+            link = href;
           }
         })
       }
-      // link = dom.window.document.querySelectorAll(MANIFEST_QUERY)?.href || null;
     } catch (error) {
       context.log.error(`FindWebManifest: ${error}`);
     }
-
-    // const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
-		// const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
-    
-    // if (!html) {
-    //   throw new Error('No <head> tag found');
-    // }
-    
-    // const dom = JSDOM.fragment(rawHTML);
-    // let link = dom.querySelector('link[rel=manifest]')?.href || null;
 
 
     let json: unknown | null = null;
     let raw: string | null = null;
 
-    if (link) {
-      const results = await getManifestByLink(link, site);
-      if (results && !results.error) {
-        link = results.link || link;
-        json = results.json || null;
-        raw = results.raw || null;
+    if (links.length) {
+
+      let extracted = await extractManifest(links, site);
+
+      if (!extracted.error) {
+        link = extracted.link || link;
+        json = extracted.json || null;
+        raw = extracted.raw || null;
       }
-      else{
-        context.log.error(`FindWebManifest: ${results?.error}`);
+      else {
+        context.log.warn(`FindWebManifest: can't get manifest by link: ${links.toString()}`);
+        // throw extracted.error;
       }
     }
-    else {
-      try {
-        const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
-        const page = await browser.newPage();
-        page.setUserAgent(userAgents.desktop);
-        let href: string | undefined;
-
-        try {
-          await page.goto(site, {timeout: 10000, waitUntil: 'domcontentloaded'});
-
-          const manifestHandles = await page.$$(MANIFEST_QUERY);
-          if (manifestHandles.length > 0){
-            await manifestHandles.forEach(async (handle) => {
-              href = await page.evaluate(link => { if (link?.rel.trim() == 'manifest') return link?.href } , handle) || href;
-              await handle?.dispose();
-            });
-          }
-        } catch (error) {
-          throw error;
-        } finally {
-          await browser.close();
-        }
-
-        if (href) {
-          const results = await getManifestByLink(href, site);
-          if (results && !results.error) {
-            link = results.link || href;
-            json = results.json || null;
-            raw = results.raw || null;
-          }
-          else{
-            throw results?.error;
-          }
-        }
-      }
-      catch (error) {
-        context.log.error(`FindWebManifest: ${error}`)
+    
+    if (!links.length || !json || !raw) {
+      let results = await puppeteerAttempt(site, context);
+      if (!results.error) {
+        link = results.link || null;
+        json = results.json || null;
+        raw = results.raw || null;
       }
     }
 
@@ -166,6 +133,85 @@ const httpTrigger: AzureFunction = async function (
     );
   }
 };
+
+async function puppeteerAttempt(site: string, context?: Context): Promise<{error?, link?, json?, raw?}> {
+  try {
+    context?.log.warn(`FindWebManifest: trying slow mode`);
+
+    const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    const page = await browser.newPage();
+    page.setUserAgent(userAgents.desktop);
+    let href: string | undefined;
+    let links: string[] = [];
+
+    try {
+      await page.goto(site, {timeout: 10000, waitUntil: 'domcontentloaded'});
+
+      const manifestHandles = await page.$$(MANIFEST_QUERY);
+      if (manifestHandles.length > 0) {
+        await manifestHandles.forEach(async (handle) => {
+          href = await page.evaluate(link => { if (link?.rel.trim() == 'manifest') return link?.href } , handle);
+          href && links.push(href);
+          await handle?.dispose();
+        });
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      await browser.close();
+    }
+    
+
+    if (links.length) {
+      let extracted = await extractManifest(links, site);
+
+      if (!extracted.error) {
+        return {
+          link: extracted.link || null,
+          json: extracted.json || null,
+          raw: extracted.raw || null
+        }
+      }
+      else {
+        context?.log.warn(`FindWebManifest: can't get manifest by link: ${links.toString()}`);
+        throw extracted.error;
+      }
+    }
+    else {
+      throw 'No manifest found';
+    }
+  }
+  catch (error) {
+    context?.log.error(`FindWebManifest: ${error}`)
+    return {
+      error
+    }
+  }
+}
+
+async function extractManifest(links: string[], site: string, context?: Context): Promise<{error?, link?, json?, raw?}> {
+  let succeded, failed, results: {error?, link?, json?, raw?}[] = [];
+
+  await Promise.all(links.map(async (link) => {
+    results.push(await getManifestByLink(link, site));
+  }));
+  succeded = results.filter((result) => !result.error);
+  failed = results.filter((result) => result.error);
+
+  if (succeded.length) {
+    return {
+      link: succeded[0].link || null,
+      json: succeded[0].json || null,
+      raw: succeded[0].raw || null
+    }
+  }
+  else {
+    context?.log.warn(`FindWebManifest: can't get manifest by link: ${links.toString()}`);
+    return {
+      error: failed[0].error
+    }
+  }
+}
 
 export default httpTrigger;
 

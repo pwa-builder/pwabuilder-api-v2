@@ -16,7 +16,7 @@ export async function getManifestByLink(link: string, site: string): Promise<{li
 
 		// if (/\.(json|webmanifest)/.test(link) || link.startsWith('data:')){
 			try {
-				const response = await fetch(link, { redirect: 'follow', follow: 2,  headers: { 'User-Agent': userAgents.desktop, 'Accept': 'application/json' } });
+				const response = await fetch(link, { redirect: 'follow', follow: 2,  headers: { 'User-Agent': userAgents.desktop, /*'Accept': 'application/json'*/ } });
 				raw = await response.text();
 				json = JSON.parse(clean(raw));
 
