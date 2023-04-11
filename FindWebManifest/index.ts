@@ -140,12 +140,23 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
 
     const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
-    page.setUserAgent(userAgents.desktop);
+    await page.setUserAgent(userAgents.desktop);
+    await page.setRequestInterception(true);
     let href: string | undefined;
     let links: string[] = [];
 
     try {
-      await page.goto(site, {timeout: 10000, waitUntil: 'domcontentloaded'});
+      page.on('request', (req) => {
+          if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'){
+              req.abort();
+          }
+          else {
+              req.continue();
+          }
+      });
+      
+      await page.goto(site, {timeout: 15000, waitUntil: 'load'});
+      await page.waitForNetworkIdle({ timeout: 5000, idleTime: 1000});
 
       const manifestHandles = await page.$$(MANIFEST_QUERY);
       if (manifestHandles.length > 0) {

@@ -44,7 +44,7 @@ async function puppeteerAttempt(link: string): Promise<{link?: string, json?: un
 		try {
 			const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
 			const page = await browser.newPage();
-			page.setUserAgent(userAgents.desktop);
+			await page.setUserAgent(userAgents.desktop);
 
 			try{
 				await page.goto(link, {timeout: 5000, waitUntil: 'domcontentloaded'});
