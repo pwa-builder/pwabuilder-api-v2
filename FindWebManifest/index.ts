@@ -14,6 +14,7 @@ import { implementation } from 'jsdom/lib/jsdom/living/nodes/HTMLStyleElement-im
 implementation.prototype._updateAStyleBlock = () => {};
 
 const MANIFEST_QUERY = "link[rel*=manifest]";
+const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent`;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -37,7 +38,7 @@ const httpTrigger: AzureFunction = async function (
     let links: string[] = [];
     let link: string | null = null;
     try {
-      const response = await fetch(site, { redirect: 'follow', follow: 3, headers: { 'User-Agent': userAgents.desktop, 'Accept': 'text/html' } });
+      const response = await fetch(site, { redirect: 'follow', follow: 3, headers: { 'User-Agent': USER_AGENT, 'Accept': 'text/html' } });
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -140,8 +141,12 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
 
     const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
-    await page.setUserAgent(userAgents.desktop);
+    await page.setUserAgent(USER_AGENT);
     await page.setRequestInterception(true);
+    // await page.setViewport({
+    //   width: 1024,
+    //   height: 768
+    // });
     let href: string | undefined;
     let links: string[] = [];
 
@@ -157,6 +162,7 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
       
       await page.goto(site, {timeout: 15000, waitUntil: 'load'});
       await page.waitForNetworkIdle({ timeout: 5000, idleTime: 1000});
+      // const html = await page.evaluate(() =>  document.documentElement.outerHTML);
 
       const manifestHandles = await page.$$(MANIFEST_QUERY);
       if (manifestHandles.length > 0) {
