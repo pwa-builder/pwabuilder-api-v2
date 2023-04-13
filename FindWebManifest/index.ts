@@ -11,10 +11,12 @@ import { getManifestByLink } from '../utils/getManifestByLink.js';
  * Workaround for https://github.com/jsdom/jsdom/issues/2005
  */
 import { implementation } from 'jsdom/lib/jsdom/living/nodes/HTMLStyleElement-impl.js';
+
 implementation.prototype._updateAStyleBlock = () => {};
 
 const MANIFEST_QUERY = "link[rel*=manifest]";
 const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent`;
+const SKIP_RESOURCES = [ 'stylesheet', 'font', 'image', 'imageset', 'media', 'ping']
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -28,7 +30,7 @@ const httpTrigger: AzureFunction = async function (
     return;
   }
 
-  let site = req?.query?.site;
+  const site = req?.query?.site;
 
   context.log(
     `FindWebManifest: function is processing a request for site: ${site}`
@@ -46,10 +48,9 @@ const httpTrigger: AzureFunction = async function (
       const rawHTML = await response.text();
       const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
 
-      site = response.url;
       const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
 		  const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
-      const dom = new JSDOM(headerHTML || html, {url: site, storageQuota: 0});
+      const dom = new JSDOM(headerHTML || html, {url: response.url, storageQuota: 0});
       const manifests: NodeList = dom.window.document.querySelectorAll(MANIFEST_QUERY);
       if (manifests.length > 0) {
         manifests.forEach((manifest: Node) => {
@@ -136,6 +137,9 @@ const httpTrigger: AzureFunction = async function (
 };
 
 async function puppeteerAttempt(site: string, context?: Context): Promise<{error?, link?, json?, raw?}> {
+  let href: string | undefined;
+  let json: any | undefined;
+
   try {
     context?.log.warn(`FindWebManifest: trying slow mode`);
 
@@ -147,30 +151,51 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
     //   width: 1024,
     //   height: 768
     // });
-    let href: string | undefined;
+
     let links: string[] = [];
 
     try {
+      // speed up loading
       page.on('request', (req) => {
-          if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'){
+          if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
               req.abort();
           }
           else {
               req.continue();
           }
       });
-      
-      await page.goto(site, {timeout: 15000, waitUntil: 'load'});
-      await page.waitForNetworkIdle({ timeout: 5000, idleTime: 1000});
-      // const html = await page.evaluate(() =>  document.documentElement.outerHTML);
 
-      const manifestHandles = await page.$$(MANIFEST_QUERY);
-      if (manifestHandles.length > 0) {
-        await manifestHandles.forEach(async (handle) => {
-          href = await page.evaluate(link => { if (link?.rel.trim() == 'manifest') return link?.href } , handle);
-          href && links.push(href);
-          await handle?.dispose();
-        });
+      // waiting for manifest request or until full page loads
+      page.on('response', async (res) => {
+        if (res.request().resourceType() == 'manifest'){
+          href = res.url();
+          try {
+            json = await res.json();
+            await page.close();
+            
+          } catch (err) {}
+        }
+      });
+
+      await page.goto(site, {timeout: 15000, waitUntil: 'load'});
+      try {
+        await page.waitForNetworkIdle({ timeout: 3000, idleTime: 1000});
+      } catch(err) {}
+
+      // trying to find manifest in html if request was unsuccessful 
+      if (!page.isClosed()) {
+        try {
+          // const html = await page.evaluate(() =>  document.documentElement.outerHTML);
+          const manifestHandles = await page.$$(MANIFEST_QUERY);
+          if (manifestHandles.length > 0) {
+            await manifestHandles.forEach(async (handle) => {
+              href = await page.evaluate(link => { if (link?.rel.trim() == 'manifest') return link?.href } , handle);
+              href && links.push(href);
+              await handle?.dispose();
+            });
+          }
+        } catch (err) {}
+        
       }
     } catch (error) {
       throw error;
@@ -178,24 +203,32 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
       await browser.close();
     }
     
-
-    if (links.length) {
-      let extracted = await extractManifest(links, site);
-
-      if (!extracted.error) {
-        return {
-          link: extracted.link || null,
-          json: extracted.json || null,
-          raw: extracted.raw || null
-        }
-      }
-      else {
-        context?.log.warn(`FindWebManifest: can't get manifest by link: ${links.toString()}`);
-        throw extracted.error;
+    if (href && json){
+      return {
+        link: href,
+        json,
+        raw: JSON.stringify(json)
       }
     }
     else {
-      throw 'No manifest found';
+      if (links.length) {
+        let extracted = await extractManifest(links, site);
+  
+        if (!extracted.error) {
+          return {
+            link: extracted.link || null,
+            json: extracted.json || null,
+            raw: extracted.raw || null
+          }
+        }
+        else {
+          context?.log.warn(`FindWebManifest: can't get manifest by link: ${links.toString()}`);
+          throw extracted.error;
+        }
+      }
+      else {
+        throw 'No manifest found';
+      }
     }
   }
   catch (error) {
