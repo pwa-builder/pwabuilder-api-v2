@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import stripJsonComments from 'strip-json-comments';
 import { userAgents } from 'lighthouse/core/config/constants.js';
 
-const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent curl/8.0.1`;
+const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent`;
 
 export async function getManifestByLink(link: string, site: string): Promise<{link?: string, json?: unknown, raw?: string, error?: unknown}> {
 	let error: unknown = 'no manifest or site link provided';
@@ -18,9 +18,31 @@ export async function getManifestByLink(link: string, site: string): Promise<{li
 
 		// if (/\.(json|webmanifest)/.test(link) || link.startsWith('data:')){
 			try {
-				const response = await fetch(link, { redirect: 'follow', follow: 2,  headers: { 'User-Agent': USER_AGENT, /*'Accept': 'application/json'*/ } });
-				raw = await response.text();
-				json = JSON.parse(clean(raw));
+				const response = await Promise.all([
+					fetch(link, { redirect: 'follow', follow: 2,  headers: { 'User-Agent': USER_AGENT } }),
+					fetch(link, { redirect: 'follow', follow: 2,  headers: { 'User-Agent': `${USER_AGENT} curl/8.0.1` } })]
+				);
+				let raws = [await response[0].text(), await response[1].text()];
+				let jsons: unknown[] = [null, null];
+
+				try{
+					jsons[0] = (JSON.parse(clean(raws[0])));
+				} catch(e) {}
+				try{
+					jsons[1] = (JSON.parse(clean(raws[1])));
+				} catch(e) {}
+
+				if (jsons[0]) {
+					json = jsons[0];
+					raw = raws[0];
+				}
+				else if (jsons[1]) { 
+					json = jsons[1];
+					raw = raws[1];
+				}
+				else {
+					throw 'Error while JSON parsing';
+				}
 
 				return {
 					link,

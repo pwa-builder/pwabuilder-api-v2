@@ -40,7 +40,7 @@ const httpTrigger: AzureFunction = async function (
     let links: string[] = [];
     let link: string | null = null;
     try {
-      const response = await fetch(site, { redirect: 'follow', follow: 3, headers: { 'User-Agent': USER_AGENT, 'Accept': 'text/html' } });
+      const response = await fetch(site, { redirect: 'follow', follow: 3, headers: { 'User-Agent': USER_AGENT, /*'Accept': 'text/html'*/ } });
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -143,7 +143,7 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
   try {
     context?.log.warn(`FindWebManifest: trying slow mode`);
 
-    const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    const browser = await puppeteer.launch({headless: 'new' , args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
     await page.setUserAgent(USER_AGENT);
     await page.setRequestInterception(true);
@@ -157,6 +157,7 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
     try {
       // speed up loading
       page.on('request', (req) => {
+          req.url()
           if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
               req.abort();
           }
@@ -177,8 +178,8 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
         }
       });
 
-      await page.goto(site, {timeout: 15000, waitUntil: 'load'});
       try {
+        await page.goto(site, {timeout: 15000, waitUntil: 'load'});
         await page.waitForNetworkIdle({ timeout: 3000, idleTime: 1000});
       } catch(err) {}
 
