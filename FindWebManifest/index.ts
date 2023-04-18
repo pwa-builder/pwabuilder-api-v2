@@ -157,7 +157,7 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
     try {
       // speed up loading
       page.on('request', (req) => {
-          req.url()
+          // req.url()
           if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
               req.abort();
           }
