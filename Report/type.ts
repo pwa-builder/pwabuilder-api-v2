@@ -34,7 +34,14 @@ export type Report = {
     };
   };
   artifacts: {
-    webAppManifest?: any;
-    serviceWorker?: any;
+    webAppManifest?: {
+      raw?: string,
+      url?: string,
+      json?: unknown
+    };
+    serviceWorker?: {
+      raw?: string[],
+      url?: string,
+    };
   };
 };

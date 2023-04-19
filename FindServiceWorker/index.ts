@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import { checkParams } from '../utils/checkParams.js';
 import { userAgents } from 'lighthouse/core/config/constants.js';
 
-
+const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent`;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -24,7 +24,7 @@ const httpTrigger: AzureFunction = async function (
   );
 
   try {
-    const response = await fetch(site, { redirect: 'follow', headers: { 'User-Agent': userAgents.desktop } });
+    const response = await fetch(site, { redirect: 'follow', headers: { 'User-Agent': USER_AGENT } });
     const html = await response.text();
 
     const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*?)['"]/) || html.match(/new Workbox\s*\(\s*['"](.*)['"]/);
@@ -40,7 +40,7 @@ const httpTrigger: AzureFunction = async function (
 
     if (link) {
       try {
-        const response = await fetch(link, { headers: { 'User-Agent': userAgents.desktop }});
+        const response = await fetch(link, { headers: { 'User-Agent': USER_AGENT }});
         if (response.ok) {
           serviceWorker = await response.text();
         }
