@@ -74,33 +74,33 @@ array.forEach(async (url: string, index: number) => {
   // if (index > 1999)
   //   return;
   
-  test(`${index}:api/FindWebManifest: url, raw, json`, async ({ request, baseURL }) => {
-    try {
-      const checkURL = await request.get(`${url}`, { timeout: 15000 });
-      if (!checkURL.ok && checkURL.status() != 302) {
-        test.skip();
-        return;
-      }
-    } catch (error) {
-      test.skip();
-      return;
-    }
+  // test(`${index}:api/FindWebManifest: url, raw, json`, async ({ request, baseURL }) => {
+  //   try {
+  //     const checkURL = await request.get(`${url}`, { timeout: 15000 });
+  //     if (!checkURL.ok && checkURL.status() != 302) {
+  //       test.skip();
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     test.skip();
+  //     return;
+  //   }
 
-    const apiCall = await request.get(`${baseURL}/api/FindWebManifest?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
-    let result;
+  //   const apiCall = await request.get(`${baseURL}/api/FindWebManifest?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
+  //   let result;
 
-    try {
-      result = await apiCall.json();
-    } catch (error) {}
+  //   try {
+  //     result = await apiCall.json();
+  //   } catch (error) {}
 
-    await fs.appendFile('./tests/results_mani.txt',
-    `${index}:findmani:${url}:manifest-${result.content?.url?'true':'false'}:raw-${result.content?.raw?'true':'false'}:json-${result.content?.json?'true':'false'},`, (err) => {});
+  //   await fs.appendFile('./tests/results_mani.txt',
+  //   `${index}:findmani:${url}:manifest-${result?.content?.url?'true':'false'}:raw-${result?.content?.raw?'true':'false'}:json-${result?.content?.json?'true':'false'},`, (err) => {});
 
-    expect(apiCall.ok, 'status ok').toBeTruthy();
-    expect(result?.content?.url, 'url').toBeTruthy();
-    expect(result?.content?.raw, 'raw').toBeTruthy();
-    expect(result?.content?.json, 'json').toBeTruthy();
-  });
+  //   expect(apiCall.ok, 'status ok').toBeTruthy();
+  //   expect(result?.content?.url, 'url').toBeTruthy();
+  //   expect(result?.content?.raw, 'raw').toBeTruthy();
+  //   expect(result?.content?.json, 'json').toBeTruthy();
+  // });
 
   // test(`${index}:api/FindServiceWorker: url, raw, json`, async ({ request, baseURL }) => {
   //   const apiCall = await request.get(`${baseURL}/api/FindServiceWorker?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
@@ -120,13 +120,26 @@ array.forEach(async (url: string, index: number) => {
   // });
 
   // test(`${index}:api/FetchWebManifest: url, raw, json`, async ({ request, baseURL }) => {
+  //   try {
+  //     const checkURL = await request.get(`${url}`, { timeout: 15000 });
+  //     if (!checkURL.ok && checkURL.status() != 302) {
+  //       test.skip();
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     test.skip();
+  //     return;
+  //   }
+
   //   const apiCall = await request.get(`${baseURL}/api/FetchWebManifest?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
   //   let result = await apiCall.json();
 
-  //   await fs.appendFile('./tests/results.txt',
+  //   await fs.appendFile('./tests/results_mani.txt',
   //   `${index}:old_fetchmani:manifest-${result.content?.url?'true':'false'}:json-${result.content?.json?'true':'false'},`, (err) => {});
 
-  //   expect(apiCall.status(), 'status 200').not.toBe(500);
+  //   expect(apiCall.ok, 'status ok').toBeTruthy();
+  //   expect(result?.content?.url, 'url').toBeTruthy();
+  //   expect(result?.content?.json, 'json').toBeTruthy();
   //   // expect(apiCall.status(), 'status 200').toBe(200);
   
   //   // expect(result.content?.url, 'url').toBeTruthy();
@@ -163,20 +176,32 @@ array.forEach(async (url: string, index: number) => {
   //   // expect(result.hasSW, 'hasSW').toBeTruthy();
   // });
 
-  // await test(`${index}:api/Report: SW, manifest, isOnHttps, isInstallable`, async ({ request, baseURL }) => {
-  //   const apiCall = await request.get(`${baseURL}/api/Report?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
-  //   let reportResult: { data: Report } = await apiCall.json();
+  await test(`${index}:api/Report: SW, manifest, isOnHttps, isInstallable`, async ({ request, baseURL }) => {
+    try {
+      const checkURL = await request.get(`${url}`, { timeout: 15000 });
+      if (!checkURL.ok && checkURL.status() != 302) {
+        test.skip();
+        return;
+      }
+    } catch (error) {
+      test.skip();
+      return;
+    }
 
-  //   await fs.appendFile('./tests/results_new.txt',
-  //   `${index}:report:manifest-${reportResult.data?.artifacts?.webAppManifest?.url?'true':'false'}:SW-${reportResult.data?.artifacts?.serviceWorker?.url?'true':'false'}:security-${reportResult.data?.audits?.isOnHttps?.score?'true':'false'}:installable-${reportResult.data?.audits?.installableManifest?.score?'true':'false'},`, (err) => {});
+    const apiCall = await request.get(`${baseURL}/api/Report?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
+    let reportResult: { data: Report } = await apiCall.json();
+
+    // await fs.appendFile('./tests/results_new.txt',
+    // `${index}:report:manifest-${reportResult?.data?.artifacts?.webAppManifest?.url?'true':'false'}:SW-${reportResult?.data?.artifacts?.serviceWorker?.url?'true':'false'}:security-${reportResult?.data?.audits?.isOnHttps?.score?'true':'false'}:installable-${reportResult?.data?.audits?.installableManifest?.score?'true':'false'},`, (err) => {});
     
-  //   expect(apiCall.ok, 'status ok').toBeTruthy();
+    expect(apiCall.ok, 'status ok').toBeTruthy();
     
-  //   // expect(apiCall.status(), 'status 200').toBe(200);
+    // expect(apiCall.status(), 'status 200').toBe(200);
   
-  //   expect(reportResult.data?.artifacts?.webAppManifest?.url, 'manifest').toBeTruthy();
-  //   // expect(reportResult.data?.artifacts?.serviceWorker?.url, 'SW').toBeTruthy();
-  //   expect(reportResult.data?.audits?.isOnHttps?.score, 'isOnHttps').toBeTruthy();
-  //   // expect(reportResult.data?.audits?.installableManifest?.score, 'isInstallable').toBeTruthy();
-  // });
+    expect(reportResult?.data?.artifacts?.webAppManifest?.url, 'manifest-url').toBeTruthy();
+    expect(reportResult?.data?.artifacts?.webAppManifest?.json, 'manifest-json').toBeTruthy();
+    // expect(reportResult?.data?.artifacts?.serviceWorker?.url, 'SW').toBeTruthy();
+    // expect(reportResult?.data?.audits?.isOnHttps?.score, 'isOnHttps').toBeTruthy();
+    // expect(reportResult?.data?.audits?.installableManifest?.score, 'isInstallable').toBeTruthy();
+  });
 });
