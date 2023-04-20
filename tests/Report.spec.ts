@@ -188,7 +188,7 @@ array.forEach(async (url: string, index: number) => {
       return;
     }
 
-    const apiCall = await request.get(`${baseURL}/api/Report?site=${url}`, { timeout: AZURE_FUNC_TIMEOUT });
+    const apiCall = await request.get(`${baseURL}/api/Report?site=${url}&desktop=true`, { timeout: AZURE_FUNC_TIMEOUT });
     let reportResult: { data: Report } = await apiCall.json();
 
     // await fs.appendFile('./tests/results_new.txt',
