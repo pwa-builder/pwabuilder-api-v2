@@ -19,8 +19,9 @@ const browserFetcher = puppeteer.createBrowserFetcher();
 const localRevisions = await browserFetcher.localRevisions();
 const firstRevision = localRevisions?.length? browserFetcher.revisionInfo(localRevisions[0]) : null;
 
-const AZURE_FUNC_TIMEOUT = 2 * 60 * 1000;
-
+const AZURE_FUNC_TIMEOUT = 2 * 60  * 1000;
+const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 10 * 1000;
+const LIGHTHOUSE_TIMEOUT = 15 * 1000;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -152,7 +153,7 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
     '--block-new-web-contents',
     // '--single-process',
   ].join(' ')}"`;
-  const throttling = '--throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0'
+  const throttling = `--max-wait-for-load=${LIGHTHOUSE_TIMEOUT} --throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0`;
   
   let rawResult: { audits?: unknown} = {};
   let spawnResult: {child: ChildProcess, promise: Promise<number | null>} | undefined;
@@ -179,11 +180,12 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
       detached: true
     });
 
-    setTimeout(() => {
+    const spawnTimeout = setTimeout(() => {
       killProcess(spawnResult?.child?.pid);
-    }, AZURE_FUNC_TIMEOUT - 10 * 1000);
+    }, SPAWN_TIMEOUT);
 
     await spawnResult.promise;
+    clearTimeout(spawnTimeout);
 
     rawResult = JSON.parse((await fs.readFile(reportFile)).toString());
 

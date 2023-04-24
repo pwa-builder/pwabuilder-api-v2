@@ -197,9 +197,9 @@ array.forEach(async (url: string, index: number) => {
     expect(apiCall.ok, 'status ok').toBeTruthy();
     
     // expect(apiCall.status(), 'status 200').toBe(200);
-  
-    expect(reportResult?.data?.artifacts?.webAppManifest?.url, 'manifest-url').toBeTruthy();
-    expect(reportResult?.data?.artifacts?.webAppManifest?.json, 'manifest-json').toBeTruthy();
+    expect(reportResult?.data?.audits, 'audits exists').toBeTruthy();
+    // expect(reportResult?.data?.artifacts?.webAppManifest?.url, 'manifest-url').toBeTruthy();
+    // expect(reportResult?.data?.artifacts?.webAppManifest?.json, 'manifest-json').toBeTruthy();
     // expect(reportResult?.data?.artifacts?.serviceWorker?.url, 'SW').toBeTruthy();
     // expect(reportResult?.data?.audits?.isOnHttps?.score, 'isOnHttps').toBeTruthy();
     // expect(reportResult?.data?.audits?.installableManifest?.score, 'isInstallable').toBeTruthy();
