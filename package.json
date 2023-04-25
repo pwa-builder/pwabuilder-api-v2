@@ -15,7 +15,8 @@
     "start": "npm-run-all --parallel start:host watch",
     "postinstall": "node patch.js",
     "open-api": "node .openAPI/swagger-node-middleware.js",
-    "open-api:generate": "npx .openAPI/cli --config .openAPI/cli/config.json"
+    "open-api:generate": "npx .openAPI/cli --config .openAPI/cli/config.json",
+    "test": "npx playwright test"
   },
   "description": "",
   "devDependencies": {
