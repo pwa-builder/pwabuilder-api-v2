@@ -43,7 +43,7 @@ const httpTrigger: AzureFunction = async function (
   const desktop = req.query.desktop == 'true'? true : undefined;
 
   try {
-    const webAppReport = await audit(url, desktop);
+    const webAppReport = await audit(url, desktop, context);
     if (!webAppReport)
       throw new Error('Lighthouse audit failed');
 
@@ -80,7 +80,7 @@ const httpTrigger: AzureFunction = async function (
 
 const lighthouse = (params: string[], options: childProcess.SpawnOptions): {child: ChildProcess, promise: Promise<number | null> } => {
   const child = spawn(
-    `npx`,
+    `lighthouse`,
     params, 
     options) as ChildProcess;
   
@@ -117,7 +117,7 @@ const killProcess = (pid?: number) => {
     }
 }
 
-const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
+const audit = async (url: string, desktop?: boolean, context?: Context): Promise<Report|null> => {
 
   const onlyAudits = `--only-audits=${[
     'service-worker',
@@ -166,7 +166,7 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
     await fs.mkdir(tempFolder).catch(() => {});
 
     spawnResult = lighthouse(
-      [...`lighthouse --quiet=true ${throttling} ${url} --output=json --output-path=${reportFile}${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
+      [...`--quiet=true ${throttling} ${url} --output=json --output-path=${reportFile}${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
       { env: { 
         ...process.env,
         CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
@@ -175,8 +175,7 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
       },
       cwd: `${__dirname}/../../node_modules/.bin/`,
       shell: true,
-      windowsHide: true,
-      stdio: 'ignore',
+      stdio: 'inherit',
       detached: true
     });
 
@@ -190,6 +189,7 @@ const audit = async (url: string, desktop?: boolean): Promise<Report|null> => {
     rawResult = JSON.parse((await fs.readFile(reportFile)).toString());
 
   } catch (error) {
+    context?.log.warn(error);
     killProcess(spawnResult?.child?.pid);
   } finally{
     fs.unlink(reportFile).catch(() => {});
