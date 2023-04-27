@@ -121,7 +121,6 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
     'installable-manifest',
     'is-on-https',
     'maskable-icon',
-    // 'apple-touch-icon',
     'splash-screen',
     'themed-omnibox', 
     'viewport'
@@ -170,7 +169,7 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
         TEMP: `${__dirname}/../../temp`,
         PATCHED: 'true',
       }
-      ,
+      // ,
       // cwd: `${__dirname}/../../node_modules/.bin/`,
       // shell: true,
       // stdio: 'pipe',
@@ -184,8 +183,7 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
     let reportRaw = await spawnResult.promise;
     clearTimeout(spawnTimeout);
 
-    // rawResult = JSON.parse((await fs.readFile(reportFile)).toString());
-    if (typeof reportRaw == 'string')
+    if (typeof reportRaw == 'string' && reportRaw.length)
       rawResult = JSON.parse(reportRaw);
   } catch (error) {
     context?.log.warn(error);
