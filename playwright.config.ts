@@ -62,7 +62,7 @@ export default defineConfig({
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-    },
+    }
 
     /* Test against mobile viewports. */
     // {
@@ -92,6 +92,6 @@ export default defineConfig({
   webServer: {
     command: 'npm run start',
     timeout: 3 * 60 * 1000,
-    port: 7071,
+    port: 7071
   }
 });
