@@ -19,6 +19,8 @@ jobs:
       run: npx playwright install --with-deps webkit
     - name: Install Functions Core
       run: npm i azure-functions-core-tools@4 --unsafe-perm true
+    - name: Run build
+      run: npm run build
     - name: Run Playwright tests
       run: npx playwright test
     - uses: actions/upload-artifact@v3
