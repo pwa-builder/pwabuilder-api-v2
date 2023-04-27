@@ -9,7 +9,6 @@ import { Report } from './type.js';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import childProcess, { ChildProcess, exec, spawn } from 'child_process';
-// import util from 'util';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -78,26 +77,24 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-const lighthouse = (params: string[], options: childProcess.SpawnOptions): {child: ChildProcess, promise: Promise<number | null> } => {
+const lighthouse = (params: string[], options: childProcess.SpawnOptions): {child: ChildProcess, promise: Promise<string | null> } => {
   const child = spawn(
-    `lighthouse`,
+    `node`,
     params, 
     options) as ChildProcess;
   
-  // let output = '';
+  let output = '';
 
   return {
     child,
     promise: new Promise((resolveFunc) => {
-      // child.stdout.on("data", (chunk) => {
-      //   output += chunk.toString();
-      // });
+      if (child.stdout)
+        child.stdout.on("data", (chunk) => {
+          output += chunk.toString();
+        });
       
-      // child.stdio[1].on("data", (chunk) => {
-      //   output += chunk.toString();
-      // });
       child.on("exit", (code) => {
-        resolveFunc(code);
+        resolveFunc(output);
       });
       // child.on("error", (err) => {
       //   child.kill();
@@ -156,7 +153,7 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
   const throttling = `--max-wait-for-load=${LIGHTHOUSE_TIMEOUT} --throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0`;
   
   let rawResult: { audits?: unknown} = {};
-  let spawnResult: {child: ChildProcess, promise: Promise<number | null>} | undefined;
+  let spawnResult: {child: ChildProcess, promise: Promise<String | null>} | undefined;
 
   const reportId = crypto.randomUUID();
   const tempFolder = `${__dirname}/../../temp`;
@@ -164,30 +161,32 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
 
   try {
     await fs.mkdir(tempFolder).catch(() => {});
-
+    // --output-path=${reportFile}
     spawnResult = lighthouse(
-      [...`--quiet=true ${throttling} ${url} --output=json --output-path=${reportFile}${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
+      [...`${__dirname}/../../node_modules/lighthouse/cli/index.js --quiet=true ${throttling} ${url} --output=json${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
       { env: { 
         ...process.env,
         CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
         TEMP: `${__dirname}/../../temp`,
         PATCHED: 'true',
-      },
-      cwd: `${__dirname}/../../node_modules/.bin/`,
-      shell: true,
-      stdio: 'inherit',
-      detached: true
+      }
+      ,
+      // cwd: `${__dirname}/../../node_modules/.bin/`,
+      // shell: true,
+      // stdio: 'pipe',
+      // detached: true
     });
 
     const spawnTimeout = setTimeout(() => {
       killProcess(spawnResult?.child?.pid);
     }, SPAWN_TIMEOUT);
 
-    await spawnResult.promise;
+    let reportRaw = await spawnResult.promise;
     clearTimeout(spawnTimeout);
 
-    rawResult = JSON.parse((await fs.readFile(reportFile)).toString());
-
+    // rawResult = JSON.parse((await fs.readFile(reportFile)).toString());
+    if (typeof reportRaw == 'string')
+      rawResult = JSON.parse(reportRaw);
   } catch (error) {
     context?.log.warn(error);
     killProcess(spawnResult?.child?.pid);
