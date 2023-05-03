@@ -1,17 +1,17 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// require("dotenv").config();
+// require('dotenv').config();
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: "./tests/",
-  testMatch: "*.spec.ts",
+  testDir: './tests/',
+  testMatch: '*.spec.ts',
   /* Maximum time one test can run for. */
   timeout: 2.5 * 60 * 1000,
   expect: {
@@ -31,18 +31,18 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
-    ["html", { outputFolder: "temp" }],
-    ["json", { outputFile: "temp/test_results.json" }]
+    ['html', { outputFolder: 'temp' }],
+    ['json', { outputFile: 'temp/test_results.json' }]
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
-    /* Base URL to use in actions like `await page.goto("/")`. */
-    baseURL: "http://localhost:7071",
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    baseURL: 'http://localhost:7071',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry",
+    trace: 'on-first-retry',
 
     ignoreHTTPSErrors: true,
   },
@@ -50,49 +50,49 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     // {
-    //   name: "chromium",
-    //   use: { ...devices["Desktop Chrome"] },
+    //   name: 'chromium',
+    //   use: { ...devices['Desktop Chrome'] },
     // },
 
     // {
-    //   name: "firefox",
-    //   use: { ...devices["Desktop Firefox"] },
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
     // },
 
     {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     }
 
     /* Test against mobile viewports. */
     // {
-    //   name: "Mobile Chrome",
-    //   use: { ...devices["Pixel 5"] },
+    //   name: 'Mobile Chrome',
+    //   use: { ...devices['Pixel 5'] },
     // },
     // {
-    //   name: "Mobile Safari",
-    //   use: { ...devices["iPhone 12"] },
+    //   name: 'Mobile Safari',
+    //   use: { ...devices['iPhone 12'] },
     // },
 
     /* Test against branded browsers. */
     // {
-    //   name: "Microsoft Edge",
-    //   use: { channel: "msedge" },
+    //   name: 'Microsoft Edge',
+    //   use: { channel: 'msedge' },
     // },
     // {
-    //   name: "Google Chrome",
-    //   use: { channel: "chrome" },
+    //   name: 'Google Chrome',
+    //   use: { channel: 'chrome' },
     // },
   ],
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
-  // outputDir: "temp/artifacts",
+  // outputDir: 'temp/artifacts',
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "npm run start:host",
-    timeout: 1 * 60 * 1000,
-    url: "http://127.0.0.1:7071",
+    command: 'npm run start',
+    timeout: 3 * 60 * 1000,
+    port: 7071,
     reuseExistingServer: !process.env.CI
   }
 });
