@@ -11,7 +11,7 @@
     "build:production": "npm run prestart && npm prune --production",
     "watch": "tsc --w",
     "prestart": "npm run build && func extensions install",
-    "start:host": "func start --cors *",
+    "start:host": "func start --node --cors *",
     "start": "npm-run-all --parallel start:host watch",
     "postinstall": "node patch.js",
     "open-api": "node .openAPI/swagger-node-middleware.js",
