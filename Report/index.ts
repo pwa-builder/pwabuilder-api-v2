@@ -1,4 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
+import puppeteer from 'puppeteer';
 import { promises as fs } from 'fs';
 import crypto from 'crypto';
 
@@ -13,13 +14,6 @@ import childProcess, { ChildProcess, exec, spawn } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const _root = `${__dirname}/../..`;
-
-import puppeteer from 'puppeteer';
-import { BrowserFetcher } from 'puppeteer-core/lib/cjs/puppeteer/node/BrowserFetcher.js'
-// @ts-ignore
-const browserFetcher = new BrowserFetcher(_root, { path: join(_root, '.cache', 'puppeteer', 'chrome')});
-const localRevisions = await browserFetcher.localRevisions();
-const firstRevision = localRevisions?.length? browserFetcher.revisionInfo(localRevisions[0]) : null;
 
 const AZURE_FUNC_TIMEOUT = 2 * 60  * 1000;
 const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 10 * 1000;
@@ -99,9 +93,9 @@ const lighthouse = (params: string[], options: childProcess.SpawnOptions): {chil
       child.on("exit", (code) => {
         resolveFunc(output);
       });
-      // child.on("error", (err) => {
-      //   child.kill();
-      // });
+      child.on("error", (err) => {
+        output += err.toString();
+      });
     })
   }
    
@@ -168,7 +162,7 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
       [...`${_root}/node_modules/lighthouse/cli/index.js --quiet=true ${throttling} ${url} --output=json${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
       { env: { 
         ...process.env,
-        CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
+        CHROME_PATH: puppeteer.executablePath(), 
         TEMP: `${_root}/temp`,
         PATCHED: 'true',
       }
