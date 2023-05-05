@@ -3,18 +3,21 @@ import { promises as fs } from 'fs';
 import crypto from 'crypto';
 
 import { checkParams } from '../utils/checkParams.js';
+import { getManifestByLink } from '../utils/getManifestByLink.js';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
 import { Report } from './type.js';
 
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import childProcess, { ChildProcess, exec, spawn } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const _root = `${__dirname}/../..`;
 
 import puppeteer from 'puppeteer';
-import { getManifestByLink } from '../utils/getManifestByLink.js';
-const browserFetcher = puppeteer.createBrowserFetcher();
+import { BrowserFetcher } from 'puppeteer-core/lib/cjs/puppeteer/node/BrowserFetcher.js'
+// @ts-ignore
+const browserFetcher = new BrowserFetcher(_root, { path: join(_root, '.cache', 'puppeteer', 'chrome')});
 const localRevisions = await browserFetcher.localRevisions();
 const firstRevision = localRevisions?.length? browserFetcher.revisionInfo(localRevisions[0]) : null;
 
@@ -155,22 +158,22 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
   let spawnResult: {child: ChildProcess, promise: Promise<String | null>} | undefined;
 
   const reportId = crypto.randomUUID();
-  const tempFolder = `${__dirname}/../../temp`;
+  const tempFolder = `${_root}/temp`;
   const reportFile = `${tempFolder}/${reportId}_report.json`;
 
   try {
     await fs.mkdir(tempFolder).catch(() => {});
     // --output-path=${reportFile}
     spawnResult = lighthouse(
-      [...`${__dirname}/../../node_modules/lighthouse/cli/index.js --quiet=true ${throttling} ${url} --output=json${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
+      [...`${_root}/node_modules/lighthouse/cli/index.js --quiet=true ${throttling} ${url} --output=json${desktop? ' --preset=desktop':''} ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(' '), `${chromeFlags}`], 
       { env: { 
         ...process.env,
         CHROME_PATH: firstRevision?.executablePath || puppeteer.executablePath(), 
-        TEMP: `${__dirname}/../../temp`,
+        TEMP: `${_root}/temp`,
         PATCHED: 'true',
       }
       // ,
-      // cwd: `${__dirname}/../../node_modules/.bin/`,
+      // cwd: `${_root}/node_modules/.bin/`,
       // shell: true,
       // stdio: 'pipe',
       // detached: true
