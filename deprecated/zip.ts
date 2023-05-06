@@ -5,10 +5,10 @@ import {
   IconManifestImageResource,
   Manifest,
   ScreenshotManifestImageResource,
-} from "./interfaces.js";
-import { ImageProperties } from "./platform";
-import { getTagMetadataProperties } from "./storage";
-import { ManifestImageResource } from "./w3c";
+} from "../utils/interfaces.js";
+import { ImageProperties } from "../utils/platform.js";
+import { getTagMetadataProperties } from "../utils/storage.js";
+import { ManifestImageResource } from "../utils/w3c.js";
 
 type index = number;
 type ImageCategories = "icons" | "screenshots";

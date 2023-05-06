@@ -1,5 +1,5 @@
 import { Context } from '@azure/functions';
-import { LogMessages } from './logMessages.js';
+import { LogMessages } from '../utils/logMessages.js';
 
 import { launch, LaunchedChrome } from 'chrome-launcher';
 

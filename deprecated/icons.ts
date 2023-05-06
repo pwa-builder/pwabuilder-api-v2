@@ -4,7 +4,7 @@ import * as Jimp from "jimp";
 import {
   IconManifestImageResource,
   ScreenshotManifestImageResource,
-} from "./interfaces.js";
+} from "../utils/interfaces.js";
 
 export function isDataUri(uri: string): boolean {
   return (
