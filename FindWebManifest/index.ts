@@ -143,21 +143,16 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
   try {
     context?.log.warn(`FindWebManifest: trying slow mode`);
 
-    const browser = await puppeteer.launch({headless: 'new' , args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
     await page.setUserAgent(USER_AGENT);
     await page.setRequestInterception(true);
-    // await page.setViewport({
-    //   width: 1024,
-    //   height: 768
-    // });
 
     let links: string[] = [];
 
     try {
       // speed up loading
       page.on('request', (req) => {
-          // req.url()
           if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
               req.abort();
           }
@@ -172,8 +167,7 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
           href = res.url();
           try {
             json = await res.json();
-            await page.close();
-            
+            // await page.close();
           } catch (err) {}
         }
       });
@@ -181,21 +175,38 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
       try {
         await page.goto(site, {timeout: 15000, waitUntil: 'load'});
         await page.waitForNetworkIdle({ timeout: 3000, idleTime: 1000});
-      } catch(err) {}
+      } catch(err) { /* context?.log.warn(err); */ }
 
       // trying to find manifest in html if request was unsuccessful 
-      if (!page.isClosed()) {
+      if (!page.isClosed() && !json) {
         try {
-          // const html = await page.evaluate(() =>  document.documentElement.outerHTML);
-          const manifestHandles = await page.$$(MANIFEST_QUERY);
-          if (manifestHandles.length > 0) {
-            await manifestHandles.forEach(async (handle) => {
-              href = await page.evaluate(link => { if (link?.rel.trim() == 'manifest') return link?.href } , handle);
-              href && links.push(href);
-              await handle?.dispose();
+          // const html = await page.evaluate(() =>  document.head.innerHTML);
+          links = await page.evaluate(() => { 
+            let hrefs: string[] = [];
+            let links = document.head.querySelectorAll('link[rel*=manifest]') as NodeListOf<HTMLLinkElement>;
+            links.forEach((link) => {
+              if (link.rel.trim() == 'manifest'){
+                hrefs.push(link.href);
+              }
             });
-          }
-        } catch (err) {}
+            return hrefs;
+          });
+          // context?.log.warn('mani', manifestHandles.length, manifestHandles[0]);
+          // let manifests = await manifestHandles.getProperties();
+          // let manifests_arr = Array.from(manifests.values());
+
+          // const manifestHandles = await page.$$(MANIFEST_QUERY);
+          // if (manifestHandles.length > 0) {
+            
+          //   await manifestHandles.forEach(async (link) => {
+          //     if ((link as HTMLLinkElement).rel.trim() == 'manifest')
+          //       links.push((link as HTMLLinkElement).href);
+          //     // let href = await page.evaluate(link => { if (link?.rel.trim() == 'manifest') return link?.href } , handle);
+          //     // href && links.push(href);
+          //     // await link?.dispose();
+          //   });
+          // }
+        } catch (err) { context?.log.warn(err); }
         
       }
     } catch (error) {
