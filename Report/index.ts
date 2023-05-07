@@ -3,6 +3,8 @@ import puppeteer from 'puppeteer';
 import { promises as fs } from 'fs';
 import crypto from 'crypto';
 
+import { validateManifest, Manifest, Validation } from '../utils/manifest-validation/index.js';
+
 import { checkParams } from '../utils/checkParams.js';
 import { getManifestByLink } from '../utils/getManifestByLink.js';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
@@ -197,7 +199,8 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
     WebAppManifest?: {
       raw?: string,
       url?: string,
-      json?: unknown
+      json?: unknown,
+      validation?: Validation[]
     },
     ServiceWorker?: {
       raw?: string[],
@@ -234,6 +237,7 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
         if (results && !results.error) {
           artifacts.WebAppManifest.raw = results.raw;
           artifacts.WebAppManifest.json = results.json;
+          artifacts.WebAppManifest.validation = await validateManifest(results.json as Manifest);
         }
       }
     }
