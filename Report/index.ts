@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer';
 import { promises as fs } from 'fs';
 import crypto from 'crypto';
 
-import { validateManifest, Manifest, Validation } from '../utils/manifest-validation/index.js';
+import { validateManifest, Manifest, Validation } from '@pwabuilder/manifest-validation';
 
 import { checkParams } from '../utils/checkParams.js';
 import { getManifestByLink } from '../utils/getManifestByLink.js';
