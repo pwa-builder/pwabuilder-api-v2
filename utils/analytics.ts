@@ -4,6 +4,7 @@ import {
   defaultClient,
   DistributedTracingModes,
 } from 'applicationinsights';
+import { validateSingleField } from '@pwabuilder/manifest-validation';
 
 enum AppInsightsStatus {
   ENABLED = 1,
@@ -83,6 +84,40 @@ export function trackEvent(
   }
 }
 
+export async function uploadToAppInsights(webAppReport: any, analyticsInfo: AnalyticsInfo) {
+  if (webAppReport.artifacts.webAppManifest?.json) {
+    const _manifest = webAppReport.artifacts.webAppManifest?.json;
+    analyticsInfo.url = webAppReport.artifacts.webAppManifest.url || '';
+    analyticsInfo.hasBackgroundColor = (await validateSingleField('background-color', _manifest['background-color'])).valid as boolean || false;
+    analyticsInfo.hasCategories = (await validateSingleField('categories', _manifest['categories'])).valid as boolean || false;
+    analyticsInfo.hasDescription = (await validateSingleField('description', _manifest['description'])).valid as boolean || false;
+    analyticsInfo.hasFileHandlers = (await validateSingleField('file_handlers', _manifest['file_handlers'])).valid as boolean || false;
+    analyticsInfo.hasLaunchHandlers = (await validateSingleField('launch_handler', _manifest['launch_handler'])).valid as boolean || false;
+    analyticsInfo.hasPreferRelatedApps = (await validateSingleField('prefer_related_applications', _manifest['prefer_related_applications'])).valid as boolean || false;
+    analyticsInfo.hasProtocolHandlers = (await validateSingleField('protocol_handlers', _manifest['protocol_handlers'])).valid as boolean || false;
+    analyticsInfo.hasRelatedApps = (await validateSingleField('related_applications', _manifest['related_applications'])).valid as boolean || false;
+    analyticsInfo.hasScreenshots = (await validateSingleField('screenshots', _manifest['screenshots'])).valid as boolean || false;
+    analyticsInfo.hasShareTarget = (await validateSingleField('share_target', _manifest['share_target'])).valid as boolean || false;
+    analyticsInfo.hasShortcuts = (await validateSingleField('shortcuts', _manifest['shortcuts'])).valid as boolean || false;
+    analyticsInfo.hasThemeColor = (await validateSingleField('theme_color', _manifest['theme_color'])).valid as boolean || false;
+    analyticsInfo.hasRating = (await validateSingleField('iarc_rating_id', _manifest['iarc_rating_id'])).valid as boolean || false;
+    analyticsInfo.hasWidgets = (await validateSingleField('widgets', _manifest['widgets'])).valid as boolean || false;
+    analyticsInfo.hasIcons = (await validateSingleField('icons', _manifest['icons'])).valid as boolean || false;
+  }
+  if (webAppReport.audits.serviceWorker) {
+    analyticsInfo.hasServiceWorker = webAppReport.audits.serviceWorker.score;
+
+    if (webAppReport.audits.serviceWorker.details.features) {
+      const _features = webAppReport.audits.serviceWorker.details.features;
+      analyticsInfo.hasBackgroundSync = _features.detectedBackgroundSync;
+      analyticsInfo.hasPeriodicBackgroundSync = _features.detectedPeriodicBackgroundSync;
+      analyticsInfo.hasSignsOfLogic = _features.detectedSignsOfLogic;
+    }
+  }
+
+  trackEvent(analyticsInfo, null, true);
+}
+
 export class AnalyticsInfo  {
   url: string | null = null;
   
@@ -107,7 +142,7 @@ export class AnalyticsInfo  {
   hasLaunchHandlers: boolean = false;
   hasUrlHandlers: boolean = false;
   hasMinimalUI: boolean = false;
-
+  hasIcons: boolean = false;
   hasServiceWorker: boolean = false;
   hasBackgroundSync: boolean = false;
   hasPeriodicBackgroundSync: boolean = false;
