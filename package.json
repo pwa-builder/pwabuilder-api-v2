@@ -24,6 +24,7 @@
     "@playwright/test": "^1.31.2",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
+    "applicationinsights": "^2.6.0",
     "del-cli": "^5.0.0",
     "eslint": "^8.27.0",
     "eslint-config-prettier": "^8.5.0",

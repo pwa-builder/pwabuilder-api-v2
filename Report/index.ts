@@ -3,11 +3,12 @@ import puppeteer from 'puppeteer';
 import { promises as fs } from 'fs';
 import crypto from 'crypto';
 
-import { validateManifest, Manifest, Validation } from '@pwabuilder/manifest-validation';
+import { validateManifest, Manifest, Validation, validateSingleField, singleFieldValidation } from '@pwabuilder/manifest-validation';
 
 import { checkParams } from '../utils/checkParams.js';
 import { getManifestByLink } from '../utils/getManifestByLink.js';
 import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
+import { AnalyticsInfo, trackEvent } from '../utils/analytics.js';
 import { Report } from './type.js';
 
 import { dirname, join } from 'path';
@@ -41,9 +42,35 @@ const httpTrigger: AzureFunction = async function (
   const desktop = req.query.desktop == 'true'? true : undefined;
 
   try {
-    const webAppReport = await audit(url, desktop, context);
+    const webAppReport = await audit(url, desktop, context) as Report;
     if (!webAppReport)
       throw new Error('Lighthouse audit failed');
+
+    let analyticsInfo = new AnalyticsInfo();
+
+    analyticsInfo.platformId = req.headers['platform-identifier'];
+    analyticsInfo.platformIdVersion = req.headers['platform-identifier-version'];
+    analyticsInfo.correlationId = req.headers['correlation-id'];
+
+    if (webAppReport.artifacts.webAppManifest?.json) {
+      const _manifest =  webAppReport.artifacts.webAppManifest?.json;
+      analyticsInfo.url = webAppReport.artifacts.webAppManifest.url || '';
+      analyticsInfo.hasBackgroundColor = (await validateSingleField('background-color', _manifest['background-color'])).valid as boolean || false;
+      analyticsInfo.hasCategories = (await validateSingleField('categories', _manifest['categories'])).valid as boolean || false;
+    }
+    if (webAppReport.audits.serviceWorker) {
+      analyticsInfo.hasServiceWorker = webAppReport.audits.serviceWorker.score;
+
+      if (webAppReport.audits.serviceWorker.details.features) {
+        const _features = webAppReport.audits.serviceWorker.details.features;
+        analyticsInfo.hasBackgroundSync = _features.detectedBackgroundSync;
+        analyticsInfo.hasPeriodicBackgroundSync = _features.detectedPeriodicBackgroundSync;
+        analyticsInfo.hasSignsOfLogic = _features.detectedSignsOfLogic;
+      }
+    }
+    
+    // context.log.warn(':>', analyticsInfo);
+    // trackEvent(analyticsInfo, );
 
     context.res = {
       status: 200,
@@ -100,7 +127,6 @@ const lighthouse = (params: string[], options: childProcess.SpawnOptions): {chil
       });
     })
   }
-   
 }
 
 const killProcess = (pid?: number) => {
@@ -200,7 +226,7 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
       raw?: string,
       url?: string,
       json?: unknown,
-      validation?: Validation[]
+      validation?: singleFieldValidation
     },
     ServiceWorker?: {
       raw?: string[],
@@ -237,7 +263,8 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
         if (results && !results.error) {
           artifacts.WebAppManifest.raw = results.raw;
           artifacts.WebAppManifest.json = results.json;
-          artifacts.WebAppManifest.validation = await validateManifest(results.json as Manifest);
+          // @ts-ignore
+          // artifacts.WebAppManifest.validation = await validateSingleField('start_url', results.json['start_url'] as Manifest);
         }
       }
     }
@@ -247,7 +274,6 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
   }
 
   await Promise.allSettled([processServiceWorker(), processManifest()]);
-   
 
   const report = {
     audits: {
