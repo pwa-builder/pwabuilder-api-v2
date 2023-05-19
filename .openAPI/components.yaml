@@ -142,6 +142,10 @@ responses:
                             properties:
                               url:
                                 type: string
+                              validation:
+                                type: array
+                                items:
+                                  $ref: ?file=validation.yaml
                       serviceWorker:
                         type: object
                         properties:

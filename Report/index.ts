@@ -237,7 +237,7 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
         if (results && !results.error) {
           artifacts.WebAppManifest.raw = results.raw;
           artifacts.WebAppManifest.json = results.json;
-          artifacts.WebAppManifest.validation = await validateManifest(results.json as Manifest);
+          audits['installable-manifest'].details.validation = await validateManifest(results.json as Manifest);
         }
       }
     }
@@ -254,7 +254,10 @@ const audit = async (url: string, desktop?: boolean, context?: Context): Promise
       isOnHttps: { score: audits['is-on-https']?.score? true : false },
       installableManifest: { 
         score: audits['installable-manifest']?.score? true : false,
-        details: { url: audits['installable-manifest']?.details?.debugData?.manifestUrl || undefined }
+        details: { 
+          url: artifacts.WebAppManifest?.url || undefined,
+          validation: audits['installable-manifest']?.details?.validation || undefined
+        }
       },
       serviceWorker: {
         score: audits['service-worker']?.score? true : false,
