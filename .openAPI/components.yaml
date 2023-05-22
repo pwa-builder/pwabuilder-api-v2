@@ -111,6 +111,8 @@ responses:
                     type: boolean
                   validProtocol:
                     type: boolean
+                  protocol:
+                    type: string
                   valid:
                     type: boolean
   report:

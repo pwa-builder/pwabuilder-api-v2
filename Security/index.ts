@@ -45,17 +45,17 @@ const httpTrigger: AzureFunction = async function (
         throw new Error('');
       }
 
-    //   page.setRequestInterception(true);
+      await page.setRequestInterception(true);
 
-    //   const whiteList = ['document', 'plain', 'script', 'javascript'];
-    //   page.on('request', req => {
-    //     const type = req.resourceType();
-    //     if (whiteList.some(el => type.indexOf(el) >= 0)) {
-    //       req.continue();
-    //     } else {
-    //       req.abort();
-    //     }
-    //   });
+      const whiteList = ['document', 'plain', 'script', 'javascript'];
+      page.on('request', req => {
+        const type = req.resourceType();
+        if (whiteList.some(el => type.indexOf(el) >= 0)) {
+          req.continue();
+        } else {
+          req.abort();
+        }
+      });
     } catch (err: unknown) {
       if (siteData && siteData.browser) {
         await closeBrowser(context, siteData.browser);
@@ -87,13 +87,14 @@ const httpTrigger: AzureFunction = async function (
     const securityDetails = pageResponse?.securityDetails();
 
     if (securityDetails) {
+      const protocol = securityDetails.protocol().replace('_', '');
       const results = {
         isHTTPS: site.includes('https'),
         validProtocol:
-          securityDetails.protocol() === 'TLS 1.3' ||
-          securityDetails.protocol() === 'TLS 1.2' ||
-          securityDetails.protocol() === '_TSL 1.2' ||
-          securityDetails.protocol() === '_TSL 1.3',
+          protocol === 'TLS 1.3' ||
+          protocol === 'TLS 1.2' ||
+          protocol === 'QUIC',
+        protocol,
         valid: securityDetails.validTo() <= new Date().getTime(),
       };
 
