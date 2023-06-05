@@ -1,10 +1,10 @@
-schemas: 
+schemas:
   manifest:
     $ref: ?file=manifest.yaml
 parameters:
   site:
     name: site
-    schema: 
+    schema:
       type: string
       default: https://webboard.app
     in: query
@@ -30,19 +30,19 @@ responses:
   manifestGrab:
     '200':
       description: OK
-      content: 
+      content:
         application/json:
-          schema: 
+          schema:
             type: object
-            properties: 
+            properties:
               content:
                 type: object
-                properties: 
+                properties:
                   json:
                     $ref: '#/schemas/manifest'
                   url:
                     type: string
-              data: 
+              data:
                 type: object
                 properties:
                   recommended:
@@ -84,26 +84,26 @@ responses:
   manifestGen:
     '200':
       description: OK
-      content: 
+      content:
         application/json:
-          schema: 
+          schema:
             type: object
-            properties: 
+            properties:
               content:
                 type: object
                 $ref: ?file=manifest.yaml
               format:
                 type: string
-              generatedUrl: 
+              generatedUrl:
                 type: string
   security:
     '200':
       description: OK
-      content: 
+      content:
         application/json:
-          schema: 
+          schema:
             type: object
-            properties: 
+            properties:
               data:
                 type: object
                 properties:
@@ -111,16 +111,18 @@ responses:
                     type: boolean
                   validProtocol:
                     type: boolean
+                  protocol:
+                    type: string
                   valid:
                     type: boolean
   report:
     '200':
       description: OK
-      content: 
+      content:
         application/json:
-          schema: 
+          schema:
             type: object
-            properties: 
+            properties:
               data:
                 type: object
                 properties:
@@ -137,7 +139,7 @@ responses:
                         properties:
                           score:
                             type: boolean
-                          details: 
+                          details:
                             type: object
                             properties:
                               url:
@@ -147,14 +149,14 @@ responses:
                         properties:
                           score:
                             type: boolean
-                          details: 
+                          details:
                             type: object
                             properties:
                               url:
                                 type: string
                               scope:
                                 type: boolean
-                              features: 
+                              features:
                                 $ref: '#/properties/sw_features'
                       maskableIcon:
                         type: object
