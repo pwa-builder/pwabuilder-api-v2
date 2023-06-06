@@ -9,7 +9,7 @@ import {
   SpaceSeparatedList,
   ExternalApplicationResource,
   ShortcutItem,
-} from './w3c';
+} from './w3c.js';
 
 // w3c manifest
 export interface Manifest {
