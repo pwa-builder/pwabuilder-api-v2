@@ -1,0 +1,29 @@
+type: object
+properties:
+  infoString:
+    type: string
+  displayString:
+    type: string
+  category:
+    type: string
+  member:
+    type: string
+  defaultValue:
+    oneOf:
+      - type: string
+      - type: boolean
+      - type: array
+  docsLink:
+    type: string
+  errorString:
+    type: string
+  quickFix:
+    type: boolean
+  # test:
+  #   type: string
+  testRequired:
+    type: boolean
+  testName:
+    type: string
+  valid:
+    type: boolean

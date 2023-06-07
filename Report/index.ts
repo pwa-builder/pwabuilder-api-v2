@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer';
 import { promises as fs } from 'fs';
 import crypto from 'crypto';
 
-import { singleFieldValidation } from '@pwabuilder/manifest-validation';
+import { validateManifest, Manifest, Validation } from '@pwabuilder/manifest-validation';
 import { checkParams } from '../utils/checkParams.js';
 import { getManifestByLink } from '../utils/getManifestByLink.js';
 import {
@@ -219,7 +219,7 @@ const audit = async (
       raw?: string;
       url?: string;
       json?: unknown;
-      validation?: singleFieldValidation;
+      validation?: Validation[];
     };
     ServiceWorker?: {
       raw?: string[];
@@ -258,8 +258,7 @@ const audit = async (
         if (results && !results.error) {
           artifacts.WebAppManifest.raw = results.raw;
           artifacts.WebAppManifest.json = results.json;
-          // @ts-ignore
-          // artifacts.WebAppManifest.validation = await validateSingleField('start_url', results.json['start_url'] as Manifest);
+          audits['installable-manifest'].details.validation = await validateManifest(results.json as Manifest, true);
         }
       }
     } else {
@@ -278,6 +277,7 @@ const audit = async (
           url:
             audits['installable-manifest']?.details?.debugData?.manifestUrl ||
             undefined,
+            validation: audits['installable-manifest']?.details?.validation || undefined
         },
       },
       serviceWorker: {
