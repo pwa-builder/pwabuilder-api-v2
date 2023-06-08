@@ -26,7 +26,7 @@ const httpTrigger: AzureFunction = async function (
   );
 
   try {
-    const response = await fetch(site, { redirect: 'follow', headers: { 'User-Agent': USER_AGENT } });
+    const response = await fetch(site, { redirect: 'manual', headers: { 'User-Agent': USER_AGENT } });
     const html = await response.text();
 
     const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*?)['"]/) || html.match(/new Workbox\s*\(\s*['"](.*)['"]/);
