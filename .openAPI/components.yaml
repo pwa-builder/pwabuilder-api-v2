@@ -1,0 +1,203 @@
+schemas:
+  manifest:
+    $ref: ?file=manifest.yaml
+parameters:
+  site:
+    name: site
+    schema:
+      type: string
+      default: https://webboard.app
+    in: query
+    description: Web application URL
+    required: true
+properties:
+  sw_features:
+    type: object
+    properties:
+      detectedBackgroundSync:
+        type: boolean
+      detectedPeriodicBackgroundSync:
+        type: boolean
+      detectedPushRegistration:
+        type: boolean
+      detectedSignsOfLogic:
+        type: boolean
+      raw:
+        type: string
+      error:
+        type: string
+responses:
+  manifestGrab:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              content:
+                type: object
+                properties:
+                  json:
+                    $ref: '#/schemas/manifest'
+                  url:
+                    type: string
+              data:
+                type: object
+                properties:
+                  recommended:
+                    type: object
+                    properties:
+                      background_color:
+                        type: string
+                      categories:
+                        type: string
+                      description:
+                        type: string
+                      iarc_rating:
+                        type: string
+                      maskable_icon:
+                        type: string
+                      orientation:
+                        type: string
+                      prefer_related_applications:
+                        type: string
+                      related_applications:
+                        type: string
+                      screenshots:
+                        type: string
+                      theme_color:
+                        type: string
+                  required:
+                    type: object
+                    properties:
+                      short_name:
+                        type: string
+                      name:
+                        type: string
+                      display:
+                        type: string
+                      start_url:
+                        type: string
+                      icons:
+                        type: string
+  manifestGen:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              content:
+                type: object
+                $ref: ?file=manifest.yaml
+              format:
+                type: string
+              generatedUrl:
+                type: string
+  security:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  isHTTPS:
+                    type: boolean
+                  validProtocol:
+                    type: boolean
+                  protocol:
+                    type: string
+                  valid:
+                    type: boolean
+  report:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  audits:
+                    type: object
+                    properties:
+                      isOnHttps:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
+                      installableManifest:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
+                          details:
+                            type: object
+                            properties:
+                              url:
+                                type: string
+                              validation:
+                                type: array
+                                items:
+                                  $ref: ?file=validation.yaml
+                      serviceWorker:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
+                          details:
+                            type: object
+                            properties:
+                              url:
+                                type: string
+                              scope:
+                                type: boolean
+                              features:
+                                $ref: '#/properties/sw_features'
+                      maskableIcon:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
+                      splashScreen:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
+                      themedOmnibox:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
+                      viewport:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
+                  artifacts:
+                    type: object
+                    properties:
+                      webAppManifest:
+                        type: object
+                        properties:
+                          raw:
+                            type: string
+                          url:
+                            type: string
+                          json:
+                            type: object
+                      serviceWorker:
+                        type: object
+                        properties:
+                          raw:
+                            type: string
+                          url:
+                            type: string

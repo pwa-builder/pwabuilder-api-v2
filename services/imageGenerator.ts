@@ -2,17 +2,16 @@ import { Context } from '@azure/functions';
 import * as Jimp from 'jimp';
 import JSZip from 'jszip';
 import FormData from 'form-data';
-import fetch, { Response } from 'node-fetch';
-import ExceptionOf, { ExceptionType } from '../utils/Exception';
+import ExceptionOf, { ExceptionType } from '../utils/Exception.js';
 import {
   ImageGeneratorImageSpec,
   ImageGeneratorManifestImageResource,
   ImageGeneratorSources,
   IconManifestImageResource,
   ZipResult,
-} from '../utils/interfaces';
-import { setIntersection } from '../utils/set';
-import { ManifestImageResource } from '../utils/w3c';
+} from '../utils/interfaces.js';
+import { setIntersection } from '../utils/set.js';
+import { ManifestImageResource } from '../utils/w3c.js';
 
 const baseUrl = 'https://appimagegenerator-prod.azurewebsites.net';
 const uriUrl = `${baseUrl}/api/image`;
@@ -32,14 +31,19 @@ export async function generateAllImages(
       method: 'POST',
       headers: form.getHeaders(),
       body: form.getBuffer(),
-      compress: false,
+      // compress: false,
     });
     context.log.info(generate.status, generate.statusText);
 
-    const generateResponse: {
+    const generateResponse = await generate.json() as { 
       Uri?: string | '/api/image/<hash>';
-      Message?: string;
-    } = await generate.json();
+      Message?: string
+    };
+
+    // const generateResponse: {
+    //   Uri?: string | '/api/image/<hash>';
+    //   Message?: string;
+    // } = await generate.json();
 
     context.log.info('after post', generateResponse);
     if (generateResponse.Message) {
@@ -50,9 +54,7 @@ export async function generateAllImages(
         new Error(generateResponse.Message)
       );
     } else if (generateResponse.Uri) {
-      return fetch(`${baseUrl}${generateResponse.Uri}`, {
-        method: 'GET',
-      });
+      return fetch(`${baseUrl}${generateResponse.Uri}`);
     }
   } catch (e) {
     context.log.error(e);

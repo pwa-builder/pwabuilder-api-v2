@@ -6,12 +6,12 @@ export enum MimeTypes {
   jpeg = 'image/jpeg',
 }
 
-export function getContentType(req: HttpRequest): string | undefined {
-  return req.headers['Content-Type'] || req.headers['content-type'];
+export function getContentType(req: HttpRequest): string {
+  return req.headers['Content-Type'] || req.headers['content-type'] || '';
 }
 
 export function headerHasMimeType(req: HttpRequest, type: MimeTypes): boolean {
-  return (getContentType(req) || '').includes(type);
+  return (getContentType(req)).includes(type);
 }
 
 export function isFormData(req: HttpRequest): boolean {

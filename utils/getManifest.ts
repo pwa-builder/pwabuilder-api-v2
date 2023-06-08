@@ -1,8 +1,8 @@
 import { Context } from '@azure/functions';
 import fetch from 'node-fetch';
-import ExceptionOf, { ExceptionType as Type } from './Exception';
-import { Manifest } from './interfaces';
-import loadPage, { closeBrowser } from './loadPage';
+import ExceptionOf, { ExceptionType as Type } from './Exception.js';
+import { Manifest } from './interfaces.js';
+import loadPage, { closeBrowser } from './loadPage.js';
 
 export interface ManifestInformation {
   json: Manifest;
@@ -17,36 +17,43 @@ export async function getManifest(site: string, context: Context) {
     return undefined;
   }
 
-  siteData.sitePage.setRequestInterception(true);
+  // siteData.sitePage.setRequestInterception(true);
 
-  const whiteList = ['document', 'plain', 'script', 'javascript'];
-  siteData.sitePage.on('request', req => {
-    const type = req.resourceType();
-    if (whiteList.some(el => type.indexOf(el) >= 0)) {
-      req.continue();
-    } else {
-      req.abort();
-    }
-  });
+  // const whiteList = ['document', 'plain', 'script', 'javascript'];
+  // siteData.sitePage.on('request', req => {
+  //   const type = req.resourceType();
+  //   if (whiteList.some(el => type.indexOf(el) >= 0)) {
+  //     req.continue();
+  //   } else {
+  //     req.abort();
+  //   }
+  // });
 
-  const manifestUrl = await siteData?.sitePage.$eval(
-    'link[rel=manifest]',
-    (el: Element) => {
-      const anchorEl = el as HTMLAnchorElement;
-      return anchorEl.href;
-    }
-  );
+  let manifestUrl: string | undefined;
+  try{
+    manifestUrl = await siteData?.sitePage.$eval(
+      'link[rel=manifest]',
+      (el: Element) => {
+        const anchorEl = el as HTMLAnchorElement;
+        return anchorEl.href;
+      }
+    );
+  } catch (e) {
+    context.log.error('getManifest: failed to find element link[rel=manifest]');
+  }
+  
+  await closeBrowser(context, siteData.browser);
 
   if (manifestUrl) {
     const response = await fetch(manifestUrl);
     const jsonResponse = JSON.parse((await response.text()).trim());
-    await closeBrowser(context, siteData.browser);
+    // await closeBrowser(context, siteData.browser);
     return {
       json: jsonResponse,
       url: manifestUrl,
     };
   }
-  await closeBrowser(context, siteData.browser);
+  // await closeBrowser(context, siteData.browser);
   return undefined;
 }
 

@@ -1,23 +1,32 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage';
-import { logHttpsResult } from '../utils/urlLogger';
+import { checkParams } from '../utils/checkParams.js';
+import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage.js';
+import { logHttpsResult } from '../utils/urlLogger.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200) {
+    context.res = checkResult;
+    context.log.error(`Security: ${checkResult.body?.error.message}`);
+    return;
+  }
+
   context.log.info(
     `Security function is processing a request for site: ${req.query.site}`
   );
 
-  const site = req.query.site || "";
-  
+  const site = req?.query?.site as string;
   let siteData: LoadedPage | undefined;
   const startTime = new Date();
 
   try {
     let page;
     let pageResponse;
+
+    if (!site) throw new Error('Exception: no site URL');
 
     try {
       const response = await loadPage(site, context);
@@ -36,7 +45,7 @@ const httpTrigger: AzureFunction = async function (
         throw new Error('');
       }
 
-      page.setRequestInterception(true);
+      await page.setRequestInterception(true);
 
       const whiteList = ['document', 'plain', 'script', 'javascript'];
       page.on('request', req => {
@@ -47,7 +56,7 @@ const httpTrigger: AzureFunction = async function (
           req.abort();
         }
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (siteData && siteData.browser) {
         await closeBrowser(context, siteData.browser);
       }
@@ -55,7 +64,11 @@ const httpTrigger: AzureFunction = async function (
       context.res = {
         status: 500,
         body: {
-          error: { error: err, message: err.message },
+          error: {
+            error: err,
+            message:
+              err instanceof Error && err.message ? err.message : 'noMessage',
+          },
         },
       };
 
@@ -74,13 +87,14 @@ const httpTrigger: AzureFunction = async function (
     const securityDetails = pageResponse?.securityDetails();
 
     if (securityDetails) {
+      const protocol = securityDetails.protocol().replace('_', '');
       const results = {
         isHTTPS: site.includes('https'),
         validProtocol:
-          securityDetails.protocol() === 'TLS 1.3' ||
-          securityDetails.protocol() === 'TLS 1.2' ||
-          securityDetails.protocol() === '_TSL 1.2' ||
-          securityDetails.protocol() === '_TSL 1.3',
+          protocol === 'TLS 1.3' ||
+          protocol === 'TLS 1.2' ||
+          protocol === 'QUIC',
+        protocol,
         valid: securityDetails.validTo() <= new Date().getTime(),
       };
 
@@ -126,7 +140,7 @@ const httpTrigger: AzureFunction = async function (
       context.log.error(errorMessage);
       logHttpsResult(site, false, 0, errorMessage, startTime);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (siteData && siteData.browser) {
       await closeBrowser(context, siteData.browser);
     }
@@ -134,13 +148,37 @@ const httpTrigger: AzureFunction = async function (
     context.res = {
       status: 500,
       body: {
-        error: { error: err, message: err.message },
+        error: {
+          error: err,
+          message:
+            err instanceof Error && err.message ? err.message : 'noMessage',
+        },
       },
     };
-    const errorMessage = `Security function ERRORED loading a request for site: ${req.query.site} with error: ${err.message}`;
+    const errorMessage = `Security function ERRORED loading a request for site: ${
+      req.query.site
+    } with error: ${
+      err instanceof Error && err.message ? err.message : 'noMessage'
+    }`;
     context.log.error(errorMessage);
     logHttpsResult(site, false, 0, errorMessage, startTime);
   }
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /Security:
+ *    get:
+ *      deprecated: true
+ *      summary: Check webapp security
+ *      description: Validate webapp security protocols
+ *      tags:
+ *        - Validate
+ *      parameters:
+ *        - $ref: ?file=components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          $ref: ?file=components.yaml#/responses/security/200
+ */

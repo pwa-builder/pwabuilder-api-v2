@@ -1,0 +1,44 @@
+type: object
+properties: 
+    dir:
+      type: string
+    lang:
+      type: string
+    name:
+      type: string
+    short_name:
+      type: string
+    description:
+      type: string
+    categories:
+      type: string
+    iarc_rating_id:
+      type: string
+    start_url:
+      type: string
+    icons:
+      type: array
+      items:
+        type: object
+    screenshots: 
+      type: array
+      items:
+        type: object
+    display:
+      type: string
+    theme_color:
+      type: string
+    background_color:
+      type: string
+    scope:
+      type: string
+    related_applications:
+      type: array
+      items:
+        type: string
+    prefer_related_application:
+      type: boolean
+    shortcuts:
+      type: array
+      items:
+        type: string

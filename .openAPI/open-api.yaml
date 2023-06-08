@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: PWA Builder API
+  description: Azure functions based API for PWABuilder, Tools and Extensions.
+    [Repository](https://github.com/pwa-builder/pwabuilder-api-v2).
+  version: 2.1.0
+servers:
+  - url: /api
+paths:
+  /AuditServiceWorker:
+    get:
+      summary: Audit service worker
+      description: Generate features audit report for service worker by url
+      tags:
+        - Report
+      parameters:
+        - name: url
+          schema:
+            type: string
+            default: https://webboard.app/sw.js
+          in: query
+          description: Service worker file URL
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      score:
+                        type: boolean
+                      details:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                          features:
+                            $ref: ?file=components.yaml#/properties/sw_features
+  /FetchWebManifest:
+    get:
+      deprecated: true
+      summary: Manifest file
+      description: Detect and grab manifest json and url from webapp
+      tags:
+        - Generate
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          $ref: ?file=components.yaml#/responses/manifestGrab/200
+  /FindServiceWorker:
+    get:
+      summary: Fast service worker detection
+      description: Try to detect service worker and return it url and raw content
+      tags:
+        - Generate
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      raw:
+                        type: string
+  /FindWebManifest:
+    get:
+      summary: Fast web manifest detection
+      description: Try to detect web manifest and return it url, raw and json content
+      tags:
+        - Generate
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      json:
+                        $ref: ?file=components.yaml#/schemas/manifest
+  /GenerateManifest:
+    get:
+      deprecated: true
+      summary: Generate manifest file
+      description: Detect and parse or generate manifest json from webapp
+      tags:
+        - Generate
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          $ref: ?file=components.yaml#/responses/manifestGen/200
+  /Hint:
+    get:
+      summary: Hint report
+      description: Generate PWA-related Hint report for webapp
+      tags:
+        - Report
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+  /Offline:
+    get:
+      deprecated: true
+      summary: Check offline
+      description: Validate webapp for offline support
+      tags:
+        - Validate
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      offline:
+                        type: string
+  /Report:
+    get:
+      summary: Lighthouse report
+      description: Generate PWA-related Lighthouse report for webapp
+      tags:
+        - Report
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+        - name: desktop
+          schema:
+            type: boolean
+          in: query
+          description: Use desktop form factor
+          required: false
+      responses:
+        "200":
+          $ref: ?file=components.yaml#/responses/report/200
+  /Security:
+    get:
+      deprecated: true
+      summary: Check webapp security
+      description: Validate webapp security protocols
+      tags:
+        - Validate
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          $ref: ?file=components.yaml#/responses/security/200
+  /Site:
+    get:
+      deprecated: true
+      summary: Custom report
+      description: Custom manifest validation
+      tags:
+        - Report
+      parameters:
+        - $ref: ?file=components.yaml#/parameters/site
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    $ref: ?file=manifest.yaml
+                  format:
+                    type: string
+                  generatedUrl:
+                    type: string
+                  id:
+                    type: number
+                  default:
+                    type: object
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                  suggestions:
+                    type: array
+                    items:
+                      type: object
+                  warnings:
+                    type: array
+                    items:
+                      type: object
+  /WebManifest:
+    post:
+      deprecated: true
+      summary: Check webmanifest
+      description: Validate webapp manifest
+      tags:
+        - Validate
+      parameters:
+        - name: site
+          schema:
+            type: string
+            default: https://webboard.app
+          in: query
+          description: Web application URL
+      requestBody:
+        description: Optional body params
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                manifest:
+                  type: object
+                  default: null
+                maniurl:
+                  type: string
+                  default: null
+      responses:
+        "200":
+          $ref: ?file=components.yaml#/responses/manifestGrab/200
+components: {}
+tags: []

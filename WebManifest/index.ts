@@ -1,11 +1,24 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { getManifest } from '../utils/getManifest';
-import testManifest from '../utils/testManifest';
+import { checkParams, checkBody } from '../utils/checkParams.js';
+import { getManifest } from '../utils/getManifest.js';
+import testManifest from '../utils/testManifest.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
+
+  const checkSite = checkParams(req, ['site']);
+  const checkBodyManifest = checkBody(req, ['manifest']);
+  if (checkSite.status !== 200 && checkBodyManifest.status !== 200){
+    const _problem = checkSite
+    _problem.body?.error.message && (_problem.body.error.message = [checkBodyManifest.body?.error.message as string, checkSite.body?.error.message as string])
+    context.res = _problem;
+    context.log.error(`WebManifest: ${checkSite.body?.error.message} or ${checkBodyManifest.body?.error.message}`);
+    return;
+  }
+
+  
   context.log(
     `Web Manifest function is processing a request for site: ${req?.query?.site}`
   );
@@ -42,8 +55,8 @@ const httpTrigger: AzureFunction = async function (
       );
       const maniData = await getManifest(site, context);
 
-      if (maniData) {
-        const results = await testManifest(maniObject);
+      if (maniData?.json) {
+        const results = await testManifest(maniData?.json);
 
         context.res = {
           status: 200,
@@ -73,3 +86,37 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /WebManifest:
+ *    post:
+ *      deprecated: true
+ *      summary: Check webmanifest
+ *      description: Validate webapp manifest
+ *      tags:
+ *        - Validate
+ *      parameters:
+ *        - name: site
+ *          schema:
+ *            type: string
+ *            default: https://webboard.app
+ *          in: query
+ *          description: Web application URL
+ *      requestBody:
+ *        description: Optional body params
+ *        content:
+ *          application/json:
+ *            schema: 
+ *              type: object
+ *              properties: 
+ *                manifest:
+ *                  type: object
+ *                  default: null
+ *                maniurl:
+ *                  type: string
+ *                  default: null
+ *      responses:
+ *        '200':
+ *          $ref: ?file=components.yaml#/responses/manifestGrab/200
+ */​

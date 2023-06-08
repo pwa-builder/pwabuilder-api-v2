@@ -1,19 +1,29 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 import { Browser } from 'puppeteer';
-import { OfflineTestData } from "../utils/interfaces";
-const lighthouse = require('lighthouse');
-import { closeBrowser, getBrowser } from "../utils/loadPage";
-import { logOfflineResult } from "../utils/urlLogger";
+import { OfflineTestData } from "../utils/interfaces.js";
+import lighthouse from 'lighthouse';
+import { closeBrowser, getBrowser } from "../utils/loadPage.js";
+import { logOfflineResult } from "../utils/urlLogger.js";
+import { checkParams } from '../utils/checkParams.js';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
-  context.log.info(`Service Worker function is processing a request for site: ${req.query.site}`);
 
-  const url = req.query.site || '';
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`Offline: ${checkResult.body?.error.message}`);
+    return;
+  }
+
+  context.log.info(`Offline function is processing a request for site: ${req.query.site}`);
+
+  const url = req?.query?.site as string;
 
   const currentBrowser = await getBrowser(context);
 
   try {
     // run lighthouse audit
+
     if (currentBrowser) {
       const swInfo = await audit(currentBrowser, url);
       context.res = {
@@ -24,7 +34,7 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
       }
 
       logOfflineResult(url, swInfo?.worksOffline === true);
-      context.log.info(`Service Worker function is DONE processing a request for site: ${req.query.site}`);
+      context.log.info(`Offline function is DONE processing a request for site: ${req.query.site}`);
     }
 
   } catch (error) {
@@ -38,9 +48,9 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     const typedError = error as Error;
     if (typedError.name && typedError.name.indexOf('TimeoutError') > -1) {
       context
-      context.log.error(`Service Worker function TIMED OUT processing a request for site: ${url}`);
+      context.log.error(`Offline function TIMED OUT processing a request for site: ${url}`);
     } else {
-      context.log.error(`Service Worker function failed for ${url} with the following error: ${error}`)
+      context.log.error(`Offline function failed for ${url} with the following error: ${error}`)
     }
     logOfflineResult(url, false);
   } finally {
@@ -50,22 +60,23 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
 const audit = async (browser: Browser, url: string): Promise<OfflineTestData | null> => {
   // empty object that we fill with data below
-  const swInfo: any = {};
+  let swInfo: any = {};
 
   const options = {
     logLevel: 'info',
     disableDeviceEmulation: true,
     chromeFlags: ['--disable-mobile-emulation', '--disable-storage-reset'],
-    onlyAudits: ['works-offline'],
+    onlyAudits: ['installable-manifest'],
     output: 'json',
-    port: (new URL(browser.wsEndpoint())).port
+    port: Number((new URL(browser.wsEndpoint())).port)
   };
-
+  // @ts-ignore
   const runnerResult = await lighthouse(url, options);
   const audits = runnerResult?.lhr?.audits;
 
   if (audits) {
-    swInfo['offline'] = audits['works-offline'].score >= 1 ? true : false;
+    // @ts-ignore
+    swInfo.offline = audits['installable-manifest']?.score >= 1 ? true : false;
 
     return swInfo;
   }
@@ -76,3 +87,29 @@ const audit = async (browser: Browser, url: string): Promise<OfflineTestData | n
 }
 
 export default httpTrigger;
+
+/**
+ * @openapi
+ *  /Offline:
+ *    get:
+ *      deprecated: true
+ *      summary: Check offline
+ *      description: Validate webapp for offline support
+ *      tags:
+ *        - Validate
+ *      parameters:
+ *        - $ref: ?file=components.yaml#/parameters/site
+ *      responses:
+ *        '200':
+ *          description: 'OK'
+ *          content: 
+ *            application/json:
+ *              schema: 
+ *                type: object
+ *                properties: 
+ *                  data:
+ *                    type: object
+ *                    properties:
+ *                      offline:
+ *                        type: string
+ */​

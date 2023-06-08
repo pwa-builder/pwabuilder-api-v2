@@ -1,18 +1,27 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { getManifestTwoWays } from '../utils/getManifest';
-import testManifest from '../utils/testManifest';
+import { checkParams } from '../utils/checkParams.js';
+import { getManifestTwoWays } from '../utils/getManifest.js';
+import testManifest from '../utils/testManifest.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  context.log(
-    `Web Manifest function is processing a request for site: ${req?.query?.site}`
-  );
+
+  const checkResult = checkParams(req, ['site']);
+  if (checkResult.status !== 200){
+    context.res = checkResult;
+    context.log.error(`FetchWebManifest: ${checkResult.body?.error.message}`);
+    return;
+  }
 
   const site = req?.query?.site;
   const maniObject = req?.body?.manifest;
   const maniUrl = req?.body?.maniurl;
+
+  context.log(
+    `Web Manifest function is processing a request for site: ${site}`
+  );
 
   try {
     if (maniObject && (maniUrl || site)) {
@@ -40,10 +49,10 @@ const httpTrigger: AzureFunction = async function (
       context.log.info(
         `Web Manifest function is grabbing manifest object for site: ${req.query.site}`
       );
-      const start = new Date().getTime();
+      // const start = new Date().getTime();
       const maniData = await getManifestTwoWays(site, context);
-      const elapsed = new Date().getTime() - start;
-      context.log('TIME ELAPSED', elapsed);
+      // const elapsed = new Date().getTime() - start;
+      // context.log('TIME ELAPSED', elapsed);
       if (maniData) {
         const results = await testManifest(maniObject);
 
@@ -75,3 +84,19 @@ const httpTrigger: AzureFunction = async function (
 };
 
 export default httpTrigger;
+
+/**
+ * @openapi                     
+ *   /FetchWebManifest:
+ *     get:
+ *       deprecated: true
+ *       summary: Manifest file
+ *       description: 'Detect and grab manifest json and url from webapp'
+ *       tags:
+ *         - Generate
+ *       parameters:
+ *         - $ref: '?file=components.yaml#/parameters/site'
+ *       responses:
+ *         '200':
+ *           $ref: '?file=components.yaml#/responses/manifestGrab/200'
+ */

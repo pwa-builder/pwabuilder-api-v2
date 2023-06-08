@@ -1,12 +1,17 @@
-# To enable ssh & remote debugging on app service change the base image to the one below
-# FROM mcr.microsoft.com/azure-functions/node:3.0-appservice
-# FROM mcr.microsoft.com/azure-functions/node:3.0
-FROM mcr.microsoft.com/azure-functions/node:3.0-node12
+# Docker is for some debuggin puproses only (to check under WSL for example), not for production
+# docker build -t api-v2 .
+# docker run -p 80:7071 api-v2
+
+FROM mcr.microsoft.com/azure-functions/node:4-node18
+
+
+# functions api port
+EXPOSE 7071
 
 
 RUN  apt-get update \
     && apt-get install -y wget gnupg ca-certificates \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update \
     # We install Chrome to get all the OS level dependencies, but Chrome itself
@@ -21,11 +26,13 @@ RUN  apt-get update \
     && chmod +x /usr/sbin/wait-for-it.sh
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
+    ASPNETCORE_URLS=http://*:7071
+
 
 COPY . /home/site/wwwroot
 
-RUN cd /home/site/wwwroot && \
-    npm install puppeteer && \
+WORKDIR /home/site/wwwroot
+RUN rm -rf node_modules && \
     npm install && \
     npm run build

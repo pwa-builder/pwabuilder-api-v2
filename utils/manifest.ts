@@ -1,5 +1,5 @@
 import { BlobDownloadResponseParsed } from "@azure/storage-blob";
-import { Manifest } from "./interfaces";
+import { Manifest } from "./interfaces.js";
 
 export function sanitizeName(manifest: Manifest) {
   let sanitizedName = manifest.short_name;

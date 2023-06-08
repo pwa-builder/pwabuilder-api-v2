@@ -1,9 +1,9 @@
 {
   "azureFunctions.deploySubpath": ".",
-  "azureFunctions.postDeployTask": "npm install",
   "azureFunctions.projectLanguage": "TypeScript",
-  "azureFunctions.projectRuntime": "~3",
+  "azureFunctions.projectRuntime": "~4",
+  "azureFunctions.scmDoBuildDuringDeployment": true,
   "debug.internalConsoleOptions": "neverOpen",
-  "azureFunctions.preDeployTask": "npm prune",
+  // "azureFunctions.preDeployTask": "npm prune",
   "editor.tabSize": 2
 }

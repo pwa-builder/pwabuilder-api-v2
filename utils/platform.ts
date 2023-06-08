@@ -2,7 +2,7 @@ import { SASQueryParameters } from "@azure/storage-blob";
 import {
   IconManifestImageResource,
   ScreenshotManifestImageResource,
-} from "./interfaces";
+} from "./interfaces.js";
 
 type ImageKey = string;
 type SpaceSeparatedList = string;
