@@ -40,7 +40,7 @@ paths:
                           url:
                             type: string
                           features:
-                            $ref: components.yaml#/properties/sw_features
+                            $ref: ?file=components.yaml#/properties/sw_features
   /FetchWebManifest:
     get:
       deprecated: true
@@ -49,10 +49,10 @@ paths:
       tags:
         - Generate
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
-          $ref: components.yaml#/responses/manifestGrab/200
+          $ref: ?file=components.yaml#/responses/manifestGrab/200
   /FindServiceWorker:
     get:
       summary: Fast service worker detection
@@ -60,7 +60,7 @@ paths:
       tags:
         - Generate
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
           description: OK
@@ -83,7 +83,7 @@ paths:
       tags:
         - Generate
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
           description: OK
@@ -98,7 +98,7 @@ paths:
                       url:
                         type: string
                       json:
-                        $ref: components.yaml#/schemas/manifest
+                        $ref: ?file=components.yaml#/schemas/manifest
   /GenerateManifest:
     get:
       deprecated: true
@@ -107,10 +107,10 @@ paths:
       tags:
         - Generate
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
-          $ref: components.yaml#/responses/manifestGen/200
+          $ref: ?file=components.yaml#/responses/manifestGen/200
   /Hint:
     get:
       summary: Hint report
@@ -118,7 +118,7 @@ paths:
       tags:
         - Report
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
           description: OK
@@ -130,7 +130,7 @@ paths:
       tags:
         - Validate
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
           description: OK
@@ -151,7 +151,7 @@ paths:
       tags:
         - Report
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
         - name: desktop
           schema:
             type: boolean
@@ -160,7 +160,7 @@ paths:
           required: false
       responses:
         "200":
-          $ref: components.yaml#/responses/report/200
+          $ref: ?file=components.yaml#/responses/report/200
   /Security:
     get:
       deprecated: true
@@ -169,10 +169,10 @@ paths:
       tags:
         - Validate
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
-          $ref: components.yaml#/responses/security/200
+          $ref: ?file=components.yaml#/responses/security/200
   /Site:
     get:
       deprecated: true
@@ -181,7 +181,7 @@ paths:
       tags:
         - Report
       parameters:
-        - $ref: components.yaml#/parameters/site
+        - $ref: ?file=components.yaml#/parameters/site
       responses:
         "200":
           description: OK
@@ -192,7 +192,7 @@ paths:
                 properties:
                   content:
                     type: object
-                    $ref: manifest.yaml
+                    $ref: ?file=manifest.yaml
                   format:
                     type: string
                   generatedUrl:
@@ -242,6 +242,6 @@ paths:
                   default: null
       responses:
         "200":
-          $ref: components.yaml#/responses/manifestGrab/200
+          $ref: ?file=components.yaml#/responses/manifestGrab/200
 components: {}
 tags: []

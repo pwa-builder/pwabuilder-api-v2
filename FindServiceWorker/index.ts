@@ -1,7 +1,11 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { checkParams } from '../utils/checkParams.js';
 import fetch from 'node-fetch';
+import { checkParams } from '../utils/checkParams.js';
+import { userAgents } from 'lighthouse/core/config/constants.js';
+import puppeteer from 'puppeteer';
 
+const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent`;
+const SKIP_RESOURCES = [ 'stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'manifest']
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -15,68 +19,92 @@ const httpTrigger: AzureFunction = async function (
     return;
   }
 
-  const site = req?.query?.site;
+  let site = req?.query?.site;
 
   context.log(
     `FindServiceWorker: function is processing a request for site: ${site}`
   );
 
   try {
-    const response = await fetch(site);
+    const response = await fetch(site, { redirect: 'manual', headers: { 'User-Agent': USER_AGENT } });
     const html = await response.text();
 
-    const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*)['"]\s*\)/);
-    let link = match? match[1] : null;
-    let serviceWorker: unknown | null;
+    const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*?)['"]/) || html.match(/new Workbox\s*\(\s*['"](.*)['"]/);
+    let link: null | string | undefined = match? match[1] : null;
     
     if (link) {
-      if (link.startsWith('/')) {
-        link = site + link;
-      }
-      else if (!link.startsWith('http')) {
-        link = site + '/' + link;
+      if (!link.startsWith('http') && !link.startsWith('data:')) {
+        site = response.url;
+        link = new URL(link, site).href;
       }
     }
 
     if (link) {
-      try {
-        const response = await fetch(link);
-        if (response.status == 200) {
-          serviceWorker = await response.text();
-        }
-      } catch (error) {
-        
-      }
-    }
-
-    if (link) {
-      context.res = {
-        status: 200,
-        body: {
-          content: {
-            raw: serviceWorker,
-            url: link,
-          },
-        },
-      };
-
-      context.log.info(
-        `FindServiceWorker: function is DONE processing for site: ${site}`
-      );
+      context.res = await returnWorkerContent(link, site, context);
     }
     else {
-      context.res = {
-        status: 400,
-        body: {
-          error: { message: "No service worker found" },
-        },
-      };
+      context?.log.warn(`FindServiceWorker: trying slow mode`);
 
-      context.log.warn(
-        `FindServiceWorker: function has ERRORED while processing for site: ${site} with this error: No service worker found`
-      );
+      const browser = await puppeteer.launch({headless: 'new' , args: ['--no-sandbox', '--disable-setuid-sandbox']});
+      const page = await browser.newPage();
+      await page.setUserAgent(USER_AGENT);
+      await page.setRequestInterception(true);
+
+      try {
+        page.on('request', (req) => {
+            if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
+                req.abort();
+            }
+            else {
+                req.continue();
+            }
+        });
+
+        try {
+          await page.goto(site, {timeout: 15000, waitUntil: 'load'});
+          await page.waitForNetworkIdle({ timeout: 3000, idleTime: 1000});
+        } catch(err) {}
+
+        // trying to find manifest in html if request was unsuccessful 
+        if (!page.isClosed()) {
+          try {
+            link = await page.evaluate(() => {
+              if ('serviceWorker' in navigator) {
+                return navigator.serviceWorker.getRegistration()
+                  .then(registration => {
+                    if (registration) {
+                      return registration.active?.scriptURL || registration.installing?.scriptURL || registration.waiting?.scriptURL
+                    }
+                  })
+                  .catch(error => null);
+              } else {
+                return null;
+              }
+            });
+          } catch (err) {}
+        }
+      } catch (error) {
+        throw error;
+      } finally {
+        await browser.close();
+      }
+
+      if (link) {
+        context.res = await returnWorkerContent(link, site, context);
+      }
+      else {
+        context.res = {
+          status: 400,
+          body: {
+            error: { message: "No service worker found" },
+          },
+        };
+  
+        context.log.warn(
+          `FindServiceWorker: function has ERRORED while processing for site: ${site} with this error: No service worker found`
+        );
+      }
     }
-    
   } catch (err: any) {
     context.res = {
       status: 400,
@@ -91,6 +119,33 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
+async function returnWorkerContent(url: string, site: string, context: Context) {
+  let content: null | string = null;
+
+  try {
+    const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT }});
+    if (response.ok) {
+      content = await response.text();
+    }
+  } catch (error) {}
+
+
+
+  context.log.info(
+    `FindServiceWorker: function is DONE processing for site: ${site}`
+  );
+
+  return {
+    status: 200,
+    body: {
+      content: {
+        raw: content,
+        url: url,
+      },
+    },
+  };
+}
+
 export default httpTrigger;
 
 /**
@@ -102,7 +157,7 @@ export default httpTrigger;
  *      tags:
  *        - Generate
  *      parameters:
- *        - $ref: components.yaml#/parameters/site
+ *        - $ref: ?file=components.yaml#/parameters/site
  *      responses:
  *        '200':
  *          description: OK

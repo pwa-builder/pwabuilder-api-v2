@@ -98,7 +98,7 @@ export default httpTrigger;
  *      tags:
  *        - Validate
  *      parameters:
- *        - $ref: components.yaml#/parameters/site
+ *        - $ref: ?file=components.yaml#/parameters/site
  *      responses:
  *        '200':
  *          description: 'OK'

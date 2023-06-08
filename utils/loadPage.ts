@@ -15,13 +15,14 @@ export default async function loadPage(
   let sitePage: Page;
   let pageResponse: HTTPResponse | null;
 
-  const timeout = 120000;
+  const timeout = 115000;
 
+  let browser: Browser | undefined;
   try {
-    const start = new Date().getTime();
-    const browser = await getBrowser(context);
-    const elapsed = new Date().getTime() - start;
-    context.log('TIME ELAPSED', elapsed);
+    // const start = new Date().getTime();
+    browser = await getBrowser(context);
+    // const elapsed = new Date().getTime() - start;
+    // context.log('TIME ELAPSED', elapsed);
     sitePage = await browser.newPage();
 
     await sitePage.setDefaultNavigationTimeout(timeout);
@@ -40,6 +41,8 @@ export default async function loadPage(
       throw new Error('Could not get a page response');
     }
   } catch (err) {
+    if (browser)
+      await closeBrowser(context, browser);
     return err as Error;
   }
 }
@@ -47,11 +50,10 @@ export default async function loadPage(
 export async function getBrowser(context: Context): Promise<Browser> {
   context.log.info(LogMessages.OPENING_BROWSER);
 
-  const browser = await launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  return await launch({
+    headless: 'new',
+    // args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
-  return browser;
 }
 
 export async function closeBrowser(

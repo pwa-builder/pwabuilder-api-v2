@@ -1,4 +1,8 @@
 import fetch from 'node-fetch';
+import { userAgents } from 'lighthouse/core/config/constants.js';
+
+const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent`;
+const FETCH_INIT = { headers: { 'User-Agent': USER_AGENT } };
 
 const pushRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]push['"]/m), // .addEventListener('push') or .addEventListener("push") or [new line] addEventListener('push')
@@ -54,7 +58,7 @@ async function findAndFetchImportScripts(code: string, origin?: string): Promise
 	}
 
   // Fetch the content of each script
-  const fetchPromises = urls.map(url => fetch(url));
+  const fetchPromises = urls.map(url => fetch(url, FETCH_INIT));
   const responses = await Promise.all(fetchPromises);
 
   // Return the content of the scripts as an array of strings
@@ -77,8 +81,8 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 	let content = serviceWorkerContent;
 	const separateContent: string[] = [];
 	if (serviceWorkerUrl) {
-		const response = await fetch(serviceWorkerUrl);
-		content = response.status == 200 ? await response.text() : undefined;
+		const response = await fetch(serviceWorkerUrl, FETCH_INIT);
+		content = response.ok ? await response.text() : undefined;
 	}
 	if (content?.length && typeof content == 'string') {
 		separateContent.push(content);

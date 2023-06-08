@@ -49,10 +49,10 @@ const httpTrigger: AzureFunction = async function (
       context.log.info(
         `Web Manifest function is grabbing manifest object for site: ${req.query.site}`
       );
-      const start = new Date().getTime();
+      // const start = new Date().getTime();
       const maniData = await getManifestTwoWays(site, context);
-      const elapsed = new Date().getTime() - start;
-      context.log('TIME ELAPSED', elapsed);
+      // const elapsed = new Date().getTime() - start;
+      // context.log('TIME ELAPSED', elapsed);
       if (maniData) {
         const results = await testManifest(maniObject);
 
@@ -95,8 +95,8 @@ export default httpTrigger;
  *       tags:
  *         - Generate
  *       parameters:
- *         - $ref: 'components.yaml#/parameters/site'
+ *         - $ref: '?file=components.yaml#/parameters/site'
  *       responses:
  *         '200':
- *           $ref: 'components.yaml#/responses/manifestGrab/200'
+ *           $ref: '?file=components.yaml#/responses/manifestGrab/200'
  */

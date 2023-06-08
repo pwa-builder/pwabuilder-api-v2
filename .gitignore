@@ -26,6 +26,7 @@ local.settings.json
 
 node_modules
 dist
+temp
 
 # Local python packages
 .python_packages/
@@ -51,3 +52,7 @@ __blobstorage__
 __queuestorage__
 __azurite_db_queue__.json
 __azurite_db_queue_extent__.json
+/test-results/
+/playwright-report/
+/playwright/.cache/
+tests/urls_for_test.json

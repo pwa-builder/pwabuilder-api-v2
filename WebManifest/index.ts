@@ -118,5 +118,5 @@ export default httpTrigger;
  *                  default: null
  *      responses:
  *        '200':
- *          $ref: components.yaml#/responses/manifestGrab/200
+ *          $ref: ?file=components.yaml#/responses/manifestGrab/200
  */​
