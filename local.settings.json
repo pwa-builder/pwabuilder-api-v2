@@ -1,0 +1,8 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_PROCESS_COUNT": "2",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "APPINSIGHTS_CONNECTION_STRING": ""
+  }
+}
