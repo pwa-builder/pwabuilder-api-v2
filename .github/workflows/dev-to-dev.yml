@@ -7,7 +7,7 @@ on:
     branches: ["dev"]
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'pwabuilder-apiv2-node' 
+  AZURE_FUNCTIONAPP_NAME: 'pwabuilder-apiv2-node/dev' 
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
   NODE_VERSION: '18.x'
 
