@@ -1,13 +1,15 @@
 name: pwabuilder-apiv2-node to dev
 
 on:
+  workflow_dispatch:
   push:
     branches: ["dev"]
   pull_request:
     branches: ["dev"]
+  
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'pwabuilder-apiv2-node' 
+  AZURE_FUNCTIONAPP_NAME: 'pwabuilder-apiv2-node-dev' 
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
   NODE_VERSION: '18.x'
 
@@ -42,4 +44,3 @@ jobs:
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-        slot-name: dev
