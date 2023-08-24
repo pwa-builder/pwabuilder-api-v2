@@ -17,12 +17,30 @@ const backgroundSyncRegexes = [
 	new RegExp(/[.|\n\s*]onsync\s*=/m), // self.onsync = function(...) [new line] onsync = function(...)
 	new RegExp('BackgroundSyncPlugin') // new workbox.backgroundSync.BackgroundSyncPlugin(...)
 ];
-const serviceWorkerRegexes = [
+const logicRegexes = [
 	new RegExp(/importScripts|self\.|^self/m),
 	new RegExp(/[.|\n\s*]addAll/m),
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]install['"]/m),
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]/m),
 ];
+const emptyRegexes = [
+	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]\s*,\s*(function){0,1}\s*\({0,1}\s*\w*\s*\){0,1}\s*(=>){0,1}\s*{{0,1}(\s)*(return|\w+\.respondWith\s*\(\s*fetch\s*\(\s*\w+\.request)/m)
+]
+
+/*
+self.addEventListener('fetch', function() {
+	return;
+});
+self.addEventListener("fetch", function(event) {
+  event.respondWith ( fetch ( event.request));
+});
+self.addEventListener('fetch', () => {
+    return;
+});
+self.addEventListener("fetch" , (e) => {
+  event.respondWith(fetch(event.request));
+});
+*/
 
 async function findAndFetchImportScripts(code: string, origin?: string): Promise<string[]|unknown[]> {
   // Use a regular expression to find all importScripts statements in the code
@@ -73,7 +91,9 @@ export type AnalyzeServiceWorkerResponce = {
 	detectedPeriodicBackgroundSync?: boolean,
 	detectedPushRegistration?: boolean,
 	detectedSignsOfLogic?: boolean,
-	raw?: string[],
+	detectedEmpty?: boolean,
+	sizeKb?: string,
+	raw?: string[] | ['>2Mb'],
 	error?: string
 }
 
@@ -96,15 +116,18 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 			});
 		} catch (error) {
 		}
-			
+		
+		const _swSize = Buffer.from(content).length / 1024;
 
 		return {
 			detectedBackgroundSync: backgroundSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPeriodicBackgroundSync: periodicSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPushRegistration: pushRegexes.some((reg) => reg.test(content as string)),
-			detectedSignsOfLogic: serviceWorkerRegexes.some((reg) => reg.test(content as string)),
+			detectedSignsOfLogic: logicRegexes.some((reg) => reg.test(content as string)),
+			detectedEmpty: emptyRegexes.some((reg) => reg.test(content as string)),
 
-			raw: Buffer.from(content).length / 1000 < 2048 ? separateContent: undefined
+			sizeKb: _swSize.toString(),
+			raw: Buffer.from(content).length / 1024 < 2048 ? separateContent: ['>2Mb']
 		}
 	}
 	return {
