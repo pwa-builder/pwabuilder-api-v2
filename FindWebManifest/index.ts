@@ -40,7 +40,10 @@ const httpTrigger: AzureFunction = async function (
     let links: string[] = [];
     let link: string | null = null;
     try {
-      const response = await fetch(site, { redirect: 'follow', follow: 3, headers: { 'User-Agent': USER_AGENT, /*'Accept': 'text/html'*/ } });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(site, { signal: controller.signal, redirect: 'follow', follow: 3, headers: { 'User-Agent': USER_AGENT, /*'Accept': 'text/html'*/ } });
+      clearTimeout(timeoutId);
 
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -48,7 +51,7 @@ const httpTrigger: AzureFunction = async function (
       const rawHTML = await response.text();
       const html = rawHTML.replace(/\r|\n/g, '').replace(/\s{2,}/g, '');
 
-      const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/;
+      const headRegexp = /<(head|html)\s*(lang=".*")?>(.*?|[\r\n\s\S]*?)(<\/head>|<body\s*>)/i;
 		  const headerHTML = headRegexp.test(html)? (html.match(headRegexp) as string[])[0] : null;
       const dom = new JSDOM(headerHTML || html, {url: response.url, storageQuota: 0});
       const manifests: NodeList = dom.window.document.querySelectorAll(MANIFEST_QUERY);
@@ -62,7 +65,7 @@ const httpTrigger: AzureFunction = async function (
         })
       }
     } catch (error) {
-      context.log.error(`FindWebManifest: ${error}`);
+      context.log.warn(`FindWebManifest: ${error}`);
     }
 
 
