@@ -24,22 +24,22 @@ const logicRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]/m),
 ];
 const emptyRegexes = [
-	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]\s*,\s*(function){0,1}\s*\({0,1}\s*\w*\s*\){0,1}\s*(=>){0,1}\s*{{0,1}(\s)*(return|\w+\.respondWith\s*\(\s*fetch\s*\(\s*\w+\.request)/m)
+	new RegExp(/\.addEventListener\(['"]fetch['"],\(?(function)?\(?\w*\)?(=>)?{?(return|\w+\.respondWith\(fetch\(\w+\.request\)(?!\.catch)|})/mg)
 ]
 
 /*
-self.addEventListener('fetch', function() {
-	return;
-});
-self.addEventListener("fetch", function(event) {
-  event.respondWith ( fetch ( event.request));
-});
-self.addEventListener('fetch', () => {
-    return;
-});
-self.addEventListener("fetch" , (e) => {
-  event.respondWith(fetch(event.request));
-});
+empty examples: 
+
+self.addEventListener("fetch",(function(e){}))
+self.addEventListener("fetch",(function(){}))
+self.addEventListener("fetch",(function(event){e.respondWith(fetch(event.request))}))
+self.addEventListener('fetch',(()=>{}))
+self.addEventListener("fetch",(event=>{event.respondWith(fetch(event.request))}));
+self.addEventListener('fetch',function(event){});
+self.addEventListener('fetch',function(){return;});
+self.addEventListener("fetch",function(event){event.respondWith(fetch(event.request));});
+self.addEventListener('fetch',()=>{return;});
+self.addEventListener("fetch",(e)=>{event.respondWith(fetch(event.request));});
 */
 
 async function findAndFetchImportScripts(code: string, origin?: string): Promise<string[]|unknown[]> {
@@ -118,6 +118,7 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 		}
 		
 		const _swSize = Buffer.from(content).length / 1024;
+		content = content.replace(/\n+|\s+|\r/gm, '');
 
 		return {
 			detectedBackgroundSync: backgroundSyncRegexes.some((reg) => reg.test(content as string)),
@@ -127,7 +128,7 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 			detectedEmpty: emptyRegexes.some((reg) => reg.test(content as string)),
 
 			sizeKb: _swSize.toString(),
-			raw: Buffer.from(content).length / 1024 < 2048 ? separateContent: ['>2Mb']
+			raw: _swSize < 2048 ? separateContent: ['>2Mb']
 		}
 	}
 	return {

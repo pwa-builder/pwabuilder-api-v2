@@ -3,10 +3,15 @@ import { Report } from '../Report/type';
 import fs from 'fs';
 import { UrlIsAvailable, AZURE_FUNC_TIMEOUT } from './helpers.js';
 
-let file = fs.readFileSync('./tests/test_urls.json', 'utf8');
-const array = JSON.parse(file);
-array.forEach(async (url: string, index: number) => {
+let file = fs.readFileSync('./tests/test_results.json', 'utf8');
+let array = JSON.parse(file);
 
+array = array.filter((_test) => _test.tests[0].results[0].status == 'failed');
+array = array.map((_test) => {return { url: _test.tests[0].annotations[0].description }});
+
+array.forEach(async (app: {url: string}, index: number) => {
+ const url = app.url;
+  
   await test(`${index}:api/Report: SW size`, async ({ request, baseURL }) => {
     test.info().annotations.push({type: 'url', description: url });
     
