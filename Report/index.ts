@@ -20,7 +20,7 @@ import childProcess, { ChildProcess, exec, spawn } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const _root = `${__dirname}/../..`;
 
-const AZURE_FUNC_TIMEOUT = 2 * 60 * 1000;
+const AZURE_FUNC_TIMEOUT = 1 * 60 * 1000;
 const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 10 * 1000;
 const LIGHTHOUSE_TIMEOUT = 15 * 1000;
 
@@ -88,23 +88,26 @@ const lighthouse = (
   params: string[],
   options: childProcess.SpawnOptions
 ): { child: ChildProcess; promise: Promise<string | null> } => {
-  const child = spawn(`node`, params, options) as ChildProcess;
+  const child = spawn(`node`, [`${__dirname}/lighthouse.js`], 
+  {
+    stdio: ['inherit', 'inherit', 'inherit', 'ipc']
+  }) as ChildProcess;
 
   let output = '';
 
   return {
     child,
     promise: new Promise(resolveFunc => {
-      if (child.stdout)
-        child.stdout.on('data', chunk => {
-          output += chunk.toString();
-        });
+     
+      child.on('message', chunk => {
+        output = JSON.stringify(chunk);
+      });
 
       child.on('exit', code => {
         resolveFunc(output);
       });
       child.on('error', err => {
-        output += err.toString();
+        output = err.toString();
       });
     }),
   };
@@ -138,23 +141,23 @@ const audit = async (
   // on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
   const chromeFlags = `--chrome-flags="${[
     '--headless=new',
-    '--no-sandbox',
-    '--no-pings',
-    '--enable-automation',
-    // '--enable-features=NetworkServiceInProcess2',
-    '--allow-pre-commit-input',
-    '--deny-permission-prompts',
-    '--disable-breakpad',
-    '--disable-dev-shm-usage',
-    '--disable-domain-reliability',
-    '--disable-hang-monitor',
-    '--disable-ipc-flooding-protection',
-    '--disable-popup-blocking',
-    '--disable-prompt-on-repost',
-    '--disable-renderer-backgrounding',
-    '--disabe-gpu',
-    '--disable-dev-shm-usage',
-    '--block-new-web-contents',
+    // '--no-sandbox',
+    // '--no-pings',
+    // '--enable-automation',
+    // // '--enable-features=NetworkServiceInProcess2',
+    // '--allow-pre-commit-input',
+    // '--deny-permission-prompts',
+    // '--disable-breakpad',
+    // '--disable-dev-shm-usage',
+    // '--disable-domain-reliability',
+    // '--disable-hang-monitor',
+    // '--disable-ipc-flooding-protection',
+    // '--disable-popup-blocking',
+    // '--disable-prompt-on-repost',
+    // '--disable-renderer-backgrounding',
+    // '--disabe-gpu',
+    // '--disable-dev-shm-usage',
+    // '--block-new-web-contents',
     // '--single-process',
   ].join(' ')}"`;
   const throttling = `--max-wait-for-load=${LIGHTHOUSE_TIMEOUT} --throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0`;
@@ -173,7 +176,7 @@ const audit = async (
     // --output-path=${reportFile}
     spawnResult = lighthouse(
       [
-        ...`${_root}/node_modules/lighthouse/cli/index.js --quiet=true ${throttling} ${url} --output=json${
+        ...`${_root}/node_modules/lighthouse/cli/index.js ${throttling} ${url} --output=json${
           desktop ? ' --preset=desktop' : ''
         } ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(
           ' '
@@ -183,7 +186,7 @@ const audit = async (
       {
         env: {
           ...process.env,
-          CHROME_PATH: puppeteer.executablePath(),
+          // CHROME_PATH: puppeteer.executablePath(),
           TEMP: `${_root}/temp`,
           PATCHED: 'true',
         },
@@ -202,6 +205,7 @@ const audit = async (
     let reportRaw = await spawnResult.promise;
     clearTimeout(spawnTimeout);
 
+    context?.log.warn(reportRaw);
     if (typeof reportRaw == 'string' && reportRaw.length)
       rawResult = JSON.parse(reportRaw);
   } catch (error) {
