@@ -90,7 +90,7 @@ const lighthouse = (
 ): { child: ChildProcess; promise: Promise<string | null> } => {
   const child = spawn(`node`, [`${__dirname}/lighthouse.js`], 
   {
-    stdio: ['inherit', 'inherit', 'inherit', 'ipc']
+    stdio: 'pipe'
   }) as ChildProcess;
 
   let output = '';
@@ -99,8 +99,11 @@ const lighthouse = (
     child,
     promise: new Promise(resolveFunc => {
      
-      child.on('message', chunk => {
-        output = JSON.stringify(chunk);
+      // child.on('message', chunk => {
+      //   output = JSON.stringify(chunk);
+      // });
+      child.stdout?.on('data', chunk => {
+        output+=chunk;
       });
 
       child.on('exit', code => {
@@ -169,7 +172,7 @@ const audit = async (
 
   const reportId = crypto.randomUUID();
   const tempFolder = `${_root}/temp`;
-  const reportFile = `${tempFolder}/${reportId}_report.json`;
+  // const reportFile = `${tempFolder}/${reportId}_report.json`;
 
   try {
     await fs.mkdir(tempFolder).catch(() => {});
@@ -206,14 +209,16 @@ const audit = async (
     clearTimeout(spawnTimeout);
 
     context?.log.warn(reportRaw);
+    // fs.writeFile(`${tempFolder}/${reportId}_report.json`, reportRaw as string).catch(() => {});
     if (typeof reportRaw == 'string' && reportRaw.length)
       rawResult = JSON.parse(reportRaw);
   } catch (error) {
     context?.log.warn(error);
     killProcess(spawnResult?.child?.pid);
-  } finally {
-    fs.unlink(reportFile).catch(() => {});
-  }
+  } 
+  // finally {
+  //   fs.unlink(reportFile).catch(() => {});
+  // }
 
   const audits = rawResult?.audits || null;
   if (!audits) return null;
@@ -295,9 +300,9 @@ const audit = async (
         },
       },
       maskableIcon: { score: audits['maskable-icon']?.score ? true : false },
-      splashScreen: { score: audits['splash-screen']?.score ? true : false },
-      themedOmnibox: { score: audits['themed-omnibox']?.score ? true : false },
-      viewport: { score: audits['viewport']?.score ? true : false },
+      // splashScreen: { score: audits['splash-screen']?.score ? true : false },
+      // themedOmnibox: { score: audits['themed-omnibox']?.score ? true : false },
+      // viewport: { score: audits['viewport']?.score ? true : false },
     },
     artifacts: {
       webAppManifest: artifacts?.WebAppManifest,

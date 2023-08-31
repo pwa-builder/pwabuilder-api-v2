@@ -1,10 +1,7 @@
 
 import puppeteer from 'puppeteer';
-import lighthouse, { OutputMode } from 'lighthouse';
+import lighthouse, { OutputMode, Flags } from 'lighthouse';
 import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/core/config/constants.js';
-
-// import { closeBrowser, getBrowser } from '../utils/browserLauncher';
-import { analyzeServiceWorker, AnalyzeServiceWorkerResponce } from '../utils/analyzeServiceWorker.js';
 
 
 // custom use agents
@@ -28,9 +25,19 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
 
     maxWaitForFcp: MAX_WAIT_FOR_FCP * 1000,
     maxWaitForLoad: MAX_WAIT_FOR_LOAD * 1000,
-
+    throttling: {
+      rttMs: 0,
+      throughputKbps: 0,
+      requestLatencyMs: 0,
+      downloadThroughputKbps: 0,
+      uploadThroughputKbps: 0,
+      cpuSlowdownMultiplier: 0
+    },
     // disableDeviceEmulation: true,
-    // disableStorageReset: true,
+    disableStorageReset: true,
+    disableFullPageScreenshot: true,
+    silent: true,
+
     // chromeFlags: [/*'--disable-mobile-emulation',*/ '--disable-storage-reset'],
 
     skipAboutBlank: true,
@@ -38,16 +45,24 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     screenEmulation: desktop ? screenEmulationMetrics.desktop : screenEmulationMetrics.mobile,  
     emulatedUserAgent: desktop ? userAgents.desktop : userAgents.mobile,  
     throttlingMethod: 'provided', // 'devtools'|'simulate'|'provided';
-    throttling: false,
-    onlyAudits: ['service-worker', 'installable-manifest', 'is-on-https', 'maskable-icon', 'apple-touch-icon', 'splash-screen', 'themed-omnibox', 'viewport'],
+    // throttling: false,
+    onlyAudits: ['service-worker', 'installable-manifest', 'is-on-https', 'maskable-icon'], //'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
     // onlyCategories: ['pwa'] ,
     // skipAudits: ['pwa-cross-browser', 'pwa-each-page-has-url', 'pwa-page-transitions', 'full-page-screenshot', 'network-requests', 'errors-in-console', 'diagnostics'],
-  }
+  } as Flags;
 
   // @ts-ignore
   const rawResult = await lighthouse(url, config, undefined, browser);
-
-  return { audits: rawResult?.lhr?.audits, artifacts: rawResult?.artifacts };
+  return { 
+    audits: rawResult?.lhr?.audits, 
+    artifacts: { 
+      Manifest: {
+        url: rawResult?.artifacts.WebAppManifest?.url,
+        raw: rawResult?.artifacts.WebAppManifest?.raw
+      },
+      ServiceWorker: rawResult?.artifacts.ServiceWorker 
+    }
+  };
 
   // const audits = rawResult?.lhr?.audits;
   // const artifacts = rawResult?.artifacts;
@@ -114,10 +129,28 @@ async function execute () {
   const desktop = true;
 
   const currentBrowser = await puppeteer.launch({
+    args: [
+      '--no-sandbox',
+      '--no-pings',
+      '--enable-automation',
+      '--allow-pre-commit-input',
+      '--deny-permission-prompts',
+      '--disable-breakpad',
+      '--disable-dev-shm-usage',
+      '--disable-domain-reliability',
+      '--disable-hang-monitor',
+      '--disable-ipc-flooding-protection',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-renderer-backgrounding',
+      '--disabe-gpu',
+      '--block-new-web-contents',
+      // '--single-process'
+    ],
     headless: 'new',
     defaultViewport: null,
   });
-  const page = await currentBrowser.newPage();
+  const page = await currentBrowser.pages().then(pages => pages[0]);
 
 
   try {
@@ -128,8 +161,8 @@ async function execute () {
 
       await currentBrowser.close();
 
-      if (process.send) {
-        process.send(webAppReport);
+      if (process.stdout) {
+        process.stdout.write(JSON.stringify(webAppReport));
         process.exit(0);
       }
 
@@ -140,8 +173,8 @@ async function execute () {
   } catch (error: any) {
     await currentBrowser.close();
 
-    if (process.send) {
-      process.send(error);
+    if (process.stdout) {
+      process.stdout.write(JSON.stringify(error));
       process.exit(1);
     }
 
