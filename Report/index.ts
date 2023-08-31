@@ -18,11 +18,10 @@ import { fileURLToPath } from 'url';
 import childProcess, { ChildProcess, exec, spawn } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const _root = `${__dirname}/../..`;
+// const _root = `${__dirname}/../..`;
 
-const AZURE_FUNC_TIMEOUT = 1 * 60 * 1000;
+const AZURE_FUNC_TIMEOUT = 1.5 * 60 * 1000;
 const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 10 * 1000;
-const LIGHTHOUSE_TIMEOUT = 15 * 1000;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -84,14 +83,14 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-const lighthouse = (
-  params: string[],
-  options: childProcess.SpawnOptions
-): { child: ChildProcess; promise: Promise<string | null> } => {
-  const child = spawn(`node`, [`${__dirname}/lighthouse.js`], 
-  {
-    stdio: 'pipe'
-  }) as ChildProcess;
+const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<string | null> } => {
+  const child = spawn(
+    `node`, 
+    [`${__dirname}/lighthouse.js`], 
+    {
+      stdio: 'pipe'
+    }
+  ) as ChildProcess;
 
   let output = '';
 
@@ -130,75 +129,18 @@ const audit = async (
   desktop?: boolean,
   context?: Context
 ): Promise<Report | null> => {
-  const onlyAudits = `--only-audits=${[
-    'service-worker',
-    'installable-manifest',
-    'is-on-https',
-    'maskable-icon',
-    'splash-screen',
-    'themed-omnibox',
-    'viewport',
-  ].join(',')}`;
 
-  // adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
-  // on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
-  const chromeFlags = `--chrome-flags="${[
-    '--headless=new',
-    // '--no-sandbox',
-    // '--no-pings',
-    // '--enable-automation',
-    // // '--enable-features=NetworkServiceInProcess2',
-    // '--allow-pre-commit-input',
-    // '--deny-permission-prompts',
-    // '--disable-breakpad',
-    // '--disable-dev-shm-usage',
-    // '--disable-domain-reliability',
-    // '--disable-hang-monitor',
-    // '--disable-ipc-flooding-protection',
-    // '--disable-popup-blocking',
-    // '--disable-prompt-on-repost',
-    // '--disable-renderer-backgrounding',
-    // '--disabe-gpu',
-    // '--disable-dev-shm-usage',
-    // '--block-new-web-contents',
-    // '--single-process',
-  ].join(' ')}"`;
-  const throttling = `--max-wait-for-load=${LIGHTHOUSE_TIMEOUT} --throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0`;
 
   let rawResult: { audits?: unknown } = {};
   let spawnResult:
     | { child: ChildProcess; promise: Promise<String | null> }
     | undefined;
 
-  const reportId = crypto.randomUUID();
-  const tempFolder = `${_root}/temp`;
-  // const reportFile = `${tempFolder}/${reportId}_report.json`;
 
   try {
-    await fs.mkdir(tempFolder).catch(() => {});
-    // --output-path=${reportFile}
+
     spawnResult = lighthouse(
-      [
-        ...`${_root}/node_modules/lighthouse/cli/index.js ${throttling} ${url} --output=json${
-          desktop ? ' --preset=desktop' : ''
-        } ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(
-          ' '
-        ),
-        `${chromeFlags}`,
-      ],
-      {
-        env: {
-          ...process.env,
-          // CHROME_PATH: puppeteer.executablePath(),
-          TEMP: `${_root}/temp`,
-          PATCHED: 'true',
-        },
-        // ,
-        // cwd: `${_root}/node_modules/.bin/`,
-        // shell: true,
-        // stdio: 'pipe',
-        // detached: true
-      }
+      [url, desktop ? 'desktop' : 'mobile']
     );
 
     const spawnTimeout = setTimeout(() => {
@@ -208,17 +150,12 @@ const audit = async (
     let reportRaw = await spawnResult.promise;
     clearTimeout(spawnTimeout);
 
-    context?.log.warn(reportRaw);
-    // fs.writeFile(`${tempFolder}/${reportId}_report.json`, reportRaw as string).catch(() => {});
     if (typeof reportRaw == 'string' && reportRaw.length)
       rawResult = JSON.parse(reportRaw);
   } catch (error) {
     context?.log.warn(error);
     killProcess(spawnResult?.child?.pid);
   } 
-  // finally {
-  //   fs.unlink(reportFile).catch(() => {});
-  // }
 
   const audits = rawResult?.audits || null;
   if (!audits) return null;

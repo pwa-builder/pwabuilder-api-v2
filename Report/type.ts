@@ -23,15 +23,15 @@ export type Report = {
     maskableIcon: {
       score: boolean;
     };
-    splashScreen: {
-      score: boolean;
-    };
-    themedOmnibox: {
-      score: boolean;
-    };
-    viewport: {
-      score: boolean;
-    };
+    // splashScreen: {
+    //   score: boolean;
+    // };
+    // themedOmnibox: {
+    //   score: boolean;
+    // };
+    // viewport: {
+    //   score: boolean;
+    // };
   };
   artifacts: {
     webAppManifest?: {

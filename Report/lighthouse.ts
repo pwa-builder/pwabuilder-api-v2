@@ -3,6 +3,11 @@ import puppeteer from 'puppeteer';
 import lighthouse, { OutputMode, Flags } from 'lighthouse';
 import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/core/config/constants.js';
 
+// import { promises as fs } from 'fs';
+// import { dirname, join } from 'path';
+// import { fileURLToPath } from 'url';
+// import crypto from 'crypto';
+
 
 // custom use agents
 const userAgents = {
@@ -10,8 +15,12 @@ const userAgents = {
   mobile: 'Mozilla/5.0 (Linux; Android 12; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36 Edg/108.0.1462.42'
 }
 
-const MAX_WAIT_FOR_LOAD = 25; //seconds
-const MAX_WAIT_FOR_FCP = 10; //seconds
+const MAX_WAIT_FOR_LOAD = 15 * 1000; //seconds
+const MAX_WAIT_FOR_FCP = 10 * 1000; //seconds
+const SKIP_RESOURCES = [ 'stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket']
+
+// const __dirname = dirname(fileURLToPath(import.meta.url));
+// const _root = `${__dirname}/../..`;
 
 
 const audit = async (browser: any, url: string, desktop?: boolean) => {
@@ -19,12 +28,12 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
   // Puppeteer with Lighthouse
   const config = {
     // port: browser.port, //new URL(browser.wsEndpoint()).port,
-    logLevel: 'info', // 'silent' | 'error' | 'info' | 'verbose'
+    logLevel: 'silent', // 'silent' | 'error' | 'info' | 'verbose'
     output: 'json',   // 'json' | 'html' | 'csv'
     locale: 'en-US',
 
-    maxWaitForFcp: MAX_WAIT_FOR_FCP * 1000,
-    maxWaitForLoad: MAX_WAIT_FOR_LOAD * 1000,
+    maxWaitForFcp: MAX_WAIT_FOR_FCP,
+    maxWaitForLoad: MAX_WAIT_FOR_LOAD,
     throttling: {
       rttMs: 0,
       throughputKbps: 0,
@@ -36,7 +45,6 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     // disableDeviceEmulation: true,
     disableStorageReset: true,
     disableFullPageScreenshot: true,
-    silent: true,
 
     // chromeFlags: [/*'--disable-mobile-emulation',*/ '--disable-storage-reset'],
 
@@ -53,6 +61,14 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
 
   // @ts-ignore
   const rawResult = await lighthouse(url, config, undefined, browser);
+
+  
+  // const reportId = crypto.randomUUID();
+  // const tempFolder = `${_root}/temp`;
+  // const reportFile = `${tempFolder}/${reportId}_report.json`;
+  // await fs.mkdir(tempFolder).catch(() => {});
+  // await fs.writeFile(`${reportFile}`, JSON.stringify(rawResult)).catch(() => {});
+
   return { 
     audits: rawResult?.lhr?.audits, 
     artifacts: { 
@@ -63,70 +79,14 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
       ServiceWorker: rawResult?.artifacts.ServiceWorker 
     }
   };
-
-  // const audits = rawResult?.lhr?.audits;
-  // const artifacts = rawResult?.artifacts;
-  
-  // if (!audits) {
-  //   return null;
-  // }
-
-  // let swFeatures: AnalyzeServiceWorkerResponce | null = null;
-  // // @ts-ignore  
-  // if (audits['service-worker']?.details?.scriptUrl) {
-  //   try{
-  //     // @ts-ignore  
-  //     swFeatures = audits['service-worker']?.details?.scriptUrl? await analyzeServiceWorker(audits['service-worker'].details.scriptUrl) : null;
-  //   }
-  //   catch(error: any){
-  //     swFeatures = {
-  //       error: error
-  //     }
-  //   }
-  // }
-   
-
-  // const report = {
-  //   audits: {
-  //     isOnHttps: { score: audits['is-on-https']?.score? true : false },
-  //     installableManifest: { 
-  //       score: audits['installable-manifest']?.score? true : false,
-  //       // @ts-ignore  
-  //       details: { url: audits['installable-manifest']?.details?.debugData?.manifestUrl || undefined }
-  //     },
-  //     serviceWorker: {
-  //       score: audits['service-worker']?.score? true : false,
-  //       details: {
-  //         // @ts-ignore  
-  //         url: audits['service-worker']?.details?.scriptUrl || undefined,
-  //         // @ts-ignore  
-  //         scope: audits['service-worker']?.details?.scopeUrl || undefined,
-  //         features: swFeatures? {...swFeatures, raw: undefined} : undefined
-  //       }
-  //      },
-  //     appleTouchIcon: { score: audits['apple-touch-icon']?.score? true : false },
-  //     maskableIcon: { score: audits['maskable-icon']?.score? true : false },
-  //     splashScreen: { score: audits['splash-screen']?.score? true : false },
-  //     themedOmnibox: { score: audits['themed-omnibox']?.score? true : false },
-  //     viewport: { score: audits['viewport']?.score? true : false }
-  //   },
-  //   artifacts: {
-  //     webAppManifest: artifacts?.WebAppManifest,
-  //     serviceWorker: {...artifacts?.ServiceWorker, raw: (swFeatures as { raw: string[]})?.raw || undefined },
-  //     url: artifacts?.URL,
-  //     // @ts-ignore  
-  //     linkElements: artifacts?.LinkElements?.map(element => { delete element?.node; return element }),
-  //     // @ts-ignore  
-  //     metaElements: artifacts?.MetaElements?.map(element => { delete element?.node; return element })
-  //   }
-  // }
-
-  // return report;
 };
 
+// adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
+// on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
+
 async function execute () {
-  const url = 'https://webboard.app'
-  const desktop = true;
+  const url = 'https://pwa.sspai.com/';
+  const desktop = true; //process.argv[3] === 'desktop';
 
   const currentBrowser = await puppeteer.launch({
     args: [
@@ -145,19 +105,41 @@ async function execute () {
       '--disable-renderer-backgrounding',
       '--disabe-gpu',
       '--block-new-web-contents',
-      // '--single-process'
+      '--single-process'
     ],
-    headless: 'new',
+    headless: false,
     defaultViewport: null,
   });
   const page = await currentBrowser.pages().then(pages => pages[0]);
+  await page.setBypassServiceWorker(true);
+  await page.setRequestInterception(true);
 
+  page.on('request', (req) => {
+      if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
+          req.abort();
+      }
+      else {
+          req.continue();
+      }
+  });
+
+  // page.on('workercreated', async worker => {
+  //   await page.setBypassServiceWorker(true);
+  //   await page.setOfflineMode(true);
+  // }
+  // );
+
+  // const turnValve = setTimeout(async () => {
+  //   await (await currentBrowser.pages().then(pages => pages[0])).setOfflineMode(true);
+  //   page.evaluate(() => console.log("OFFLINE"));
+  // }, MAX_WAIT_FOR_LOAD);
 
   try {
     // run lighthouse audit
 
     if (page) {
       const webAppReport = await audit(page, url, desktop);
+      // clearTimeout(turnValve);
 
       await currentBrowser.close();
 
