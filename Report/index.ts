@@ -86,7 +86,7 @@ const httpTrigger: AzureFunction = async function (
 const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<string | null> } => {
   const child = spawn(
     `node`, 
-    [`${__dirname}/lighthouse.js`], 
+    [`${__dirname}/lighthouse/lighthouse.js`, ...params], 
     {
       stdio: 'pipe'
     }
@@ -143,10 +143,14 @@ const audit = async (
       [url, desktop ? 'desktop' : 'mobile']
     );
 
+    // @ts-ignore
+    // spawnResult = await execute(url, desktop ? 'desktop' : 'mobile');
+
     const spawnTimeout = setTimeout(() => {
       killProcess(spawnResult?.child?.pid);
     }, SPAWN_TIMEOUT);
 
+     // @ts-ignore
     let reportRaw = await spawnResult.promise;
     clearTimeout(spawnTimeout);
 
@@ -158,7 +162,10 @@ const audit = async (
   } 
 
   const audits = rawResult?.audits || null;
-  if (!audits) return null;
+  if (!audits) {
+    context?.log.warn(rawResult);
+    return null;
+  } 
 
   const artifacts: {
     WebAppManifest?: {

@@ -1,0 +1,9 @@
+{
+  "name": "lighthouse-plugin-service-worker",
+  "private": true,
+  "type": "module",
+  "main": "./plugin.js",
+  "peerDependencies": {
+    "lighthouse": "^11.0.0"
+  }
+}

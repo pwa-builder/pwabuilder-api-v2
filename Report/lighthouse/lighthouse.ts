@@ -1,6 +1,9 @@
 
 import puppeteer from 'puppeteer';
 import lighthouse, { OutputMode, Flags } from 'lighthouse';
+import customConfig from './custom-config.js';
+// import ServiceWorker from './service-worker.js';
+// import serviceWorkerConfig from './service-worker.config.js';
 import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/core/config/constants.js';
 
 // import { promises as fs } from 'fs';
@@ -17,16 +20,16 @@ const userAgents = {
 
 const MAX_WAIT_FOR_LOAD = 15 * 1000; //seconds
 const MAX_WAIT_FOR_FCP = 10 * 1000; //seconds
-const SKIP_RESOURCES = [ 'stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket']
+const SKIP_RESOURCES = ['stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket']
 
 // const __dirname = dirname(fileURLToPath(import.meta.url));
 // const _root = `${__dirname}/../..`;
 
 
-const audit = async (browser: any, url: string, desktop?: boolean) => {
+const audit = async (page: any, url: string, desktop?: boolean) => {
 
   // Puppeteer with Lighthouse
-  const config = {
+  const flags = {
     // port: browser.port, //new URL(browser.wsEndpoint()).port,
     logLevel: 'silent', // 'silent' | 'error' | 'info' | 'verbose'
     output: 'json',   // 'json' | 'html' | 'csv'
@@ -34,6 +37,15 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
 
     maxWaitForFcp: MAX_WAIT_FOR_FCP,
     maxWaitForLoad: MAX_WAIT_FOR_LOAD,
+
+    pauseAfterLoadMs: 0,
+    pauseAfterFcpMs: 0,
+    pauseAfterNetworkQuietMs: 0,
+    pauseAfterCPUIdleMs: 0,
+
+    // auditMode: true,
+    plugins: ['lighthouse-plugin-service-worker'],
+
     throttling: {
       rttMs: 0,
       throughputKbps: 0,
@@ -54,14 +66,32 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
     emulatedUserAgent: desktop ? userAgents.desktop : userAgents.mobile,  
     throttlingMethod: 'provided', // 'devtools'|'simulate'|'provided';
     // throttling: false,
-    onlyAudits: ['service-worker', 'installable-manifest', 'is-on-https', 'maskable-icon'], //'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
+    onlyAudits: ['service-worker', 'installable-manifest', 'is-on-https', 'maskable-icon'], //'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
     // onlyCategories: ['pwa'] ,
     // skipAudits: ['pwa-cross-browser', 'pwa-each-page-has-url', 'pwa-page-transitions', 'full-page-screenshot', 'network-requests', 'errors-in-console', 'diagnostics'],
   } as Flags;
 
-  // @ts-ignore
-  const rawResult = await lighthouse(url, config, undefined, browser);
+  
+  try {
+    // @ts-ignore
+    const rawResult = await lighthouse(url, flags, customConfig, page);
+    return { 
+      audits: rawResult?.lhr?.audits, 
+      artifacts: { 
+        Manifest: {
+          url: rawResult?.artifacts.WebAppManifest?.url,
+          raw: rawResult?.artifacts.WebAppManifest?.raw
+        },
+        ServiceWorker: rawResult?.artifacts.ServiceWorker 
+      }
+    };
+  }
+  catch (error) {
+    if (process.stdout)
+      process.stdout.write(JSON.stringify(error));
+  }
 
+  
   
   // const reportId = crypto.randomUUID();
   // const tempFolder = `${_root}/temp`;
@@ -69,24 +99,15 @@ const audit = async (browser: any, url: string, desktop?: boolean) => {
   // await fs.mkdir(tempFolder).catch(() => {});
   // await fs.writeFile(`${reportFile}`, JSON.stringify(rawResult)).catch(() => {});
 
-  return { 
-    audits: rawResult?.lhr?.audits, 
-    artifacts: { 
-      Manifest: {
-        url: rawResult?.artifacts.WebAppManifest?.url,
-        raw: rawResult?.artifacts.WebAppManifest?.raw
-      },
-      ServiceWorker: rawResult?.artifacts.ServiceWorker 
-    }
-  };
+  return null;
 };
 
 // adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
 // on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
 
-async function execute () {
-  const url = 'https://pwa.sspai.com/';
-  const desktop = true; //process.argv[3] === 'desktop';
+async function execute() {
+  const url = process.argv[2];
+  const desktop =  process.argv[3] === 'desktop';
 
   const currentBrowser = await puppeteer.launch({
     args: [
@@ -107,7 +128,7 @@ async function execute () {
       '--block-new-web-contents',
       '--single-process'
     ],
-    headless: false,
+    headless: 'new',
     defaultViewport: null,
   });
   const page = await currentBrowser.pages().then(pages => pages[0]);
@@ -147,6 +168,8 @@ async function execute () {
         process.stdout.write(JSON.stringify(webAppReport));
         process.exit(0);
       }
+
+      // return JSON.stringify(webAppReport)
 
       // context.log.info(
       //   `Report function is DONE processing a request for site: ${req.query.site}`
