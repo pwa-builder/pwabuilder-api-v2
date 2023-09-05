@@ -46,7 +46,7 @@
     "jsdom": "^21.1.0",
     "jszip": "^3.10.1",
     "lighthouse": "11.0.0",
-    "lighthouse-plugin-service-worker": "file:./Report/lighthouse/plugins/service-worker",
+    "custom-lighthouse-service-worker": "file:./Report/lighthouse/custom-audits/service-worker",
     "node-fetch": "^3.3.1",
     "puppeteer": "21.1.1",
     "pwabuilder-lib": "^2.1.12",

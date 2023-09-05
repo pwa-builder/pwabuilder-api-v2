@@ -8,6 +8,7 @@
 
 import * as constants from 'lighthouse/core/config/constants.js';
 import * as i18n from 'lighthouse/core/lib/i18n/i18n.js';
+import * as settings from './custom-settings.js'
 
 const UIStrings = {
   /** Title of the Performance category of audits. Equivalent to 'Web performance', this term is inclusive of all web page speed and loading optimization topics. Also used as a label of a score gauge; try to limit to 20 characters. */
@@ -122,22 +123,25 @@ const str_ = i18n.createIcuMessageFn(import.meta.url, UIStrings);
 
 /** @type {LH.Config} */
 const defaultConfig = {
-  settings: constants.defaultSettings,
+  settings,
   artifacts: [
     // Artifacts which can be depended on come first.
-    {id: 'DevtoolsLog', gatherer: 'devtools-log'},
-    {id: 'InstallabilityErrors', gatherer: 'installability-errors'},
-    {id: 'LinkElements', gatherer: 'link-elements'},
-    {id: 'MainDocumentContent', gatherer: 'main-document-content'},
-    {id: 'MetaElements', gatherer: 'meta-elements'},
-    {id: 'NetworkUserAgent', gatherer: 'network-user-agent'},
+    {id: 'DevtoolsLog', gatherer: 'devtools-log'}, //x
+    {id: 'devtoolsLogs', gatherer: 'devtools-log-compat'},
+    {id: 'InstallabilityErrors', gatherer: 'installability-errors'}, //x
+    {id: 'InspectorIssues', gatherer: 'inspector-issues'}, //x
+    // {id: 'LinkElements', gatherer: 'link-elements'},
+    // {id: 'MainDocumentContent', gatherer: 'main-document-content'},
+    // {id: 'MetaElements', gatherer: 'meta-elements'},
+    // {id: 'NetworkUserAgent', gatherer: 'network-user-agent'},
     // {id: 'OptimizedImages', gatherer: 'dobetterweb/optimized-images'},
     // {id: 'ResponseCompression', gatherer: 'dobetterweb/response-compression'},
-    {id: 'ServiceWorker', gatherer: 'service-worker'},
+    {id: 'CustomServiceWorkerGatherer', gatherer: 'custom-lighthouse-service-worker/custom-service-worker-gatherer'},
     {id: 'WebAppManifest', gatherer: 'web-app-manifest'},
   ],
   audits: [
     'is-on-https',
+    'custom-lighthouse-service-worker/custom-service-worker-audit',
     'viewport',
     'metrics/first-contentful-paint',
     'metrics/largest-contentful-paint',
@@ -229,12 +233,14 @@ const defaultConfig = {
       auditRefs: [
         // Installable
         {id: 'installable-manifest', weight: 2, group: 'pwa-installable'},
+        {id: 'custom-service-worker-audit', weight: 2, group: 'pwa-installable'},
         // PWA Optimized
         {id: 'splash-screen', weight: 1, group: 'pwa-optimized'},
         // {id: 'themed-omnibox', weight: 1, group: 'pwa-optimized'},
         {id: 'content-width', weight: 1, group: 'pwa-optimized'},
         // {id: 'viewport', weight: 2, group: 'pwa-optimized'},
         {id: 'maskable-icon', weight: 1, group: 'pwa-optimized'},
+        
       ],
     },
   },

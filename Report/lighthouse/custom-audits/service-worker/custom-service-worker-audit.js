@@ -40,18 +40,18 @@ const UIStrings = {
 const str_ = i18n.createIcuMessageFn(import.meta.url, UIStrings);
 
 // @ts-ignore
-class ServiceWorker extends Audit {
+class CustomServiceWorkerAudit extends Audit {
   /**
    * @return {LH.Audit.Meta}
    */
   static get meta() {
     return {
-      id: 'service-worker',
+      id: 'custom-service-worker-audit',
       title: str_(UIStrings.title),
       failureTitle: str_(UIStrings.failureTitle),
       description: str_(UIStrings.description),
       supportedModes: ['navigation'],
-      requiredArtifacts: ['URL', 'ServiceWorker', 'WebAppManifest'],
+      requiredArtifacts: ['URL', 'CustomServiceWorkerGatherer', 'WebAppManifest'],
     };
   }
 
@@ -134,16 +134,16 @@ class ServiceWorker extends Audit {
     const {mainDocumentUrl} = artifacts.URL;
     if (!mainDocumentUrl) throw new Error('mainDocumentUrl must exist in navigation mode');
     const pageUrl = new URL(mainDocumentUrl);
-    const {versions, registrations} = artifacts.ServiceWorker;
+    const {versions, registrations} = artifacts.CustomServiceWorkerGatherer;
 
-    const versionsForOrigin = ServiceWorker.getVersionsForOrigin(versions, pageUrl);
+    const versionsForOrigin = CustomServiceWorkerAudit.getVersionsForOrigin(versions, pageUrl);
     if (versionsForOrigin.length === 0) {
       return {
         score: 0,
       };
     }
 
-    const serviceWorkerUrls = ServiceWorker.getControllingServiceWorker(versionsForOrigin,
+    const serviceWorkerUrls = CustomServiceWorkerAudit.getControllingServiceWorker(versionsForOrigin,
         registrations, pageUrl);
     if (!serviceWorkerUrls) {
       return {
@@ -161,7 +161,7 @@ class ServiceWorker extends Audit {
       scopeUrl,
     };
 
-    const startUrlFailure = ServiceWorker.checkStartUrl(artifacts.WebAppManifest,
+    const startUrlFailure = CustomServiceWorkerAudit.checkStartUrl(artifacts.WebAppManifest,
       serviceWorkerUrls.scopeUrl);
     if (startUrlFailure) {
       return {
@@ -179,5 +179,5 @@ class ServiceWorker extends Audit {
   }
 }
 
-export default ServiceWorker;
+export default CustomServiceWorkerAudit;
 export {UIStrings};

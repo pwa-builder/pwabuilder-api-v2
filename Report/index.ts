@@ -1,7 +1,4 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import puppeteer from 'puppeteer';
-import { promises as fs } from 'fs';
-import crypto from 'crypto';
 
 import { validateManifest, Manifest, Validation } from '@pwabuilder/manifest-validation';
 import { checkParams } from '../utils/checkParams.js';
@@ -182,9 +179,9 @@ const audit = async (
   let swFeatures: AnalyzeServiceWorkerResponce | null = null;
 
   const processServiceWorker = async () => {
-    if (audits['service-worker']?.details?.scriptUrl) {
+    if (audits['custom-service-worker-audit']?.details?.scriptUrl) {
       artifacts.ServiceWorker = {
-        url: audits['service-worker']?.details?.scriptUrl,
+        url: audits['custom-service-worker-audit']?.details?.scriptUrl,
       };
       try {
         swFeatures = await analyzeServiceWorker(artifacts.ServiceWorker.url);
@@ -234,10 +231,10 @@ const audit = async (
         },
       },
       serviceWorker: {
-        score: audits['service-worker']?.score ? true : false,
+        score: audits['custom-service-worker-audit']?.score ? true : false,
         details: {
-          url: audits['service-worker']?.details?.scriptUrl || undefined,
-          scope: audits['service-worker']?.details?.scopeUrl || undefined,
+          url: audits['custom-service-worker-audit']?.details?.scriptUrl || undefined,
+          scope: audits['custom-service-worker-audit']?.details?.scopeUrl || undefined,
           features: swFeatures
             ? { ...(swFeatures as object), raw: undefined }
             : undefined,

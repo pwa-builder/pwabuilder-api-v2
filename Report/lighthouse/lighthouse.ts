@@ -18,7 +18,7 @@ const userAgents = {
   mobile: 'Mozilla/5.0 (Linux; Android 12; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36 Edg/108.0.1462.42'
 }
 
-const MAX_WAIT_FOR_LOAD = 15 * 1000; //seconds
+const MAX_WAIT_FOR_LOAD = 25 * 1000; //seconds
 const MAX_WAIT_FOR_FCP = 10 * 1000; //seconds
 const SKIP_RESOURCES = ['stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket']
 
@@ -43,17 +43,16 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     pauseAfterNetworkQuietMs: 0,
     pauseAfterCPUIdleMs: 0,
 
-    // auditMode: true,
-    plugins: ['lighthouse-plugin-service-worker'],
+    // plugins: ['lighthouse-plugin-service-worker'],
 
-    throttling: {
-      rttMs: 0,
-      throughputKbps: 0,
-      requestLatencyMs: 0,
-      downloadThroughputKbps: 0,
-      uploadThroughputKbps: 0,
-      cpuSlowdownMultiplier: 0
-    },
+    // throttling: {
+    //   rttMs: 0,
+    //   throughputKbps: 0,
+    //   requestLatencyMs: 0,
+    //   downloadThroughputKbps: 0,
+    //   uploadThroughputKbps: 0,
+    //   cpuSlowdownMultiplier: 0
+    // },
     // disableDeviceEmulation: true,
     disableStorageReset: true,
     disableFullPageScreenshot: true,
@@ -66,7 +65,7 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     emulatedUserAgent: desktop ? userAgents.desktop : userAgents.mobile,  
     throttlingMethod: 'provided', // 'devtools'|'simulate'|'provided';
     // throttling: false,
-    onlyAudits: ['service-worker', 'installable-manifest', 'is-on-https', 'maskable-icon'], //'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
+    onlyAudits: ['custom-service-worker-audit', 'installable-manifest', 'is-on-https'], //'maskable-icon', 'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
     // onlyCategories: ['pwa'] ,
     // skipAudits: ['pwa-cross-browser', 'pwa-each-page-has-url', 'pwa-page-transitions', 'full-page-screenshot', 'network-requests', 'errors-in-console', 'diagnostics'],
   } as Flags;
@@ -82,7 +81,8 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
           url: rawResult?.artifacts.WebAppManifest?.url,
           raw: rawResult?.artifacts.WebAppManifest?.raw
         },
-        ServiceWorker: rawResult?.artifacts.ServiceWorker 
+        // @ts-ignore
+        ServiceWorker: rawResult?.artifacts.CustomServiceWorkerGatherer
       }
     };
   }
