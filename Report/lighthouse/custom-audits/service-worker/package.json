@@ -1,8 +1,0 @@
-{
-  "name": "custom-lighthouse-service-worker",
-  "private": true,
-  "type": "module",
-  "peerDependencies": {
-    "lighthouse": "^11.0.0"
-  }
-}
