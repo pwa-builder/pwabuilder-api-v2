@@ -12,8 +12,8 @@ import { screenEmulationMetrics, userAgents} from 'lighthouse/core/config/consta
 // import crypto from 'crypto';
 
 
-const MAX_WAIT_FOR_LOAD = 25 * 1000; //seconds
-const MAX_WAIT_FOR_FCP = 10 * 1000; //seconds
+const MAX_WAIT_FOR_LOAD = 30 * 1000; //seconds
+const MAX_WAIT_FOR_FCP = 15 * 1000; //seconds
 const SKIP_RESOURCES = ['stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket']
 
 // const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -105,7 +105,7 @@ async function execute() {
       '--block-new-web-contents',
       // '--single-process'
     ],
-    headless: 'new',
+    headless: false,// 'new',
     defaultViewport: null,
   });
   const page = await currentBrowser.pages().then(pages => pages[0]);
@@ -131,18 +131,32 @@ async function execute() {
   //   await page.setOfflineMode(true);
   // }
   // );
-
-  // const turnValve = setTimeout(async () => {
-  //   await (await currentBrowser.pages().then(pages => pages[0])).setOfflineMode(true);
-  //   page.evaluate(() => console.log("OFFLINE"));
-  // }, MAX_WAIT_FOR_LOAD);
+  let valveTriggered = false;
+  const turnValve = setTimeout(async () => {
+    valveTriggered = true;
+    try {
+      const client = await page.target().createCDPSession();
+      await client.send('ServiceWorker.enable');
+      await client.send('ServiceWorker.stopAllWorkers');
+    } catch (error) {
+      console.log(error);
+    }
+    // await (await currentBrowser.pages().then(pages => pages[0])).setOfflineMode(true);
+    // page.evaluate(() => console.log("OFFLINE"));
+  }, MAX_WAIT_FOR_LOAD * 2);
 
   try {
     // run lighthouse audit
 
     if (page) {
       const webAppReport = await audit(page, url, desktop);
-      // clearTimeout(turnValve);
+      clearTimeout(turnValve);
+      if (valveTriggered && webAppReport?.audits!['custom-service-worker-audit']) {
+        // @ts-ignore
+        webAppReport.audits['custom-service-worker-audit'].details = {
+          error: 'Service worker timed out',
+        };
+      }
 
       await currentBrowser.close();
 

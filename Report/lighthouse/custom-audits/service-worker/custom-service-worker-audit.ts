@@ -44,7 +44,7 @@ class CustomServiceWorkerAudit extends Audit {
     pageUrl: URL
   ): LH.Crdp.ServiceWorker.ServiceWorkerVersion[] {
     return versions
-      .filter(v => v.status === 'activated' || v.status === 'installing')
+      .filter(v => v.status === 'activated' /*|| v.status === 'installing'*/)
       .filter(v => new URL(v.scriptURL).origin === pageUrl.origin);
   }
 

@@ -238,6 +238,7 @@ const audit = async (
           features: swFeatures
             ? { ...(swFeatures as object), raw: undefined }
             : undefined,
+          error: audits['custom-service-worker-audit']?.details?.error || undefined,
         },
       },
       customAudit: {

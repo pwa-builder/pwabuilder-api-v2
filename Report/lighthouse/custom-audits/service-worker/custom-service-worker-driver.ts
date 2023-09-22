@@ -11,7 +11,7 @@ async function getServiceWorkerVersions(session: ProtocolSession): Promise<Worke
       // find a service worker with runningStatus that looks like active
       // on slow connections the serviceworker might still be installing
       const activateCandidates = data.versions.filter(sw => sw.status !== 'redundant');
-      const hasActiveServiceWorker = activateCandidates.find(sw => sw.status === 'activated' || sw.status === 'installing');
+      const hasActiveServiceWorker = activateCandidates.find(sw => sw.status === 'activated' /*|| sw.status === 'installing'*/);
 
       if (!activateCandidates.length || hasActiveServiceWorker) {
         session.off('ServiceWorker.workerVersionUpdated', versionUpdatedListener);
