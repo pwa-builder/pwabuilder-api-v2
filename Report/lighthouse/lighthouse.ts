@@ -4,19 +4,13 @@ import lighthouse, { OutputMode, Flags } from 'lighthouse';
 import customConfig from './custom-config.js';
 // import ServiceWorker from './service-worker.js';
 // import serviceWorkerConfig from './service-worker.config.js';
-import { screenEmulationMetrics, /*userAgents */} from 'lighthouse/core/config/constants.js';
+import { screenEmulationMetrics, userAgents} from 'lighthouse/core/config/constants.js';
 
 // import { promises as fs } from 'fs';
 // import { dirname, join } from 'path';
 // import { fileURLToPath } from 'url';
 // import crypto from 'crypto';
 
-
-// custom use agents
-const userAgents = {
-  desktop: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.42',
-  mobile: 'Mozilla/5.0 (Linux; Android 12; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36 Edg/108.0.1462.42'
-}
 
 const MAX_WAIT_FOR_LOAD = 25 * 1000; //seconds
 const MAX_WAIT_FOR_FCP = 10 * 1000; //seconds
@@ -30,7 +24,6 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
 
   // Puppeteer with Lighthouse
   const flags = {
-    // port: browser.port, //new URL(browser.wsEndpoint()).port,
     logLevel: 'silent', // 'silent' | 'error' | 'info' | 'verbose'
     output: 'json',   // 'json' | 'html' | 'csv'
     locale: 'en-US',
@@ -43,31 +36,23 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     pauseAfterNetworkQuietMs: 0,
     pauseAfterCPUIdleMs: 0,
 
-    // plugins: ['lighthouse-plugin-service-worker'],
+    throttling: {
+      rttMs: 0,
+      throughputKbps: 0,
+      requestLatencyMs: 0,
+      downloadThroughputKbps: 0,
+      uploadThroughputKbps: 0,
+      cpuSlowdownMultiplier: 0
+    },
 
-    // throttling: {
-    //   rttMs: 0,
-    //   throughputKbps: 0,
-    //   requestLatencyMs: 0,
-    //   downloadThroughputKbps: 0,
-    //   uploadThroughputKbps: 0,
-    //   cpuSlowdownMultiplier: 0
-    // },
-    // disableDeviceEmulation: true,
     disableStorageReset: true,
     disableFullPageScreenshot: true,
 
-    // chromeFlags: [/*'--disable-mobile-emulation',*/ '--disable-storage-reset'],
-
     skipAboutBlank: true,
-    formFactor: desktop ? 'desktop' : 'mobile', // 'mobile'|'desktop';
+    // formFactor: desktop ? 'desktop' : 'mobile',
     screenEmulation: desktop ? screenEmulationMetrics.desktop : screenEmulationMetrics.mobile,  
-    emulatedUserAgent: desktop ? userAgents.desktop : userAgents.mobile,  
-    throttlingMethod: 'provided', // 'devtools'|'simulate'|'provided';
-    // throttling: false,
-    onlyAudits: ['custom-service-worker-audit', 'installable-manifest', 'is-on-https'], //'maskable-icon', 'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
-    // onlyCategories: ['pwa'] ,
-    // skipAudits: ['pwa-cross-browser', 'pwa-each-page-has-url', 'pwa-page-transitions', 'full-page-screenshot', 'network-requests', 'errors-in-console', 'diagnostics'],
+    emulatedUserAgent: `${desktop ? userAgents.desktop : userAgents.mobile} PWABuilderHttpAgent`,  
+    onlyAudits: ['custom-service-worker-audit', 'installable-manifest', 'is-on-https', 'custom-audit'], //'maskable-icon', 'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
   } as Flags;
 
   
@@ -88,7 +73,8 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
   }
   catch (error) {
     if (process.stdout)
-      process.stdout.write(JSON.stringify(error));
+      process.stdout.write(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    process.exit(1);
   }
 
   
@@ -113,20 +99,11 @@ async function execute() {
     args: [
       '--no-sandbox',
       '--no-pings',
-      '--enable-automation',
-      '--allow-pre-commit-input',
       '--deny-permission-prompts',
-      '--disable-breakpad',
-      '--disable-dev-shm-usage',
       '--disable-domain-reliability',
-      '--disable-hang-monitor',
-      '--disable-ipc-flooding-protection',
-      '--disable-popup-blocking',
-      '--disable-prompt-on-repost',
-      '--disable-renderer-backgrounding',
       '--disabe-gpu',
       '--block-new-web-contents',
-      '--single-process'
+      // '--single-process'
     ],
     headless: 'new',
     defaultViewport: null,
@@ -137,7 +114,12 @@ async function execute() {
 
   page.on('request', (req) => {
       if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
-          req.abort();
+          // req.abort();
+          req.respond({
+              status: 200,
+              contentType: 'text/plain',
+              body: 'success'
+            });
       }
       else {
           req.continue();
@@ -166,9 +148,8 @@ async function execute() {
 
       if (process.stdout) {
         process.stdout.write(JSON.stringify(webAppReport));
-        process.exit(0);
       }
-
+      process.exit(0);
       // return JSON.stringify(webAppReport)
 
       // context.log.info(
@@ -179,10 +160,9 @@ async function execute() {
     await currentBrowser.close();
 
     if (process.stdout) {
-      process.stdout.write(JSON.stringify(error));
-      process.exit(1);
+      process.stdout.write(JSON.stringify(error, Object.getOwnPropertyNames(error)));
     }
-
+    process.exit(1);
     // if (error.name && error.name.indexOf('TimeoutError') > -1) {
     //   context.log.error(
     //     `Report function TIMED OUT processing a request for site: ${url}`

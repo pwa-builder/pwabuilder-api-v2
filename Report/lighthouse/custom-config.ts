@@ -121,13 +121,14 @@ const UIStrings = {
 
 const str_ = i18n.createIcuMessageFn(import.meta.url, UIStrings);
 
+const CUSTOM = 'dist/Report/lighthouse/custom-audits'
+
 /** @type {LH.Config} */
 const defaultConfig = {
   settings,
   artifacts: [
     // Artifacts which can be depended on come first.
     {id: 'DevtoolsLog', gatherer: 'devtools-log'}, //x
-    {id: 'devtoolsLogs', gatherer: 'devtools-log-compat'},
     {id: 'InstallabilityErrors', gatherer: 'installability-errors'}, //x
     {id: 'InspectorIssues', gatherer: 'inspector-issues'}, //x
     // {id: 'LinkElements', gatherer: 'link-elements'},
@@ -136,12 +137,17 @@ const defaultConfig = {
     // {id: 'NetworkUserAgent', gatherer: 'network-user-agent'},
     // {id: 'OptimizedImages', gatherer: 'dobetterweb/optimized-images'},
     // {id: 'ResponseCompression', gatherer: 'dobetterweb/response-compression'},
-    {id: 'CustomServiceWorkerGatherer', gatherer: 'dist/Report/lighthouse/custom-audits/service-worker/custom-service-worker-gatherer'},
+    {id: 'CustomServiceWorkerGatherer', gatherer: `${CUSTOM}/service-worker/custom-service-worker-gatherer`},
     {id: 'WebAppManifest', gatherer: 'web-app-manifest'},
+
+    {id: 'CustomGatherer', gatherer: `${CUSTOM}/offline/offline-gatherer`},
+
+    {id: 'devtoolsLogs', gatherer: 'devtools-log-compat'},
   ],
   audits: [
     'is-on-https',
-    'dist/Report/lighthouse/custom-audits/service-worker/custom-service-worker-audit',
+    `${CUSTOM}/service-worker/custom-service-worker-audit`,
+    `${CUSTOM}/offline/offline-audit`,
     'viewport',
     'metrics/first-contentful-paint',
     'metrics/largest-contentful-paint',
@@ -234,6 +240,7 @@ const defaultConfig = {
         // Installable
         {id: 'installable-manifest', weight: 2, group: 'pwa-installable'},
         {id: 'custom-service-worker-audit', weight: 2, group: 'pwa-installable'},
+        {id: 'custom-audit', weight: 1, group: 'pwa-installable'},
         // PWA Optimized
         {id: 'splash-screen', weight: 1, group: 'pwa-optimized'},
         // {id: 'themed-omnibox', weight: 1, group: 'pwa-optimized'},

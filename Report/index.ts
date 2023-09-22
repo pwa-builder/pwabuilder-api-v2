@@ -105,9 +105,9 @@ const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<s
       child.on('exit', code => {
         resolveFunc(output);
       });
-      child.on('error', err => {
-        output = err.toString();
-      });
+      // child.on('error', err => {
+      //   output = err.toString();
+      // });
     }),
   };
 };
@@ -239,6 +239,9 @@ const audit = async (
             ? { ...(swFeatures as object), raw: undefined }
             : undefined,
         },
+      },
+      customAudit: {
+        score: audits['custom-audit']?.score ? true : false
       },
       maskableIcon: { score: audits['maskable-icon']?.score ? true : false },
       // splashScreen: { score: audits['splash-screen']?.score ? true : false },
