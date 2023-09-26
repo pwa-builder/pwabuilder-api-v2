@@ -1,7 +1,7 @@
 import {Gatherer} from 'lighthouse';
 import * as LH from 'lighthouse/types/lh.js';
 
-class CustomGatherer extends Gatherer {
+class OfflineGatherer extends Gatherer {
   meta: LH.Gatherer.GathererMeta = {
     supportedModes: ['navigation', 'timespan', 'snapshot'],
   };
@@ -87,4 +87,4 @@ class CustomGatherer extends Gatherer {
   }
 }
 
-export default CustomGatherer;
+export default OfflineGatherer;

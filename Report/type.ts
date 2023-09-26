@@ -20,9 +20,12 @@ export type Report = {
         } | undefined;
       };
     };
-    maskableIcon: {
+    offlineSupport: {
       score: boolean;
     };
+    // maskableIcon: {
+    //   score: boolean;
+    // };
     // splashScreen: {
     //   score: boolean;
     // };

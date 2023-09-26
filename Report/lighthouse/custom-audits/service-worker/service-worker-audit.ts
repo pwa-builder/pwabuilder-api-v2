@@ -1,7 +1,6 @@
 import * as LH from 'lighthouse/types/lh.js';
 import { Audit, Artifacts, IcuMessage } from 'lighthouse';
 import * as i18n from 'lighthouse/core/lib/i18n/i18n.js';
-import {ICustomServiceWorkerGatherer} from './custom-service-worker-gatherer.js';
 
 const UIStrings = {
   title: 'Registers a service worker that controls page and `start_url`',
@@ -26,16 +25,16 @@ interface ServiceWorkerUrls {
   scriptUrl: string;
 }
 
-class CustomServiceWorkerAudit extends Audit {
+class ServiceWorkerAudit extends Audit {
   static get meta(): LH.Audit.Meta {
     return {
-      id: 'custom-service-worker-audit',
+      id: 'service-worker-audit',
       title: str_(UIStrings.title),
       failureTitle: str_(UIStrings.failureTitle),
       description: str_(UIStrings.description),
       supportedModes: ['navigation'],
       // @ts-ignore
-      requiredArtifacts: ['URL', 'CustomServiceWorkerGatherer', 'WebAppManifest'],
+      requiredArtifacts: ['URL', 'ServiceWorkerGatherer', 'WebAppManifest'],
     };
   }
 
@@ -96,16 +95,16 @@ class CustomServiceWorkerAudit extends Audit {
     if (!mainDocumentUrl) throw new Error('mainDocumentUrl must exist in navigation mode');
     const pageUrl = new URL(mainDocumentUrl);
     // @ts-ignore
-    const {versions, registrations } = artifacts.CustomServiceWorkerGatherer as ICustomServiceWorkerGatherer;
+    const {versions, registrations } = artifacts.ServiceWorkerGatherer as IServiceWorkerGatherer;
 
-    const versionsForOrigin = CustomServiceWorkerAudit.getVersionsForOrigin(versions, pageUrl);
+    const versionsForOrigin = ServiceWorkerAudit.getVersionsForOrigin(versions, pageUrl);
     if (versionsForOrigin.length === 0) {
       return {
         score: 0,
       };
     }
 
-    const serviceWorkerUrls = CustomServiceWorkerAudit.getControllingServiceWorker(versionsForOrigin,
+    const serviceWorkerUrls = ServiceWorkerAudit.getControllingServiceWorker(versionsForOrigin,
         registrations, pageUrl);
     if (!serviceWorkerUrls) {
       return {
@@ -121,7 +120,7 @@ class CustomServiceWorkerAudit extends Audit {
       scopeUrl,
     };
 
-    const startUrlFailure = CustomServiceWorkerAudit.checkStartUrl(artifacts.WebAppManifest,
+    const startUrlFailure = ServiceWorkerAudit.checkStartUrl(artifacts.WebAppManifest,
       serviceWorkerUrls.scopeUrl);
     if (startUrlFailure) {
       return {
@@ -138,5 +137,5 @@ class CustomServiceWorkerAudit extends Audit {
   }
 }
 
-export default CustomServiceWorkerAudit;
+export default ServiceWorkerAudit;
 export { UIStrings };

@@ -2,22 +2,22 @@ import {Audit} from 'lighthouse';
 import { FetchResponse } from 'lighthouse/core/gather/fetcher.js';
 import * as LH from 'lighthouse/types/lh.js';
 
-class CustomAudit extends Audit {
+class OfflineAudit extends Audit {
   static get meta(): LH.Audit.Meta {
     return {
-      id: 'custom-audit',
-      title: 'First text input field accepts `123` as input',
+      id: 'offline-audit',
+      title: 'Offline Support Audit',
       failureTitle: 'First text input field doesn\'t accept `123` as input',
-      description: 'Example custom audit which relies on a fancy gatherer.',
+      description: 'Simple offline support audit',
 
       // The name of the custom gatherer class that provides input to this audit.
 			// @ts-ignore
-      requiredArtifacts: ['CustomGatherer', 'CustomServiceWorkerGatherer', 'WebAppManifest'],
+      requiredArtifacts: ['OfflineGatherer', 'ServiceWorkerGatherer', 'WebAppManifest'],
     };
   }
 
   static audit(artifacts) {
-    const response = artifacts.CustomGatherer as FetchResponse;
+    const response = artifacts.OfflineGatherer as FetchResponse;
     const success = response.status == 200;
 
     return {
@@ -27,4 +27,4 @@ class CustomAudit extends Audit {
   }
 }
 
-export default CustomAudit;
+export default OfflineAudit;

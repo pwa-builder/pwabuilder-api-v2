@@ -137,16 +137,16 @@ const defaultConfig = {
     // {id: 'NetworkUserAgent', gatherer: 'network-user-agent'},
     // {id: 'OptimizedImages', gatherer: 'dobetterweb/optimized-images'},
     // {id: 'ResponseCompression', gatherer: 'dobetterweb/response-compression'},
-    {id: 'CustomServiceWorkerGatherer', gatherer: `${CUSTOM}/service-worker/custom-service-worker-gatherer`},
+    {id: 'ServiceWorkerGatherer', gatherer: `${CUSTOM}/service-worker/service-worker-gatherer`},
     {id: 'WebAppManifest', gatherer: 'web-app-manifest'},
 
-    {id: 'CustomGatherer', gatherer: `${CUSTOM}/offline/offline-gatherer`},
+    {id: 'OfflineGatherer', gatherer: `${CUSTOM}/offline/offline-gatherer`},
 
     {id: 'devtoolsLogs', gatherer: 'devtools-log-compat'},
   ],
   audits: [
     'is-on-https',
-    `${CUSTOM}/service-worker/custom-service-worker-audit`,
+    `${CUSTOM}/service-worker/service-worker-audit`,
     `${CUSTOM}/offline/offline-audit`,
     'viewport',
     'metrics/first-contentful-paint',
@@ -239,8 +239,8 @@ const defaultConfig = {
       auditRefs: [
         // Installable
         {id: 'installable-manifest', weight: 2, group: 'pwa-installable'},
-        {id: 'custom-service-worker-audit', weight: 2, group: 'pwa-installable'},
-        {id: 'custom-audit', weight: 1, group: 'pwa-installable'},
+        {id: 'service-worker-audit', weight: 2, group: 'pwa-installable'},
+        {id: 'offline-audit', weight: 1, group: 'pwa-installable'},
         // PWA Optimized
         {id: 'splash-screen', weight: 1, group: 'pwa-optimized'},
         // {id: 'themed-omnibox', weight: 1, group: 'pwa-optimized'},

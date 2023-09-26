@@ -179,9 +179,9 @@ const audit = async (
   let swFeatures: AnalyzeServiceWorkerResponce | null = null;
 
   const processServiceWorker = async () => {
-    if (audits['custom-service-worker-audit']?.details?.scriptUrl) {
+    if (audits['service-worker-audit']?.details?.scriptUrl) {
       artifacts.ServiceWorker = {
-        url: audits['custom-service-worker-audit']?.details?.scriptUrl,
+        url: audits['service-worker-audit']?.details?.scriptUrl,
       };
       try {
         swFeatures = await analyzeServiceWorker(artifacts.ServiceWorker.url);
@@ -231,20 +231,20 @@ const audit = async (
         },
       },
       serviceWorker: {
-        score: audits['custom-service-worker-audit']?.score ? true : false,
+        score: audits['service-worker-audit']?.score ? true : false,
         details: {
-          url: audits['custom-service-worker-audit']?.details?.scriptUrl || undefined,
-          scope: audits['custom-service-worker-audit']?.details?.scopeUrl || undefined,
+          url: audits['service-worker-audit']?.details?.scriptUrl || undefined,
+          scope: audits['service-worker-audit']?.details?.scopeUrl || undefined,
           features: swFeatures
             ? { ...(swFeatures as object), raw: undefined }
             : undefined,
-          error: audits['custom-service-worker-audit']?.details?.error || undefined,
+          error: audits['service-worker-audit']?.details?.error || undefined,
         },
       },
-      customAudit: {
-        score: audits['custom-audit']?.score ? true : false
+      offlineSupport: {
+        score: audits['offline-audit']?.score ? true : false
       },
-      maskableIcon: { score: audits['maskable-icon']?.score ? true : false },
+      // maskableIcon: { score: audits['maskable-icon']?.score ? true : false },
       // splashScreen: { score: audits['splash-screen']?.score ? true : false },
       // themedOmnibox: { score: audits['themed-omnibox']?.score ? true : false },
       // viewport: { score: audits['viewport']?.score ? true : false },

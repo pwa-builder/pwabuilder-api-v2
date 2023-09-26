@@ -1,9 +1,8 @@
 import * as LH from 'lighthouse/types/lh.js';
 
 interface CustomArtifacts extends LH.Artifacts {
-	StartUrl: any,
-	CustomServiceWorkerGatherer: any,
-	Offline: any
+	ServiceWorkerGatherer: any,
+	OfflineGatherer: any
 }
 
 export default CustomArtifacts;

@@ -2,23 +2,11 @@
 import puppeteer from 'puppeteer';
 import lighthouse, { OutputMode, Flags } from 'lighthouse';
 import customConfig from './custom-config.js';
-// import ServiceWorker from './service-worker.js';
-// import serviceWorkerConfig from './service-worker.config.js';
 import { screenEmulationMetrics, userAgents} from 'lighthouse/core/config/constants.js';
-
-// import { promises as fs } from 'fs';
-// import { dirname, join } from 'path';
-// import { fileURLToPath } from 'url';
-// import crypto from 'crypto';
-
 
 const MAX_WAIT_FOR_LOAD = 30 * 1000; //seconds
 const MAX_WAIT_FOR_FCP = 15 * 1000; //seconds
 const SKIP_RESOURCES = ['stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket']
-
-// const __dirname = dirname(fileURLToPath(import.meta.url));
-// const _root = `${__dirname}/../..`;
-
 
 const audit = async (page: any, url: string, desktop?: boolean) => {
 
@@ -49,10 +37,10 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     disableFullPageScreenshot: true,
 
     skipAboutBlank: true,
-    // formFactor: desktop ? 'desktop' : 'mobile',
-    screenEmulation: desktop ? screenEmulationMetrics.desktop : screenEmulationMetrics.mobile,  
+    formFactor: desktop ? 'desktop' : 'mobile',
+    screenEmulation: screenEmulationMetrics[desktop? 'desktop': 'mobile'],  
     emulatedUserAgent: `${desktop ? userAgents.desktop : userAgents.mobile} PWABuilderHttpAgent`,  
-    onlyAudits: ['custom-service-worker-audit', 'installable-manifest', 'is-on-https', 'custom-audit'], //'maskable-icon', 'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
+    onlyAudits: ['installable-manifest', 'is-on-https', 'service-worker-audit', 'offline-audit'], //'maskable-icon', 'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
   } as Flags;
 
   
@@ -67,7 +55,7 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
           raw: rawResult?.artifacts.WebAppManifest?.raw
         },
         // @ts-ignore
-        ServiceWorker: rawResult?.artifacts.CustomServiceWorkerGatherer
+        ServiceWorker: rawResult?.artifacts.ServiceWorkerGatherer
       }
     };
   }
@@ -76,16 +64,6 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
       process.stdout.write(JSON.stringify(error, Object.getOwnPropertyNames(error)));
     process.exit(1);
   }
-
-  
-  
-  // const reportId = crypto.randomUUID();
-  // const tempFolder = `${_root}/temp`;
-  // const reportFile = `${tempFolder}/${reportId}_report.json`;
-  // await fs.mkdir(tempFolder).catch(() => {});
-  // await fs.writeFile(`${reportFile}`, JSON.stringify(rawResult)).catch(() => {});
-
-  return null;
 };
 
 // adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
@@ -105,9 +83,17 @@ async function execute() {
       '--block-new-web-contents',
       // '--single-process'
     ],
-    headless: false,// 'new',
-    defaultViewport: null,
+    headless: 'new',
+    defaultViewport: {
+      width: screenEmulationMetrics[desktop? 'desktop': 'mobile'].width,
+      height: screenEmulationMetrics[desktop? 'desktop': 'mobile'].height,
+      deviceScaleFactor: screenEmulationMetrics[desktop? 'desktop': 'mobile'].deviceScaleFactor,
+      isMobile: desktop? false: true,
+      hasTouch: desktop? false: true,
+      isLandscape: desktop? true: false,
+    },
   });
+
   const page = await currentBrowser.pages().then(pages => pages[0]);
   await page.setBypassServiceWorker(true);
   await page.setRequestInterception(true);
@@ -126,11 +112,7 @@ async function execute() {
       }
   });
 
-  // page.on('workercreated', async worker => {
-  //   await page.setBypassServiceWorker(true);
-  //   await page.setOfflineMode(true);
-  // }
-  // );
+  // don't let the bad SW kill the audit
   let valveTriggered = false;
   const turnValve = setTimeout(async () => {
     valveTriggered = true;
@@ -141,51 +123,29 @@ async function execute() {
     } catch (error) {
       console.log(error);
     }
-    // await (await currentBrowser.pages().then(pages => pages[0])).setOfflineMode(true);
-    // page.evaluate(() => console.log("OFFLINE"));
   }, MAX_WAIT_FOR_LOAD * 2);
 
   try {
     // run lighthouse audit
-
-    if (page) {
-      const webAppReport = await audit(page, url, desktop);
-      clearTimeout(turnValve);
-      if (valveTriggered && webAppReport?.audits!['custom-service-worker-audit']) {
-        // @ts-ignore
-        webAppReport.audits['custom-service-worker-audit'].details = {
-          error: 'Service worker timed out',
-        };
-      }
-
-      await currentBrowser.close();
-
-      if (process.stdout) {
-        process.stdout.write(JSON.stringify(webAppReport));
-      }
-      process.exit(0);
-      // return JSON.stringify(webAppReport)
-
-      // context.log.info(
-      //   `Report function is DONE processing a request for site: ${req.query.site}`
-      // );
+    const webAppReport = await audit(page, url, desktop);
+    clearTimeout(turnValve);
+    if (valveTriggered && webAppReport?.audits!['service-worker-audit']) {
+      // @ts-ignore
+      webAppReport.audits['service-worker-audit'].details = {
+        error: 'Service worker timed out',
+      };
     }
-  } catch (error: any) {
+
     await currentBrowser.close();
 
-    if (process.stdout) {
-      process.stdout.write(JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    }
+    process.stdout && process.stdout.write(JSON.stringify(webAppReport));
+    process.exit(0);
+  
+  } catch (error: any) {
+    await currentBrowser.close();
+    
+    process.stdout && process.stdout.write(JSON.stringify(error, Object.getOwnPropertyNames(error)));
     process.exit(1);
-    // if (error.name && error.name.indexOf('TimeoutError') > -1) {
-    //   context.log.error(
-    //     `Report function TIMED OUT processing a request for site: ${url}`
-    //   );
-    // } else {
-    //   context.log.error(
-    //     `Report function failed for ${url} with the following error: ${error}`
-    //   );
-    // }
   }
 };
 
