@@ -128,7 +128,7 @@ const audit = async (
 ): Promise<Report | null> => {
 
 
-  let rawResult: { audits?: unknown } = {};
+  let rawResult: { audits?: unknown, artifacts?: { Manifest: { raw: string, url: string }, ServiceWorker: { url: string }} } = {};
   let spawnResult:
     | { child: ChildProcess; promise: Promise<String | null> }
     | undefined;
@@ -159,6 +159,7 @@ const audit = async (
   } 
 
   const audits = rawResult?.audits || null;
+  const artifacts_lh = rawResult?.artifacts || null;
   if (!audits) {
     context?.log.warn(rawResult);
     return null;
@@ -179,7 +180,7 @@ const audit = async (
   let swFeatures: AnalyzeServiceWorkerResponce | null = null;
 
   const processServiceWorker = async () => {
-    if (audits['service-worker-audit']?.details?.scriptUrl) {
+    if (audits['service-worker-audit']?.details?.scriptUrl ) {
       artifacts.ServiceWorker = {
         url: audits['service-worker-audit']?.details?.scriptUrl,
       };
@@ -195,12 +196,24 @@ const audit = async (
   };
 
   const processManifest = async () => {
+    if (artifacts_lh?.Manifest?.url && artifacts_lh?.Manifest?.raw) { 
+      try {
+        artifacts.WebAppManifest = {
+          url: artifacts_lh?.Manifest?.url,
+          raw: artifacts_lh?.Manifest?.raw,
+          json: JSON.parse(artifacts_lh?.Manifest?.raw),
+        }
+        audits['installable-manifest'].details.validation = await validateManifest(artifacts.WebAppManifest.json as Manifest, true);
+        return;
+      }
+      catch (error) {}
+    }
     if (audits['installable-manifest']?.details?.debugData?.manifestUrl) {
       artifacts.WebAppManifest = {
         url: audits['installable-manifest']?.details?.debugData?.manifestUrl,
       };
 
-      if (artifacts.WebAppManifest.url) {
+      if (artifacts.WebAppManifest.url && !artifacts_lh?.Manifest?.raw) {
         const results = await getManifestByLink(
           artifacts.WebAppManifest.url,
           url

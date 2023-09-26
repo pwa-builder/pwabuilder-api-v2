@@ -107,9 +107,22 @@ async function execute() {
               body: 'success'
             });
       }
-      else {
-          req.continue();
-      }
+      else
+        req.continue(); 
+  });
+
+  const manifest_alt = {
+    url: '',
+    raw: '',
+    json: {},
+  };
+  page.on('response', async res => {
+    if (res.request().resourceType() === 'manifest') {
+      // manifest_alt.json = await res.json();
+      manifest_alt.raw = await res.text();
+      manifest_alt.url = res.url();
+    }
+    return true;
   });
 
   // don't let the bad SW kill the audit
@@ -134,6 +147,9 @@ async function execute() {
       webAppReport.audits['service-worker-audit'].details = {
         error: 'Service worker timed out',
       };
+    }
+    if (manifest_alt.url && manifest_alt.raw && (!webAppReport?.artifacts?.Manifest?.raw || manifest_alt.raw > webAppReport.artifacts.Manifest.raw)) {
+      webAppReport.artifacts.Manifest = manifest_alt;
     }
 
     await currentBrowser.close();
