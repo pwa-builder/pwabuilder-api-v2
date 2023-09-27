@@ -134,6 +134,11 @@ responses:
                         properties:
                           score:
                             type: boolean
+                      noMixedContent:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
                       installableManifest:
                         type: object
                         properties:

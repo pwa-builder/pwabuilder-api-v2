@@ -7,7 +7,7 @@ class OfflineAudit extends Audit {
     return {
       id: 'offline-audit',
       title: 'Offline Support Audit',
-      failureTitle: 'First text input field doesn\'t accept `123` as input',
+      failureTitle: 'Default page is not available offline',
       description: 'Simple offline support audit',
 
       // The name of the custom gatherer class that provides input to this audit.

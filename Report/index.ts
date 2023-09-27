@@ -233,7 +233,8 @@ const audit = async (
 
   const report = {
     audits: {
-      isOnHttps: { score: audits['is-on-https']?.score ? true : false },
+      isOnHttps: { score: audits['https-audit']?.score ? true : false },
+      noMixedContent: { score: audits['is-on-https']?.score ? true : false },
       installableManifest: {
         score: audits['installable-manifest']?.score ? true : false,
         details: {
