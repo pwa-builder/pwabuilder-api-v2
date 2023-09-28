@@ -10,8 +10,10 @@ class OfflineGatherer extends Gatherer {
     const {driver, page} = context;
     const {executionContext} = driver;
 
-    await page.setBypassServiceWorker(false);
-		await page.setOfflineMode(true);
+    try {
+      await page.setBypassServiceWorker(false);
+      await page.setOfflineMode(true);
+    } catch (error) {}
     // await driver.defaultSession.sendCommand('Network.enable')
     // await driver.defaultSession.sendCommand('Network.setCacheDisabled', { cacheDisabled: true })
     // await driver.defaultSession.sendCommand('Network.emulateNetworkConditions', {
@@ -27,7 +29,10 @@ class OfflineGatherer extends Gatherer {
 				const {response} = responseEvent;
 
 				driver.defaultSession.off('Network.responseReceived', onResponseReceived);
-        await page.setOfflineMode(false);
+        try {
+          await page.setOfflineMode(false);
+        } catch (error) {}
+        
         // await driver.defaultSession.sendCommand('Network.disable')
 
 				if (!response.fromServiceWorker) {
