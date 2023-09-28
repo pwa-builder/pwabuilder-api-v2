@@ -18,7 +18,7 @@ class HttpsAudit extends Audit {
   static async audit(artifacts: LH.Artifacts, context: LH.Audit.Context) {
 		const devtoolsLogs = artifacts.devtoolsLogs[Audit.DEFAULT_PASS];
     const networkRecords = await NetworkRecords.request(devtoolsLogs, context);
-		const finalRecord = networkRecords.find(record => record.url == artifacts.URL.finalDisplayedUrl);
+		const finalRecord = networkRecords.find(record => (record.url == artifacts.URL.finalDisplayedUrl || record.url == artifacts.URL.requestedUrl || record.url == artifacts.URL.mainDocumentUrl));
 		// finalRecord?.isSecure;
 		// finalRecord?.protocol;
     
