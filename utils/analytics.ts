@@ -13,6 +13,9 @@ var appInsightsStatus: AppInsightsStatus = AppInsightsStatus.DEFAULT;
 
 function initAnalytics() {
   try {
+    if (!process.env.APPINSIGHTS_CONNECTION_STRING)
+      throw('env.APPINSIGHTS_CONNECTION_STRING is EMPTY');
+    
     console.log('proces.', process.env.APPINSIGHTS_CONNECTION_STRING);
     telemetryClient = new appInsights.TelemetryClient(
       process.env.APPINSIGHTS_CONNECTION_STRING
