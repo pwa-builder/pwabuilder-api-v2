@@ -24,7 +24,7 @@ const serviceWorkerRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]/m),
 ];
 const emptyRegexes = [
-	new RegExp(/\.addEventListener\(['"]fetch['"],\(?(function)?\(?\w*\)?(=>)?{?(return|\w+\.respondWith\(fetch\(\w+\.request\)(?!\.catch)|})/mg)
+	new RegExp(/\.addEventListener\(['"]fetch['"],\(?(function)?\(?\w*\)?(=>)?{?(return(?!\w)|\w+\.respondWith\(fetch\(\w+\.request\)(?!\.catch)|})/mg)
 ]
 
 /*
