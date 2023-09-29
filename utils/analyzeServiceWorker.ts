@@ -91,6 +91,7 @@ export type AnalyzeServiceWorkerResponce = {
 	detectedPeriodicBackgroundSync?: boolean,
 	detectedPushRegistration?: boolean,
 	detectedSignsOfLogic?: boolean,
+	detectedEmpty?: boolean,
 	raw?: string[],
 	error?: string
 }
@@ -123,8 +124,8 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 			detectedPeriodicBackgroundSync: periodicSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPushRegistration: pushRegexes.some((reg) => reg.test(content as string)),
 			detectedSignsOfLogic: serviceWorkerRegexes.some((reg) => reg.test(content as string)),
+			detectedEmpty: emptyRegexes.some((reg) => reg.test(content as string)) || _swSize < 0.2,
 
-			sizeKb: _swSize.toString(),
 			raw: _swSize < 2048 ? separateContent: ['>2Mb']
 		}
 	}
