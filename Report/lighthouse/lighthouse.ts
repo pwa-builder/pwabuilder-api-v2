@@ -119,8 +119,10 @@ async function execute() {
   page.on('response', async res => {
     if (res.request().resourceType() === 'manifest') {
       // manifest_alt.json = await res.json();
-      manifest_alt.raw = await res.text();
-      manifest_alt.url = res.url();
+      try {
+        manifest_alt.raw = await res.text();
+        manifest_alt.url = res.url();
+      }catch (error) {}
     }
     return true;
   });
