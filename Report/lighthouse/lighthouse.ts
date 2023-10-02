@@ -69,6 +69,20 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
 // adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
 // on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
 
+const disabledFeatures = [
+  'Translate',
+  'TranslateUI',
+  // AcceptCHFrame disabled because of crbug.com/1348106.
+  'AcceptCHFrame',
+  'AutofillServerCommunication',
+  'CalculateNativeWinOcclusion',
+  'CertificateTransparencyComponentUpdater',
+  'InterestFeedContentSuggestions',
+  'MediaRouter',
+  'DialMediaRouteProvider',
+  // 'OptimizationHints'
+];
+
 async function execute() {
   const url = process.argv[2];
   const desktop =  process.argv[3] === 'desktop';
@@ -81,6 +95,7 @@ async function execute() {
       '--disable-domain-reliability',
       '--disabe-gpu',
       '--block-new-web-contents',
+      `--disable-features=${disabledFeatures.join(',')}`,
       // '--single-process'
     ],
     headless: 'new',
