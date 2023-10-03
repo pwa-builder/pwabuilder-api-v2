@@ -13,6 +13,9 @@ var appInsightsStatus: AppInsightsStatus = AppInsightsStatus.DEFAULT;
 
 function initAnalytics() {
   try {
+    if (!process.env.APPINSIGHTS_CONNECTION_STRING)
+      throw('env.APPINSIGHTS_CONNECTION_STRING is EMPTY');
+    
     console.log('proces.', process.env.APPINSIGHTS_CONNECTION_STRING);
     telemetryClient = new appInsights.TelemetryClient(
       process.env.APPINSIGHTS_CONNECTION_STRING
@@ -199,6 +202,11 @@ export async function uploadToAppInsights(
         analyticsInfo.properties.hasSignsOfLogic =
           _features.detectedSignsOfLogic;
       }
+    }
+
+    if (webAppReport.audits.offlineSupport) {
+      analyticsInfo.properties.hasOfflineSupport =
+        webAppReport.audits.offlineSupport.score;
     }
   } catch (e) {
     console.warn('Could not log entry', e);

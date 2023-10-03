@@ -134,6 +134,11 @@ responses:
                         properties:
                           score:
                             type: boolean
+                      noMixedContent:
+                        type: object
+                        properties:
+                          score:
+                            type: boolean
                       installableManifest:
                         type: object
                         properties:
@@ -162,26 +167,26 @@ responses:
                                 type: boolean
                               features:
                                 $ref: '#/properties/sw_features'
-                      maskableIcon:
-                        type: object
-                        properties:
-                          score:
-                            type: boolean
-                      splashScreen:
-                        type: object
-                        properties:
-                          score:
-                            type: boolean
-                      themedOmnibox:
-                        type: object
-                        properties:
-                          score:
-                            type: boolean
-                      viewport:
-                        type: object
-                        properties:
-                          score:
-                            type: boolean
+                      # maskableIcon:
+                      #   type: object
+                      #   properties:
+                      #     score:
+                      #       type: boolean
+                      # splashScreen:
+                      #   type: object
+                      #   properties:
+                      #     score:
+                      #       type: boolean
+                      # themedOmnibox:
+                      #   type: object
+                      #   properties:
+                      #     score:
+                      #       type: boolean
+                      # viewport:
+                      #   type: object
+                      #   properties:
+                      #     score:
+                      #       type: boolean
                   artifacts:
                     type: object
                     properties:
