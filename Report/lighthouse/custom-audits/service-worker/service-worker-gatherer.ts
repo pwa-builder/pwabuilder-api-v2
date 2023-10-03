@@ -9,7 +9,10 @@ export interface IServiceWorkerGatherer {
 }
 
 class ServiceWorkerGatherer extends BaseGatherer {
+  static symbol = Symbol('ServiceWorkerGatherer');
+
   meta: LH.Gatherer.GathererMeta = {
+    symbol: ServiceWorkerGatherer.symbol,
     supportedModes: ['navigation'],
   }
 

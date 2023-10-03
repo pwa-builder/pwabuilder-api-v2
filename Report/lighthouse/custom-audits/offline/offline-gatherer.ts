@@ -1,25 +1,29 @@
 import {Gatherer} from 'lighthouse';
 import * as LH from 'lighthouse/types/lh.js';
 import { HTTPResponse } from 'puppeteer';
+import ServiceWorkerGatherer from '../service-worker/service-worker-gatherer.js';
 
 class OfflineGatherer extends Gatherer {
   meta: LH.Gatherer.GathererMeta = {
-    supportedModes: ['navigation'/*, 'timespan', 'snapshot'*/],
+    supportedModes: ['navigation'],
+    // @ts-ignore
+    dependencies: {ServiceWorkerGatherer: ServiceWorkerGatherer.symbol},
   };
 // @ts-ignore
   async getArtifact(context: LH.Gatherer.Context) {
-    const {driver, page} = context;
+    const {driver, page, dependencies} = context;
 
     let response: HTTPResponse | null = null;
-    try {
-      const offlinePage = await page.browser().newPage();
-      await offlinePage.setOfflineMode(true);
-      response = await offlinePage.goto(page.url(), { timeout: 1000, waitUntil: 'domcontentloaded'}).then((response) => {
-        return response;
-      }).catch((error) => {
-        return error;
-      });
-    } catch (error) {}
+    if (dependencies['ServiceWorkerGatherer']?.registrations?.length)
+      try {
+        const offlinePage = await page.browser().newPage();
+        await offlinePage.setOfflineMode(true);
+        response = await offlinePage.goto(page.url(), { timeout: 1000, waitUntil: 'domcontentloaded'}).then((response) => {
+          return response;
+        }).catch((error) => {
+          return error;
+        });
+      } catch (error) {}
 
     if (response?.status && response?.statusText) {
       return {

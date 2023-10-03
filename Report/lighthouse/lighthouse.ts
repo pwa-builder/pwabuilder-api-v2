@@ -42,7 +42,7 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     formFactor: desktop ? 'desktop' : 'mobile',
     screenEmulation: screenEmulationMetrics[desktop? 'desktop': 'mobile'],  
     emulatedUserAgent: `${desktop ? userAgents.desktop : userAgents.mobile} PWABuilderHttpAgent`,  
-    onlyAudits: ['installable-manifest', 'is-on-https', 'service-worker-audit', 'offline-audit', 'https-audit'], //'maskable-icon', 'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
+    onlyAudits: ['installable-manifest', 'is-on-https', 'service-worker-audit', 'https-audit', 'offline-audit'], //'maskable-icon', 'service-worker', 'themed-omnibox', 'viewport', 'apple-touch-icon',  'splash-screen'
   } as Flags;
 
   

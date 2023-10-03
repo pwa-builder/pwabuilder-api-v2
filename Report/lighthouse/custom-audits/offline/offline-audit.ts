@@ -1,6 +1,6 @@
 import {Audit} from 'lighthouse';
-import { FetchResponse } from 'lighthouse/core/gather/fetcher.js';
 import * as LH from 'lighthouse/types/lh.js';
+
 
 class OfflineAudit extends Audit {
   static get meta(): LH.Audit.Meta {
@@ -17,8 +17,8 @@ class OfflineAudit extends Audit {
   }
 
   static audit(artifacts) {
-    const response = artifacts.OfflineGatherer as FetchResponse;
-    const success = response.status == 200;
+    const response = artifacts.OfflineGatherer;
+    const success = (response.status == 200) && response.fromServiceWorker;
 
     return {
       // Cast true/false to 1/0
