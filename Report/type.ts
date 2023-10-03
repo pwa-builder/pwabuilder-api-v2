@@ -1,5 +1,5 @@
 export type Report = {
-  audits: {
+  audits?: {
     isOnHttps: {
       score: boolean;
     };
@@ -36,7 +36,7 @@ export type Report = {
     //   score: boolean;
     // };
   };
-  artifacts: {
+  artifacts?: {
     webAppManifest?: {
       raw?: string,
       url?: string,
@@ -47,4 +47,5 @@ export type Report = {
       url?: string,
     };
   };
+  error?: string;
 };

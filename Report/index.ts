@@ -37,10 +37,13 @@ const httpTrigger: AzureFunction = async function (
 
   const url = req.query.site as string;
   const desktop = req.query.desktop == 'true' ? true : undefined;
+  const validation = req.query.validation == 'true' ? true : undefined;
 
   try {
-    const webAppReport = (await audit(url, desktop, context)) as Report;
-    if (!webAppReport) throw new Error('Lighthouse audit failed');
+    const webAppReport = (await audit(url, desktop, validation, context)) as Report;
+    if (!webAppReport || webAppReport.error) {
+      throw new Error(webAppReport?.error || 'UnexpectedError');
+    }
 
     let analyticsInfo = new AnalyticsInfo();
     analyticsInfo.url = url;
@@ -124,6 +127,7 @@ const killProcess = (pid?: number) => {
 const audit = async (
   url: string,
   desktop?: boolean,
+  validation?: boolean,
   context?: Context
 ): Promise<Report | null> => {
 
@@ -132,7 +136,7 @@ const audit = async (
   let spawnResult:
     | { child: ChildProcess; promise: Promise<String | null> }
     | undefined;
-
+  let timeoutError = false;
 
   try {
 
@@ -145,6 +149,7 @@ const audit = async (
 
     const spawnTimeout = setTimeout(() => {
       killProcess(spawnResult?.child?.pid);
+      timeoutError = true;
     }, SPAWN_TIMEOUT);
 
      // @ts-ignore
@@ -160,9 +165,11 @@ const audit = async (
 
   const audits = rawResult?.audits || null;
   const artifacts_lh = rawResult?.artifacts || null;
-  if (!audits) {
+  if (!audits || timeoutError) {
     context?.log.warn(rawResult);
-    return null;
+    return {
+      error: timeoutError? 'TimeoutError' : 'AuditFailed',
+    };
   } 
 
   const artifacts: {
@@ -203,7 +210,8 @@ const audit = async (
           raw: artifacts_lh?.Manifest?.raw,
           json: JSON.parse(artifacts_lh?.Manifest?.raw),
         }
-        audits['installable-manifest'].details.validation = await validateManifest(artifacts.WebAppManifest.json as Manifest, true);
+        if (validation)
+          audits['installable-manifest'].details.validation = await validateManifest(artifacts.WebAppManifest.json as Manifest, true);
         return;
       }
       catch (error) {}
@@ -221,7 +229,8 @@ const audit = async (
         if (results && !results.error) {
           artifacts.WebAppManifest.raw = results.raw;
           artifacts.WebAppManifest.json = results.json;
-          audits['installable-manifest'].details.validation = await validateManifest(results.json as Manifest, true);
+          if (validation)
+            audits['installable-manifest'].details.validation = await validateManifest(results.json as Manifest, true);
         }
       }
     } else {
@@ -290,6 +299,13 @@ export default httpTrigger;
  *            # default: ''
  *          in: query
  *          description: Use desktop form factor
+ *          required: false
+ *        - name: validation
+ *          schema:
+ *            type: boolean
+ *            # default: ''
+ *          in: query
+ *          description: Include manifest fields validation
  *          required: false
  *      responses:
  *        '200':

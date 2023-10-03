@@ -23,6 +23,8 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     pauseAfterFcpMs: 0,
     pauseAfterNetworkQuietMs: 0,
     pauseAfterCPUIdleMs: 0,
+    networkQuietThresholdMs: 0,
+    cpuQuietThresholdMs: 0,
 
     throttling: {
       rttMs: 0,
