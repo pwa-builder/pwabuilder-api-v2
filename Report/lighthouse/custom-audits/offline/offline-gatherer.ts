@@ -18,7 +18,7 @@ class OfflineGatherer extends Gatherer {
       try {
         const offlinePage = await page.browser().newPage();
         await offlinePage.setOfflineMode(true);
-        response = await offlinePage.goto(page.url(), { timeout: 1000, waitUntil: 'domcontentloaded'}).then((response) => {
+        response = await offlinePage.goto(page.url(), { timeout: 2000, waitUntil: 'domcontentloaded'}).then((response) => {
           return response;
         }).catch((error) => {
           return error;

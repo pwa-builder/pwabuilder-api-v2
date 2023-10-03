@@ -32,6 +32,7 @@ array.forEach(async (url: string, index: number) => {
 
     expect(result?.data?.audits, 'audits exists').toBeTruthy();
     expect(result?.data?.audits?.isOnHttps?.score, 'isOnHttps').toBeTruthy();
+    expect(result?.data?.audits?.noMixedContent?.score, 'noMixedContent').toBeTruthy();
 
     expect(result?.data?.artifacts?.webAppManifest?.url, 'manifest url').toBeTruthy();
     expect(result?.data?.artifacts?.webAppManifest?.json, 'manifest json').toBeTruthy();
@@ -39,5 +40,7 @@ array.forEach(async (url: string, index: number) => {
 
     expect(result?.data?.artifacts?.serviceWorker?.url, 'SW url').toBeTruthy();
     expect(result?.data?.audits?.serviceWorker?.details.features, 'SW features').toBeTruthy();
+
+    expect(result?.data?.audits?.offlineSupport?.score, 'offlineSupport').toBeTruthy();
   });
 });
