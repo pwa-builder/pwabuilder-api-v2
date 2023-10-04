@@ -3,6 +3,9 @@ export type Report = {
     isOnHttps: {
       score: boolean;
     };
+    noMixedContent: {
+      score: boolean;
+    };
     installableManifest: {
       score: boolean;
       details: {

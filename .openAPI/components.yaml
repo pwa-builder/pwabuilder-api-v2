@@ -206,3 +206,12 @@ responses:
                             type: string
                           url:
                             type: string
+                  error:
+                    type: string
+                    enum: [
+                      "UnexpectedError",
+                      "AuditFailed",
+                      "TimeoutError"
+                    ]
+                    nullable: true
+                    
