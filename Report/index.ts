@@ -1,7 +1,4 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import puppeteer from 'puppeteer';
-import { promises as fs } from 'fs';
-import crypto from 'crypto';
 
 import { validateManifest, Manifest, Validation } from '@pwabuilder/manifest-validation';
 import { checkParams } from '../utils/checkParams.js';
@@ -18,11 +15,10 @@ import { fileURLToPath } from 'url';
 import childProcess, { ChildProcess, exec, spawn } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const _root = `${__dirname}/../..`;
+// const _root = `${__dirname}/../..`;
 
-const AZURE_FUNC_TIMEOUT = 2 * 60 * 1000;
+const AZURE_FUNC_TIMEOUT = 1.5 * 60 * 1000;
 const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 10 * 1000;
-const LIGHTHOUSE_TIMEOUT = 15 * 1000;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -41,10 +37,13 @@ const httpTrigger: AzureFunction = async function (
 
   const url = req.query.site as string;
   const desktop = req.query.desktop == 'true' ? true : undefined;
+  const validation = req.query.validation == 'true' ? true : undefined;
 
   try {
-    const webAppReport = (await audit(url, desktop, context)) as Report;
-    if (!webAppReport) throw new Error('Lighthouse audit failed');
+    const webAppReport = (await audit(url, desktop, validation, context)) as Report;
+    if (!webAppReport || webAppReport.error) {
+      throw new Error(webAppReport?.error || 'UnexpectedError');
+    }
 
     let analyticsInfo = new AnalyticsInfo();
     analyticsInfo.url = url;
@@ -84,28 +83,34 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-const lighthouse = (
-  params: string[],
-  options: childProcess.SpawnOptions
-): { child: ChildProcess; promise: Promise<string | null> } => {
-  const child = spawn(`node`, params, options) as ChildProcess;
+const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<string | null> } => {
+  const child = spawn(
+    `node`, 
+    [`${__dirname}/lighthouse/lighthouse.js`, ...params], 
+    {
+      stdio: 'pipe'
+    }
+  ) as ChildProcess;
 
   let output = '';
 
   return {
     child,
     promise: new Promise(resolveFunc => {
-      if (child.stdout)
-        child.stdout.on('data', chunk => {
-          output += chunk.toString();
-        });
+     
+      // child.on('message', chunk => {
+      //   output = JSON.stringify(chunk);
+      // });
+      child.stdout?.on('data', chunk => {
+        output+=chunk;
+      });
 
       child.on('exit', code => {
         resolveFunc(output);
       });
-      child.on('error', err => {
-        output += err.toString();
-      });
+      // child.on('error', err => {
+      //   output = err.toString();
+      // });
     }),
   };
 };
@@ -122,83 +127,32 @@ const killProcess = (pid?: number) => {
 const audit = async (
   url: string,
   desktop?: boolean,
+  validation?: boolean,
   context?: Context
 ): Promise<Report | null> => {
-  const onlyAudits = `--only-audits=${[
-    'service-worker',
-    'installable-manifest',
-    'is-on-https',
-    'maskable-icon',
-    'splash-screen',
-    'themed-omnibox',
-    'viewport',
-  ].join(',')}`;
 
-  // adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
-  // on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
-  const chromeFlags = `--chrome-flags="${[
-    '--headless=new',
-    '--no-sandbox',
-    '--no-pings',
-    '--enable-automation',
-    // '--enable-features=NetworkServiceInProcess2',
-    '--allow-pre-commit-input',
-    '--deny-permission-prompts',
-    '--disable-breakpad',
-    '--disable-dev-shm-usage',
-    '--disable-domain-reliability',
-    '--disable-hang-monitor',
-    '--disable-ipc-flooding-protection',
-    '--disable-popup-blocking',
-    '--disable-prompt-on-repost',
-    '--disable-renderer-backgrounding',
-    '--disabe-gpu',
-    '--disable-dev-shm-usage',
-    '--block-new-web-contents',
-    // '--single-process',
-  ].join(' ')}"`;
-  const throttling = `--max-wait-for-load=${LIGHTHOUSE_TIMEOUT} --throttling-method=simulate --throttling.rttMs=0 --throttling.throughputKbps=0 --throttling.requestLatencyMs=0 --throttling.downloadThroughputKbps=0 --throttling.uploadThroughputKbps=0 --throttling.cpuSlowdownMultiplier=0`;
 
-  let rawResult: { audits?: unknown } = {};
+  let rawResult: { audits?: unknown, artifacts?: { Manifest: { raw: string, url: string }, ServiceWorker: { url: string }} } = {};
   let spawnResult:
     | { child: ChildProcess; promise: Promise<String | null> }
     | undefined;
-
-  const reportId = crypto.randomUUID();
-  const tempFolder = `${_root}/temp`;
-  const reportFile = `${tempFolder}/${reportId}_report.json`;
+  let timeoutError = false;
 
   try {
-    await fs.mkdir(tempFolder).catch(() => {});
-    // --output-path=${reportFile}
+
     spawnResult = lighthouse(
-      [
-        ...`${_root}/node_modules/lighthouse/cli/index.js --quiet=true ${throttling} ${url} --output=json${
-          desktop ? ' --preset=desktop' : ''
-        } ${onlyAudits} --disable-full-page-screenshot --disable-storage-reset`.split(
-          ' '
-        ),
-        `${chromeFlags}`,
-      ],
-      {
-        env: {
-          ...process.env,
-          CHROME_PATH: puppeteer.executablePath(),
-          TEMP: `${_root}/temp`,
-          PATCHED: 'true',
-        },
-        // ,
-        // cwd: `${_root}/node_modules/.bin/`,
-        // shell: true,
-        // stdio: 'pipe',
-        // detached: true
-      }
+      [url, desktop ? 'desktop' : 'mobile']
     );
+
+    // @ts-ignore
+    // spawnResult = await execute(url, desktop ? 'desktop' : 'mobile');
 
     const spawnTimeout = setTimeout(() => {
       killProcess(spawnResult?.child?.pid);
+      timeoutError = true;
     }, SPAWN_TIMEOUT);
 
+     // @ts-ignore
     let reportRaw = await spawnResult.promise;
     clearTimeout(spawnTimeout);
 
@@ -207,12 +161,16 @@ const audit = async (
   } catch (error) {
     context?.log.warn(error);
     killProcess(spawnResult?.child?.pid);
-  } finally {
-    fs.unlink(reportFile).catch(() => {});
-  }
+  } 
 
   const audits = rawResult?.audits || null;
-  if (!audits) return null;
+  const artifacts_lh = rawResult?.artifacts || null;
+  if (!audits || timeoutError) {
+    context?.log.warn(rawResult);
+    return {
+      error: timeoutError? 'TimeoutError' : 'AuditFailed',
+    };
+  } 
 
   const artifacts: {
     WebAppManifest?: {
@@ -229,9 +187,9 @@ const audit = async (
   let swFeatures: AnalyzeServiceWorkerResponce | null = null;
 
   const processServiceWorker = async () => {
-    if (audits['service-worker']?.details?.scriptUrl) {
+    if (audits['service-worker-audit']?.details?.scriptUrl ) {
       artifacts.ServiceWorker = {
-        url: audits['service-worker']?.details?.scriptUrl,
+        url: audits['service-worker-audit']?.details?.scriptUrl,
       };
       try {
         swFeatures = await analyzeServiceWorker(artifacts.ServiceWorker.url);
@@ -245,12 +203,25 @@ const audit = async (
   };
 
   const processManifest = async () => {
+    if (artifacts_lh?.Manifest?.url && artifacts_lh?.Manifest?.raw) { 
+      try {
+        artifacts.WebAppManifest = {
+          url: artifacts_lh?.Manifest?.url,
+          raw: artifacts_lh?.Manifest?.raw,
+          json: JSON.parse(artifacts_lh?.Manifest?.raw),
+        }
+        if (validation)
+          audits['installable-manifest'].details.validation = await validateManifest(artifacts.WebAppManifest.json as Manifest, true);
+        return;
+      }
+      catch (error) {}
+    }
     if (audits['installable-manifest']?.details?.debugData?.manifestUrl) {
       artifacts.WebAppManifest = {
         url: audits['installable-manifest']?.details?.debugData?.manifestUrl,
       };
 
-      if (artifacts.WebAppManifest.url) {
+      if (artifacts.WebAppManifest.url && !artifacts_lh?.Manifest?.raw) {
         const results = await getManifestByLink(
           artifacts.WebAppManifest.url,
           url
@@ -258,7 +229,8 @@ const audit = async (
         if (results && !results.error) {
           artifacts.WebAppManifest.raw = results.raw;
           artifacts.WebAppManifest.json = results.json;
-          audits['installable-manifest'].details.validation = await validateManifest(results.json as Manifest, true);
+          if (validation)
+            audits['installable-manifest'].details.validation = await validateManifest(results.json as Manifest, true);
         }
       }
     } else {
@@ -270,7 +242,8 @@ const audit = async (
 
   const report = {
     audits: {
-      isOnHttps: { score: audits['is-on-https']?.score ? true : false },
+      isOnHttps: { score: audits['https-audit']?.score ? true : false },
+      noMixedContent: { score: audits['is-on-https']?.score ? true : false },
       installableManifest: {
         score: audits['installable-manifest']?.score ? true : false,
         details: {
@@ -281,19 +254,23 @@ const audit = async (
         },
       },
       serviceWorker: {
-        score: audits['service-worker']?.score ? true : false,
+        score: audits['service-worker-audit']?.score ? true : false,
         details: {
-          url: audits['service-worker']?.details?.scriptUrl || undefined,
-          scope: audits['service-worker']?.details?.scopeUrl || undefined,
+          url: audits['service-worker-audit']?.details?.scriptUrl || undefined,
+          scope: audits['service-worker-audit']?.details?.scopeUrl || undefined,
           features: swFeatures
             ? { ...(swFeatures as object), raw: undefined }
             : undefined,
+          error: audits['service-worker-audit']?.details?.error || undefined,
         },
       },
-      maskableIcon: { score: audits['maskable-icon']?.score ? true : false },
-      splashScreen: { score: audits['splash-screen']?.score ? true : false },
-      themedOmnibox: { score: audits['themed-omnibox']?.score ? true : false },
-      viewport: { score: audits['viewport']?.score ? true : false },
+      offlineSupport: {
+        score: audits['offline-audit']?.score ? true : false
+      },
+      // maskableIcon: { score: audits['maskable-icon']?.score ? true : false },
+      // splashScreen: { score: audits['splash-screen']?.score ? true : false },
+      // themedOmnibox: { score: audits['themed-omnibox']?.score ? true : false },
+      // viewport: { score: audits['viewport']?.score ? true : false },
     },
     artifacts: {
       webAppManifest: artifacts?.WebAppManifest,
@@ -322,6 +299,13 @@ export default httpTrigger;
  *            # default: ''
  *          in: query
  *          description: Use desktop form factor
+ *          required: false
+ *        - name: validation
+ *          schema:
+ *            type: boolean
+ *            # default: ''
+ *          in: query
+ *          description: Include manifest fields validation
  *          required: false
  *      responses:
  *        '200':

@@ -26,17 +26,26 @@ const httpTrigger: AzureFunction = async function (
   );
 
   try {
-    const response = await fetch(site, { redirect: 'manual', headers: { 'User-Agent': USER_AGENT } });
-    const html = await response.text();
+    let link: string | null | undefined = null;
+    try{
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(site, { signal: controller.signal, redirect: 'manual', headers: { 'User-Agent': USER_AGENT } });
+      clearTimeout(timeoutId);
 
-    const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*?)['"]/) || html.match(/new Workbox\s*\(\s*['"](.*)['"]/);
-    let link: null | string | undefined = match? match[1] : null;
-    
-    if (link) {
-      if (!link.startsWith('http') && !link.startsWith('data:')) {
-        site = response.url;
-        link = new URL(link, site).href;
+      const html = await response.text();
+
+      const match = html.match(/navigator\s*\.\s*serviceWorker\s*\.\s*register\(\s*['"](.*?)['"]/) || html.match(/new Workbox\s*\(\s*['"](.*)['"]/);
+      link = match? match[1] : null;
+      
+      if (link) {
+        if (!link.startsWith('http') && !link.startsWith('data:')) {
+          site = response.url;
+          link = new URL(link, site).href;
+        }
       }
+    } catch (error) {
+      context.log.warn(`FindServiceWorker: ${error}`);
     }
 
     if (link) {

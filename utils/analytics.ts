@@ -203,6 +203,11 @@ export async function uploadToAppInsights(
           _features.detectedSignsOfLogic;
       }
     }
+
+    if (webAppReport.audits.offlineSupport) {
+      analyticsInfo.properties.hasOfflineSupport =
+        webAppReport.audits.offlineSupport.score;
+    }
   } catch (e) {
     console.warn('Could not log entry', e);
     return;

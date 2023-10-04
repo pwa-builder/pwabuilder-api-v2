@@ -24,7 +24,7 @@ const logicRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]/m),
 ];
 const emptyRegexes = [
-	new RegExp(/\.addEventListener\(['"]fetch['"],\(?(function)?\(?\w*\)?(=>)?{?(return|\w+\.respondWith\(fetch\(\w+\.request\)(?!\.catch)|})/mg)
+	new RegExp(/\.addEventListener\(['"]fetch['"],\(?(function)?\(?\w*\)?(=>)?{?(return(?!\w)|\w+\.respondWith\(fetch\(\w+\.request\)(?!\.catch)|})/mg)
 ]
 
 /*
@@ -92,8 +92,7 @@ export type AnalyzeServiceWorkerResponce = {
 	detectedPushRegistration?: boolean,
 	detectedSignsOfLogic?: boolean,
 	detectedEmpty?: boolean,
-	sizeKb?: string,
-	raw?: string[] | ['>2Mb'],
+	raw?: string[],
 	error?: string
 }
 
@@ -124,10 +123,9 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 			detectedBackgroundSync: backgroundSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPeriodicBackgroundSync: periodicSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPushRegistration: pushRegexes.some((reg) => reg.test(content as string)),
-			detectedSignsOfLogic: logicRegexes.some((reg) => reg.test(content as string)),
-			detectedEmpty: emptyRegexes.some((reg) => reg.test(content as string)),
+			detectedSignsOfLogic: serviceWorkerRegexes.some((reg) => reg.test(content as string)),
+			detectedEmpty: emptyRegexes.some((reg) => reg.test(content as string)) || _swSize < 0.2,
 
-			sizeKb: _swSize.toString(),
 			raw: _swSize < 2048 ? separateContent: ['>2Mb']
 		}
 	}

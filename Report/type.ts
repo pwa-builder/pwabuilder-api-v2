@@ -1,6 +1,9 @@
 export type Report = {
-  audits: {
+  audits?: {
     isOnHttps: {
+      score: boolean;
+    };
+    noMixedContent: {
       score: boolean;
     };
     installableManifest: {
@@ -20,20 +23,23 @@ export type Report = {
         } | undefined;
       };
     };
-    maskableIcon: {
+    offlineSupport: {
       score: boolean;
     };
-    splashScreen: {
-      score: boolean;
-    };
-    themedOmnibox: {
-      score: boolean;
-    };
-    viewport: {
-      score: boolean;
-    };
+    // maskableIcon: {
+    //   score: boolean;
+    // };
+    // splashScreen: {
+    //   score: boolean;
+    // };
+    // themedOmnibox: {
+    //   score: boolean;
+    // };
+    // viewport: {
+    //   score: boolean;
+    // };
   };
-  artifacts: {
+  artifacts?: {
     webAppManifest?: {
       raw?: string,
       url?: string,
@@ -44,4 +50,5 @@ export type Report = {
       url?: string,
     };
   };
+  error?: string;
 };
