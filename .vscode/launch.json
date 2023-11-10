@@ -5,7 +5,7 @@
       "name": "Debug local",
       "type": "node",
       "request": "attach",
-      "port": 9229,
+      "port": 5858,
       "preLaunchTask": "func: host start"
     },
     {

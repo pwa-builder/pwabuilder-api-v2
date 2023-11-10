@@ -201,6 +201,8 @@ export async function uploadToAppInsights(
           _features.detectedPeriodicBackgroundSync;
         analyticsInfo.properties.hasSignsOfLogic =
           _features.detectedSignsOfLogic;
+        analyticsInfo.properties.hasEmptyLogic =
+          _features.detectedEmpty;
       }
     }
 
