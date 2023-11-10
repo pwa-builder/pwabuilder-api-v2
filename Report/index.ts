@@ -17,8 +17,8 @@ import childProcess, { ChildProcess, exec, spawn } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // const _root = `${__dirname}/../..`;
 
-const AZURE_FUNC_TIMEOUT = 1.5 * 60 * 1000;
-const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 10 * 1000;
+const AZURE_FUNC_TIMEOUT = 2 * 60 * 1000;
+const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 15 * 1000;
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -97,10 +97,6 @@ const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<s
   return {
     child,
     promise: new Promise(resolveFunc => {
-     
-      // child.on('message', chunk => {
-      //   output = JSON.stringify(chunk);
-      // });
       child.stdout?.on('data', chunk => {
         output+=chunk;
       });
@@ -108,9 +104,6 @@ const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<s
       child.on('exit', code => {
         resolveFunc(output);
       });
-      // child.on('error', err => {
-      //   output = err.toString();
-      // });
     }),
   };
 };
@@ -143,9 +136,6 @@ const audit = async (
     spawnResult = lighthouse(
       [url, desktop ? 'desktop' : 'mobile']
     );
-
-    // @ts-ignore
-    // spawnResult = await execute(url, desktop ? 'desktop' : 'mobile');
 
     const spawnTimeout = setTimeout(() => {
       killProcess(spawnResult?.child?.pid);

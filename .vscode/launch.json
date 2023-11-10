@@ -12,7 +12,7 @@
       "name": "Connect to Func node debugger",
       "type": "node",
       "request": "attach",
-      "port": 9229
+      "port": 5858
     }
   ]
 }
