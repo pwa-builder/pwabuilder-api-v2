@@ -23,6 +23,24 @@ const serviceWorkerRegexes = [
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]install['"]/m),
 	new RegExp(/[.|\n\s*]addEventListener\s*\(\s*['"]fetch['"]/m),
 ];
+const emptyRegexes = [
+	new RegExp(/\.addEventListener\(['"]fetch['"],\(?(function)?\(?\w*\)?(=>)?{?(return(?!\w)|\w+\.respondWith\(fetch\(\w+\.request\)(?!\.catch)|})/mg)
+]
+
+/*
+empty examples: 
+
+self.addEventListener("fetch",(function(e){}))
+self.addEventListener("fetch",(function(){}))
+self.addEventListener("fetch",(function(event){e.respondWith(fetch(event.request))}))
+self.addEventListener('fetch',(()=>{}))
+self.addEventListener("fetch",(event=>{event.respondWith(fetch(event.request))}));
+self.addEventListener('fetch',function(event){});
+self.addEventListener('fetch',function(){return;});
+self.addEventListener("fetch",function(event){event.respondWith(fetch(event.request));});
+self.addEventListener('fetch',()=>{return;});
+self.addEventListener("fetch",(e)=>{event.respondWith(fetch(event.request));});
+*/
 
 async function findAndFetchImportScripts(code: string, origin?: string): Promise<string[]|unknown[]> {
   // Use a regular expression to find all importScripts statements in the code
@@ -73,6 +91,7 @@ export type AnalyzeServiceWorkerResponce = {
 	detectedPeriodicBackgroundSync?: boolean,
 	detectedPushRegistration?: boolean,
 	detectedSignsOfLogic?: boolean,
+	detectedEmpty?: boolean,
 	raw?: string[],
 	error?: string
 }
@@ -96,15 +115,18 @@ export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWor
 			});
 		} catch (error) {
 		}
-			
+		
+		const _swSize = Buffer.from(content).length / 1024;
+		content = content.replace(/\n+|\s+|\r/gm, '');
 
 		return {
 			detectedBackgroundSync: backgroundSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPeriodicBackgroundSync: periodicSyncRegexes.some((reg) => reg.test(content as string)),
 			detectedPushRegistration: pushRegexes.some((reg) => reg.test(content as string)),
 			detectedSignsOfLogic: serviceWorkerRegexes.some((reg) => reg.test(content as string)),
+			detectedEmpty: emptyRegexes.some((reg) => reg.test(content as string)) || _swSize < 0.2,
 
-			raw: Buffer.from(content).length / 1000 < 2048 ? separateContent: undefined
+			raw: _swSize < 2048 ? separateContent: ['>2Mb']
 		}
 	}
 	return {

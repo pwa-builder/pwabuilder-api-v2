@@ -111,17 +111,6 @@ paths:
       responses:
         "200":
           $ref: ?file=components.yaml#/responses/manifestGen/200
-  /Hint:
-    get:
-      summary: Hint report
-      description: Generate PWA-related Hint report for webapp
-      tags:
-        - Report
-      parameters:
-        - $ref: ?file=components.yaml#/parameters/site
-      responses:
-        "200":
-          description: OK
   /Offline:
     get:
       deprecated: true
@@ -157,6 +146,12 @@ paths:
             type: boolean
           in: query
           description: Use desktop form factor
+          required: false
+        - name: validation
+          schema:
+            type: boolean
+          in: query
+          description: Include manifest fields validation
           required: false
       responses:
         "200":
