@@ -83,6 +83,7 @@ export async function uploadToAppInsights(
     if (webAppReport.artifacts.webAppManifest?.json) {
       const _manifest = webAppReport.artifacts.webAppManifest?.json;
       console.log(_manifest);
+      analyticsInfo.properties.hasManifest = true;
       analyticsInfo.properties.name =
         (_manifest['name'] != undefined &&
           (await validateSingleField('name', _manifest['name'])).valid) ||
@@ -188,6 +189,9 @@ export async function uploadToAppInsights(
         (_manifest['icons'] != undefined &&
           (await validateSingleField('icons', _manifest['icons'])).valid) ||
         false;
+    }
+    else {
+      analyticsInfo.properties.hasManifest = false;
     }
     if (webAppReport.audits.serviceWorker) {
       analyticsInfo.properties.hasServiceWorker =
