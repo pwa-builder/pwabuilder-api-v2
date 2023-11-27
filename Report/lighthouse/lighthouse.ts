@@ -62,11 +62,26 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     };
   }
   catch (error) {
-    if (process.stdout)
-      process.stdout.write(JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    process.exit(1);
+    writeAndExit(error, 1);
   }
 };
+
+const writeAndExit = (data: any, code: 1 | 0) => { 
+  if (process.stdout) {
+    if (code){
+      process.stdout.write(JSON.stringify(data, Object.getOwnPropertyNames(data)), () => {
+          process.exit(code)
+      });
+    }
+    else {
+      process.stdout.write(JSON.stringify(data), () => {
+        process.exit(code);
+      });
+    }
+  }
+  else
+    process.exit(code);
+}
 
 // adding puppeter's like flags https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/node/ChromeLauncher.ts
 // on to op chrome-launcher https://github.com/GoogleChrome/chrome-launcher/blob/main/src/flags.ts#L13
@@ -170,20 +185,17 @@ async function execute() {
         error: 'Service worker timed out',
       };
     }
-    if (manifest_alt.url && manifest_alt.raw && (!webAppReport?.artifacts?.Manifest?.raw || manifest_alt.raw > webAppReport.artifacts.Manifest.raw)) {
+    if (manifest_alt.url && webAppReport && manifest_alt.raw && (!webAppReport?.artifacts?.Manifest?.raw || manifest_alt.raw > webAppReport.artifacts.Manifest.raw)) {
       webAppReport.artifacts.Manifest = manifest_alt;
     }
 
     await currentBrowser.close();
 
-    process.stdout && process.stdout.write(JSON.stringify(webAppReport));
-    process.exit(0);
-  
+    writeAndExit(webAppReport, 0);
   } catch (error: any) {
     await currentBrowser.close();
-    
-    process.stdout && process.stdout.write(JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    process.exit(1);
+
+    writeAndExit(error, 1);
   }
 };
 
