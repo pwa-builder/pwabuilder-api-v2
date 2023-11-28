@@ -51,9 +51,7 @@ const httpTrigger: AzureFunction = async function (
     analyticsInfo.platformIdVersion =
       req.headers['platform-identifier-version'];
     analyticsInfo.correlationId = req.headers['correlation-id'];
-    analyticsInfo.properties = {
-      referrer: req.query.ref
-    };
+    analyticsInfo.properties = req.query.ref ? { referrer: req.query.ref } : { };
     await uploadToAppInsights(webAppReport, analyticsInfo);
 
     context.res = {
