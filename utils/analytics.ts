@@ -79,7 +79,6 @@ export async function uploadToAppInsights(
   analyticsInfo: AnalyticsInfo
 ) {
   try {
-    analyticsInfo.properties = {};
     if (webAppReport.artifacts.webAppManifest?.json) {
       const _manifest = webAppReport.artifacts.webAppManifest?.json;
       console.log(_manifest);
