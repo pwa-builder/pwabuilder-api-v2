@@ -19,12 +19,12 @@ const audit = async (page: any, url: string, desktop?: boolean) => {
     maxWaitForFcp: MAX_WAIT_FOR_FCP,
     maxWaitForLoad: MAX_WAIT_FOR_LOAD,
 
-    pauseAfterLoadMs: 0,
-    pauseAfterFcpMs: 0,
-    pauseAfterNetworkQuietMs: 0,
-    pauseAfterCPUIdleMs: 0,
-    networkQuietThresholdMs: 0,
-    cpuQuietThresholdMs: 0,
+    pauseAfterLoadMs: 250,
+    pauseAfterFcpMs: 250,
+    pauseAfterNetworkQuietMs: 250,
+    pauseAfterCPUIdleMs: 250,
+    networkQuietThresholdMs: 250,
+    cpuQuietThresholdMs: 250,
 
     throttling: {
       rttMs: 0,
