@@ -137,8 +137,9 @@ async function execute() {
   });
 
   page.on('request', (req) => {
-      if (SKIP_RESOURCES.some((type) => req.resourceType() == type)){
-          switch (req.resourceType()) {
+      const resourceType = req.resourceType();
+      if (SKIP_RESOURCES.some((type) => resourceType == type)){
+          switch (resourceType) {
             case 'image':
               req.respond(
                 {
