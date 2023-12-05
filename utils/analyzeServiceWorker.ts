@@ -86,7 +86,7 @@ async function findAndFetchImportScripts(code: string, origin?: string): Promise
 	return contents;
 }
 
-export type AnalyzeServiceWorkerResponce = {
+export type AnalyzeServiceWorkerResponse = {
 	detectedBackgroundSync?: boolean,
 	detectedPeriodicBackgroundSync?: boolean,
 	detectedPushRegistration?: boolean,
@@ -96,7 +96,7 @@ export type AnalyzeServiceWorkerResponce = {
 	error?: string
 }
 
-export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWorkerContent?: string): Promise<AnalyzeServiceWorkerResponce> {
+export async function analyzeServiceWorker(serviceWorkerUrl?: string, serviceWorkerContent?: string): Promise<AnalyzeServiceWorkerResponse> {
 	let content = serviceWorkerContent;
 	const separateContent: string[] = [];
 	if (serviceWorkerUrl) {
