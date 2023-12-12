@@ -129,56 +129,56 @@ async function execute() {
   });
 
   const page = await currentBrowser.pages().then(pages => pages[0]);
-  await page.setBypassServiceWorker(true);
-  await page.setRequestInterception(true);
+  // await page.setBypassServiceWorker(true);
+  // await page.setRequestInterception(true);
 
   page.on('dialog', dialog => {
     dialog.dismiss();
   });
 
-  page.on('request', (req) => {
-      const resourceType = req.resourceType();
-      if (SKIP_RESOURCES.some((type) => resourceType == type)){
-          switch (resourceType) {
-            case 'image':
-              req.respond(
-                {
-                  status: 200,
-                  contentType: 'image/jpeg',
-                  body: Buffer.from(base64Image, 'base64'),
-                });
-              break;
-            case 'font':
-              req.respond(
-                {
-                  status: 200,
-                  contentType: 'font/woff2',
-                  body: Buffer.from(base64Font, 'base64'),
+  // page.on('request', (req) => {
+  //     const resourceType = req.resourceType();
+  //     if (SKIP_RESOURCES.some((type) => resourceType == type)){
+  //         switch (resourceType) {
+  //           case 'image':
+  //             req.respond(
+  //               {
+  //                 status: 200,
+  //                 contentType: 'image/jpeg',
+  //                 body: Buffer.from(base64Image, 'base64'),
+  //               });
+  //             break;
+  //           case 'font':
+  //             req.respond(
+  //               {
+  //                 status: 200,
+  //                 contentType: 'font/woff2',
+  //                 body: Buffer.from(base64Font, 'base64'),
                   
-                });
-              break;
-            case 'fetch':
-              if (req.method() == 'GET')
-                req.respond({
-                  status: 200,
-                  contentType: 'application/json',
-                  body: JSON.stringify({ success: true, message: "Intercepted fetch request" }),
-                });
-              else
-                req.continue();
-              break;
-            default:
-              req.respond({
-                status: 200,
-                contentType: 'text/plain',
-                body: '{"success": true}',
-              });
-              break;
-          }
-      }
-      else
-        req.continue(); 
-  });
+  //               });
+  //             break;
+  //           case 'fetch':
+  //             if (req.method() == 'GET')
+  //               req.respond({
+  //                 status: 200,
+  //                 contentType: 'application/json',
+  //                 body: JSON.stringify({ success: true, message: "Intercepted fetch request" }),
+  //               });
+  //             else
+  //               req.continue();
+  //             break;
+  //           default:
+  //             req.respond({
+  //               status: 200,
+  //               contentType: 'text/plain',
+  //               body: '{"success": true}',
+  //             });
+  //             break;
+  //         }
+  //     }
+  //     else
+  //       req.continue(); 
+  // });
 
   const manifest_alt = {
     url: '',
