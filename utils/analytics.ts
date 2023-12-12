@@ -188,6 +188,18 @@ export async function uploadToAppInsights(
         (_manifest['icons'] != undefined &&
           (await validateSingleField('icons', _manifest['icons'])).valid) ||
         false;
+      analyticsInfo.properties.hasEdgeSidePanel = 
+        (_manifest['edge_side_panel'] != undefined &&
+          (await validateSingleField('edge_side_panel', _manifest['edge_side_panel'])).valid) ||
+        false;
+      analyticsInfo.properties.hasDisplayOverride = 
+        (_manifest['display_override'] != undefined &&
+          (await validateSingleField('display_override', _manifest['display_override'])).valid) ||
+        false;
+      analyticsInfo.properties.hasHandleLinks = 
+        (_manifest['handle_links'] != undefined &&
+          (await validateSingleField('handle_links', _manifest['handle_links'])).valid) ||
+        false;
     }
     else {
       analyticsInfo.properties.hasManifest = false;
@@ -206,6 +218,8 @@ export async function uploadToAppInsights(
           _features.detectedSignsOfLogic;
         analyticsInfo.properties.hasEmptyLogic =
           _features.detectedEmpty;
+        analyticsInfo.properties.hasPushRegistration = 
+          _features.detectedPushRegistration;
       }
     }
 
