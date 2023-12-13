@@ -6,7 +6,7 @@ import { screenEmulationMetrics, userAgents} from 'lighthouse/core/config/consta
 
 const MAX_WAIT_FOR_LOAD = 30 * 1000; //seconds
 const MAX_WAIT_FOR_FCP = 15 * 1000; //seconds
-const SKIP_RESOURCES = ['stylesheet', 'font', /* 'image', */ 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket'];
+const SKIP_RESOURCES = ['stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'fetch', 'prefetch', 'preflight', 'websocket'];
 const base64Font = "d09GMgABAAAAAANMAA4AAAAAB5wAAALzAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP0ZGVE0cGh4GYACCQggEEQgKghCCBQsKAAE2AiQDEAQgBYVoBzQbkgZRlA3KLrKPwziGXKIIJZRhWeKjhaW5iHc8D+337dyZeX8XM0tqCa+b0BAJWSUTRSOESKRDer+Elf/fP73/pxBepXCrtIUq9XPyX1N40yxPPd20eYM4w2v+53J6YxJ8phOZw26LHd01NmV5hIHdyxbInCB5FA2xiENuQG8T/JF1eSoE/n6IGgX8f9FGc7MmMBOLgSKqKhoKWu3zVEd5QP7CQyCTf/aFhOLqKm7y8u2cEtgYGqpXzVU09aPXCADWIlBRsRIBjmAIVrKwFmiaMDQ1Rb55aYUAGRBACgrUjxPIF1pXmgBkagoJGhhFh9PAGAANu5GgtjZr1jp7y1ntpn03PdHSu3fWeb7fd3jZdXHg6Fi5vtfD40x2dqa4UHgNLM12evZ7ep7Lz1+Vl0rvQe/RrrmQEdv3PdpUbTJdpCgwMiBDEJDplewVmCkIzPBaDzKQjAbPScwrvD6WxcLy2JLoK7I0sjxKzH83T33Em91k3YXaZmYDE4qJ3cwpyMuWhz7FvwN8C1bygnWDN+68VXfHso7XwgdhFev4iHCQcRrPMxMI3zf5HHM+8jdqX4cdfiSYel/7uhbAqAKik9qQsrf2rG0YeNaFS/KfEzSHMUDBdNMxhQnAfA8COKQGAWLUTwHFiD8CqlG9gGY0RUBnRjYAAQZGcxIIMN2OzAiYYUH+VWnTcB/YEHPNQDHbb6jmOkcb+QmdxbGHgblhwXQ3c2kfM2zOgdMoBk2MKpWrgCHRssRAuNi4eJAiTRAqRXGlOoVqIIXqYRWhr6Mh6ZAylDpYqRo1KEzFKLXgD0bjrBj0vX/aKqycRs3057/ijkScqbtDWS5EDQe4qlS5ejUKGcFL3DpN3nlw+U2ljGiV0dUIBxMbnP/65zDZWdHzZl32WKFIt6TOPgrNpBwXhpVByhhRaiG5RSWIIfyeKqWKYUzw8CBNm8q5GJedGJ3catUXCj8iwF0YZpCIhdUKyoa+RR0PpgCmT7gFDVFSpt2qpRLWXwAAAA==";
 const base64Image = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
 
@@ -139,12 +139,13 @@ async function execute() {
   page.on('request', (req) => {
       const resourceType = req.resourceType();
       if (SKIP_RESOURCES.some((type) => resourceType == type)){
+          let contentType = req.headers().accept?.split(',')[0] || 'text/plain';
           switch (resourceType) {
             case 'image':
               req.respond(
                 {
                   status: 200,
-                  contentType: 'image/jpeg',
+                  contentType,
                   body: Buffer.from(base64Image, 'base64'),
                 });
               break;
@@ -152,7 +153,7 @@ async function execute() {
               req.respond(
                 {
                   status: 200,
-                  contentType: 'font/woff2',
+                  contentType,
                   body: Buffer.from(base64Font, 'base64'),
                   
                 });
@@ -161,7 +162,7 @@ async function execute() {
               if (req.method() == 'GET')
                 req.respond({
                   status: 200,
-                  contentType: 'application/json',
+                  contentType,
                   body: JSON.stringify({ success: true, message: "Intercepted fetch request" }),
                 });
               else
@@ -170,7 +171,7 @@ async function execute() {
             default:
               req.respond({
                 status: 200,
-                contentType: 'text/plain',
+                contentType,
                 body: '{"success": true}',
               });
               break;
