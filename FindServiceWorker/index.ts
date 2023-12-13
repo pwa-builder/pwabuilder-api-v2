@@ -61,12 +61,13 @@ const httpTrigger: AzureFunction = async function (
 
       try {
         page.on('request', (req) => {
-            if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
-                req.abort();
-            }
-            else {
+            // commented because it doesn't work on Azure environment
+            // if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
+            //     req.abort();
+            // }
+            // else {
                 req.continue();
-            }
+            // }
         });
 
         try {
