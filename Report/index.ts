@@ -17,7 +17,7 @@ import { ChildProcess, exec, spawn } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // const _root = `${__dirname}/../..`;
 
-const AZURE_FUNC_TIMEOUT = 2 * 60 * 1000;
+const AZURE_FUNC_TIMEOUT = 3 * 60 * 1000;
 const SPAWN_TIMEOUT = AZURE_FUNC_TIMEOUT - 15 * 1000;
 
 const httpTrigger: AzureFunction = async function (
