@@ -137,47 +137,48 @@ async function execute() {
   });
 
   page.on('request', (req) => {
-      const resourceType = req.resourceType();
-      if (SKIP_RESOURCES.some((type) => resourceType == type)){
-          let contentType = req.headers().accept?.split(',')[0] || 'text/plain';
-          switch (resourceType) {
-            case 'image':
-              req.respond(
-                {
-                  status: 200,
-                  contentType,
-                  body: Buffer.from(base64Image, 'base64'),
-                });
-              break;
-            case 'font':
-              req.respond(
-                {
-                  status: 200,
-                  contentType,
-                  body: Buffer.from(base64Font, 'base64'),
+      // commented because it doesn't work on Azure environment
+      // const resourceType = req.resourceType();
+      // if (SKIP_RESOURCES.some((type) => resourceType == type)){
+      //     let contentType = req.headers().accept?.split(',')[0] || 'text/plain';
+      //     switch (resourceType) {
+      //       case 'image':
+      //         req.respond(
+      //           {
+      //             status: 200,
+      //             contentType,
+      //             body: Buffer.from(base64Image, 'base64'),
+      //           });
+      //         break;
+      //       case 'font':
+      //         req.respond(
+      //           {
+      //             status: 200,
+      //             contentType,
+      //             body: Buffer.from(base64Font, 'base64'),
                   
-                });
-              break;
-            case 'fetch':
-              if (req.method() == 'GET')
-                req.respond({
-                  status: 200,
-                  contentType,
-                  body: JSON.stringify({ success: true, message: "Intercepted fetch request" }),
-                });
-              else
-                req.continue();
-              break;
-            default:
-              req.respond({
-                status: 200,
-                contentType,
-                body: '{"success": true}',
-              });
-              break;
-          }
-      }
-      else
+      //           });
+      //         break;
+      //       case 'fetch':
+      //         if (req.method() == 'GET')
+      //           req.respond({
+      //             status: 200,
+      //             contentType,
+      //             body: JSON.stringify({ success: true, message: "Intercepted fetch request" }),
+      //           });
+      //         else
+      //           req.continue();
+      //         break;
+      //       default:
+      //         req.respond({
+      //           status: 200,
+      //           contentType,
+      //           body: '{"success": true}',
+      //         });
+      //         break;
+      //     }
+      // }
+      // else
         req.continue(); 
   });
 
