@@ -156,12 +156,13 @@ async function puppeteerAttempt(site: string, context?: Context): Promise<{error
     try {
       // speed up loading
       page.on('request', (req) => {
-          if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
-              req.abort();
-          }
-          else {
+          // commented because it doesn't work on Azure environment
+          // if(SKIP_RESOURCES.some((type) => req.resourceType() == type)){
+          //     req.abort();
+          // }
+          // else {
               req.continue();
-          }
+          // }
       });
 
       // waiting for manifest request or until full page loads
