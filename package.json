@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "clean": "del-cli dist && del-cli temp",
-    "build": "npm run clean && tsc && npx --yes @puppeteer/browsers install chrome@stable",
+    "build": "npm run clean && tsc",
     "build:production": "npm run prestart && npm prune --production",
     "watch": "tsc --w",
     "prestart": "npm run build && func extensions install",
