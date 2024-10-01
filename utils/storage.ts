@@ -3,6 +3,7 @@ import {
   BlobServiceClient,
   ContainerCreateIfNotExistsResponse,
 } from "@azure/storage-blob";
+import { DefaultAzureCredential } from '@azure/identity';
 
 import ExceptionOf, { ExceptionType } from "./Exception.js";
 import { Context } from "@azure/functions";
@@ -74,15 +75,30 @@ export async function addManifestToContainer(
 }
 
 export function getBlobServiceClient(): BlobServiceClient {
-  const connectionString = process.env.AzureWebJobsStorage;
+  // const connectionString = process.env.AzureWebJobsStorage;
 
-  if (connectionString) {
-    return BlobServiceClient.fromConnectionString(connectionString);
-  } else {
+  // if (connectionString) {
+  //   return BlobServiceClient.fromConnectionString(connectionString);
+  // } else {
+  //   throw new Error(
+  //     "Connection string for AzureWebJobsStorage could not be found"
+  //   );
+  // }
+
+  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+  if (!accountName) {
     throw new Error(
-      "Connection string for AzureWebJobsStorage could not be found"
+      'Azure Storage accountName not found'
     );
   }
+  else {
+    const blobServiceClient = new BlobServiceClient(
+      `https://${accountName}.blob.core.windows.net`,
+      new DefaultAzureCredential()
+    );
+    return blobServiceClient;
+  }
+
 }
 
 export async function getManifest(
@@ -119,8 +135,8 @@ export interface TagMetaDataMap {
 type MapGestalt =
   | Record<string, string>
   | {
-      [name: string]: string;
-    };
+    [name: string]: string;
+  };
 
 export function getTagMetadataProperties(gestalt: MapGestalt): TagMetaDataMap {
   return {
