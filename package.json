@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@azure/storage-blob": "^12.17.0",
+    "@puppeteer/browsers": "^2.4.0",
     "@pwabuilder/manifest-validation": "^0.0.9",
     "ajv": "^8.12.0",
     "azure-functions-core-tools": "^4.0.5455",
@@ -44,7 +45,7 @@
     "jszip": "^3.10.1",
     "lighthouse": "11.1.0",
     "node-fetch": "^3.3.2",
-    "puppeteer": "21.1.1",
+    "puppeteer": "^23.5.0",
     "pwabuilder-lib": "^2.1.12",
     "strip-json-comments": "^5.0.1",
     "swagger-jsdoc": "^7.0.0-rc.6",

@@ -70,7 +70,7 @@ async function puppeteerAttempt(link: string): Promise<{link?: string, json?: un
 		let raw = '';
 
 		try {
-			const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox']});
+			const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox']});
 			const page = await browser.newPage();
 			await page.setUserAgent(USER_AGENT);
 

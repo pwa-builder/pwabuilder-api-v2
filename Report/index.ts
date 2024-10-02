@@ -5,14 +5,14 @@ import { checkParams } from '../utils/checkParams.js';
 import { getManifestByLink } from '../utils/getManifestByLink.js';
 import {
   analyzeServiceWorker,
-  AnalyzeServiceWorkerResponce,
+  AnalyzeServiceWorkerResponse,
 } from '../utils/analyzeServiceWorker.js';
 import { AnalyticsInfo, uploadToAppInsights } from '../utils/analytics.js';
 import { Report } from './type.js';
 
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import childProcess, { ChildProcess, exec, spawn } from 'child_process';
+import { ChildProcess, exec, spawn } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // const _root = `${__dirname}/../..`;
@@ -175,7 +175,7 @@ const audit = async (
       url?: string;
     };
   } = {};
-  let swFeatures: AnalyzeServiceWorkerResponce | null = null;
+  let swFeatures: AnalyzeServiceWorkerResponse | null = null;
 
   const processServiceWorker = async () => {
     if (audits['service-worker-audit']?.details?.scriptUrl ) {

@@ -117,7 +117,7 @@ async function execute() {
       `--disable-features=${disabledFeatures.join(',')}`,
       // '--single-process'
     ],
-    headless: 'new',
+    headless: true,
     defaultViewport: {
       width: screenEmulationMetrics[desktop? 'desktop': 'mobile'].width,
       height: screenEmulationMetrics[desktop? 'desktop': 'mobile'].height,

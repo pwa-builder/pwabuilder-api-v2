@@ -11,17 +11,21 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: dev
     steps:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
 
     - name: 'Login via Azure CLI'
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS_PRINCIPAL }} # set up AZURE_RBAC_CREDENTIALS secrets in your repository
-
+          auth-type: IDENTITY
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BECF5140E58D4E4DAF8C3ECDD90CB3D3 }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+          
     - name: Setup Node ${{ env.NODE_VERSION }} Environment
       uses: actions/setup-node@v3
       with:
