@@ -51,7 +51,7 @@ export async function getBrowser(context: Context): Promise<Browser> {
   context.log.info(LogMessages.OPENING_BROWSER);
 
   return await launch({
-    headless: 'new',
+    headless: true,
     // args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 }
