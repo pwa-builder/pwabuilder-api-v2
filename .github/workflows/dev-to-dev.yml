@@ -9,9 +9,9 @@ on:
   
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'pwabuilder-apiv2-node' 
+  AZURE_FUNCTIONAPP_NAME: 'pwabuilder-api-v2-backup' 
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
-  NODE_VERSION: '18.x'
+  NODE_VERSION: '20.x'
 
 jobs:
   build-and-deploy:
