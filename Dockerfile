@@ -2,7 +2,7 @@
 # docker build -t api-v2 .
 # docker run -p 80:7071 api-v2
 
-FROM mcr.microsoft.com/azure-functions/node:4-node18
+FROM mcr.microsoft.com/azure-functions/node:4-node20
 
 
 # functions api port
