@@ -209,106 +209,144 @@ const audit = async (
     manifest: Manifest,
     manifestUrl: string
   ): Promise<Validation | null> => {
-    // Map icon src to absolute URLs
-    const iconUrls = (manifest.icons ?? []).map(icon => ({
-      src: icon.src,
-      url: new URL(icon.src, manifestUrl).toString(),
-      type: icon.type,
-      sizes: icon.sizes,
-    }));
+    const icons = manifest.icons ?? [];
+    if (icons.length === 0) {
+      return null;
+    }
 
-    // Perform HEAD requests to check existence
-    const results = await Promise.all(
-      iconUrls.map(async icon => {
-        try {
-          const res = await fetch(icon.url, { method: 'HEAD' });
-          return {
-            ...icon,
-            exists: res.ok,
-          };
-        } catch {
-          return {
-            ...icon,
-            exists: false,
-          };
-        }
-      })
-    );
+    try {
+      const iconUrls = icons.map(icon => ({
+        src: icon.src,
+        url: new URL(icon.src, manifestUrl).toString(),
+        type: icon.type,
+        sizes: icon.sizes,
+      }));
 
-    const isValid = results.every(icon => icon.exists);
-    const missingIcons = results
-      .filter(icon => !icon.exists)
-      .map(icon => icon.src);
-    const validation: Validation = {
-      member: 'icons',
-      category: 'required',
-      displayString: 'Manifest icons exist',
-      errorString: isValid
-        ? ''
-        : `Couldn't fetch the following icons: ${missingIcons.join(', ')}`,
-      infoString:
-        'The icons member specifies an array of objects representing image files that can serve as application icons for different contexts.',
-      docsLink: 'https://docs.pwabuilder.com/#/builder/manifest?id=icons',
-      quickFix: false,
-      valid: isValid,
-    };
+      const results = await Promise.all(
+        iconUrls.map(async icon => {
+          try {
+            const res = await fetch(icon.url, { method: 'HEAD' });
+            return {
+              ...icon,
+              exists: res.ok,
+            };
+          } catch {
+            return {
+              ...icon,
+              exists: false,
+            };
+          }
+        })
+      );
 
-    return validation;
+      const isValid = results.every(icon => icon.exists);
+      const missingIcons = results
+        .filter(icon => !icon.exists)
+        .map(icon => icon.src);
+      const validation: Validation = {
+        member: 'icons',
+        category: 'required',
+        displayString: 'Manifest icons exist',
+        errorString: isValid
+          ? ''
+          : `Couldn't fetch the following icons: ${missingIcons.join(', ')}`,
+        infoString:
+          'The icons member specifies an array of objects representing image files that can serve as application icons for different contexts.',
+        docsLink: 'https://docs.pwabuilder.com/#/builder/manifest?id=icons',
+        quickFix: false,
+        valid: isValid,
+      };
+
+      return validation;
+    } catch (error) {
+      return {
+        member: 'icons',
+        category: 'required',
+        displayString: 'Manifest icons exist',
+        errorString: `Error validating icons: ${(error as Error).message}`,
+        infoString:
+          'The icons member specifies an array of objects representing image files that can serve as application icons for different contexts.',
+        docsLink: 'https://docs.pwabuilder.com/#/builder/manifest?id=icons',
+        quickFix: false,
+        valid: false,
+      };
+    }
   };
 
   const validateScreenshotsMetadata = async (
     manifest: Manifest,
     manifestUrl: string
   ): Promise<Validation | null> => {
-    // Map screenshots src to absolute URLs
-    const screenshotsUrls = (manifest.screenshots ?? []).map(screenshot => ({
-      src: screenshot.src,
-      url: new URL(screenshot.src, manifestUrl).toString(),
-      type: screenshot.type,
-      sizes: screenshot.sizes,
-      platform: screenshot.platform,
-    }));
+    const screenshots = manifest.screenshots ?? [];
+    if (screenshots.length === 0) {
+      return null;
+    }
 
-    // Perform HEAD requests to check existence
-    const results = await Promise.all(
-      screenshotsUrls.map(async screenshot => {
-        try {
-          const res = await fetch(screenshot.url, { method: 'HEAD' });
-          return {
-            ...screenshot,
-            exists: res.ok,
-          };
-        } catch {
-          return {
-            ...screenshot,
-            exists: false,
-          };
-        }
-      })
-    );
+    try {
+      const screenshotsUrls = screenshots.map(screenshot => ({
+        src: screenshot.src,
+        url: new URL(screenshot.src, manifestUrl).toString(),
+        type: screenshot.type,
+        sizes: screenshot.sizes,
+        platform: screenshot.platform,
+      }));
 
-    const isValid = results.every(screenshot => screenshot.exists);
-    const missingScreenshots = results
-      .filter(screenshot => !screenshot.exists)
-      .map(screenshot => screenshot.src);
+      const results = await Promise.all(
+        screenshotsUrls.map(async screenshot => {
+          try {
+            const res = await fetch(screenshot.url, { method: 'HEAD' });
+            return {
+              ...screenshot,
+              exists: res.ok,
+            };
+          } catch {
+            return {
+              ...screenshot,
+              exists: false,
+            };
+          }
+        })
+      );
 
-    const validation: Validation = {
-      member: 'screenshots',
-      category: 'required',
-      displayString: 'Manifest screenshots exist',
-      errorString: isValid
-        ? ''
-        : `Couldn't fetch the following screenshots: ${missingScreenshots.join(
-            ', '
-          )}`,
-      infoString:
-        'The screenshots member defines an array of screenshots intended to showcase the application.',
-      docsLink: 'https://docs.pwabuilder.com/#/builder/manifest?id=screenshots',
-      quickFix: false,
-      valid: isValid,
-    };
+      const isValid = results.every(screenshot => screenshot.exists);
+      const missingScreenshots = results
+        .filter(screenshot => !screenshot.exists)
+        .map(screenshot => screenshot.src);
 
-    return validation;
+      const validation: Validation = {
+        member: 'screenshots',
+        category: 'recommended',
+        displayString: 'Manifest screenshots exist',
+        errorString: isValid
+          ? ''
+          : `Couldn't fetch the following screenshots: ${missingScreenshots.join(
+              ', '
+            )}`,
+        infoString:
+          'The screenshots member defines an array of screenshots intended to showcase the application.',
+        docsLink:
+          'https://docs.pwabuilder.com/#/builder/manifest?id=screenshots',
+        quickFix: false,
+        valid: isValid,
+      };
+
+      return validation;
+    } catch (error) {
+      return {
+        member: 'screenshots',
+        category: 'recommended',
+        displayString: 'Manifest screenshots exist',
+        errorString: `Error validating screenshots: ${
+          (error as Error).message
+        }`,
+        infoString:
+          'The screenshots member defines an array of screenshots intended to showcase the application.',
+        docsLink:
+          'https://docs.pwabuilder.com/#/builder/manifest?id=screenshots',
+        quickFix: false,
+        valid: false,
+      };
+    }
   };
 
   const processManifest = async () => {
@@ -370,12 +408,21 @@ const audit = async (
         );
 
         audits['images-audit'] = audits['images-audit'] || { details: {} };
-        audits['images-audit'].score =
-          (iconsValidation?.valid ?? false) &&
-          (screenshotsValidation?.valid ?? false);
-        audits['images-audit'].details.iconsValidation = iconsValidation;
-        audits['images-audit'].details.screenshotsValidation =
-          screenshotsValidation;
+
+        if (iconsValidation !== null) {
+          audits['images-audit'].details.iconsValidation = iconsValidation;
+          audits['images-audit'].score = iconsValidation?.valid ?? true;
+        }
+        if (screenshotsValidation !== null) {
+          audits['images-audit'].details.screenshotsValidation =
+            screenshotsValidation;
+        }
+        if (iconsValidation !== null && screenshotsValidation !== null) {
+          audits['images-audit'].score =
+            (iconsValidation?.valid ?? false) &&
+            (screenshotsValidation?.valid ?? false);
+        }
+
         return;
       } catch (error) {}
     }
