@@ -215,7 +215,7 @@ const audit = async (
     }
 
     try {
-      const iconUrls = icons.map(icon => ({
+      const iconsData = icons.map(icon => ({
         src: icon.src,
         url: new URL(icon.src, manifestUrl).toString(),
         type: icon.type,
@@ -223,9 +223,12 @@ const audit = async (
       }));
 
       const results = await Promise.all(
-        iconUrls.map(async icon => {
+        iconsData.map(async icon => {
           try {
-            const res = await fetch(icon.url, { method: 'HEAD' });
+            let res = await fetch(icon.url, { method: 'HEAD' });
+            if (!res.ok) {
+              res = await fetch(icon.url, { method: 'GET' });
+            }
             return {
               ...icon,
               exists: res.ok,
@@ -283,7 +286,7 @@ const audit = async (
     }
 
     try {
-      const screenshotsUrls = screenshots.map(screenshot => ({
+      const screenshotsData = screenshots.map(screenshot => ({
         src: screenshot.src,
         url: new URL(screenshot.src, manifestUrl).toString(),
         type: screenshot.type,
@@ -292,9 +295,12 @@ const audit = async (
       }));
 
       const results = await Promise.all(
-        screenshotsUrls.map(async screenshot => {
+        screenshotsData.map(async screenshot => {
           try {
-            const res = await fetch(screenshot.url, { method: 'HEAD' });
+            let res = await fetch(screenshot.url, { method: 'HEAD' });
+            if (!res.ok) {
+              res = await fetch(screenshot.url, { method: 'GET' });
+            }
             return {
               ...screenshot,
               exists: res.ok,
@@ -315,7 +321,7 @@ const audit = async (
 
       const validation: Validation = {
         member: 'screenshots',
-        category: 'recommended',
+        category: 'required',
         displayString: 'Manifest screenshots exist',
         errorString: isValid
           ? ''
@@ -334,7 +340,7 @@ const audit = async (
     } catch (error) {
       return {
         member: 'screenshots',
-        category: 'recommended',
+        category: 'required',
         displayString: 'Manifest screenshots exist',
         errorString: `Error validating screenshots: ${
           (error as Error).message
@@ -411,7 +417,6 @@ const audit = async (
 
         if (iconsValidation !== null) {
           audits['images-audit'].details.iconsValidation = iconsValidation;
-          audits['images-audit'].score = iconsValidation?.valid ?? true;
         }
         if (screenshotsValidation !== null) {
           audits['images-audit'].details.screenshotsValidation =
@@ -421,6 +426,8 @@ const audit = async (
           audits['images-audit'].score =
             (iconsValidation?.valid ?? false) &&
             (screenshotsValidation?.valid ?? false);
+        } else {
+          audits['images-audit'].score = false
         }
 
         return;
