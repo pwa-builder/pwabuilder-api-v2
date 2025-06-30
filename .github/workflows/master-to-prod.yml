@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: dev
     steps:
     - name: 'Checkout GitHub Action'
