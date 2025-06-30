@@ -20,7 +20,6 @@ jobs:
     - name: 'Login via Azure CLI'
       uses: azure/login@v2
       with:
-          auth-type: IDENTITY
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BECF5140E58D4E4DAF8C3ECDD90CB3D3 }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
