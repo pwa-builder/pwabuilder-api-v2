@@ -1,6 +1,10 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 
-import { validateManifest, Manifest, Validation } from '@pwabuilder/manifest-validation';
+import {
+  validateManifest,
+  Manifest,
+  Validation,
+} from '@pwabuilder/manifest-validation';
 import { checkParams } from '../utils/checkParams.js';
 import { getManifestByLink } from '../utils/getManifestByLink.js';
 import {
@@ -40,7 +44,12 @@ const httpTrigger: AzureFunction = async function (
   const validation = req.query.validation == 'true' ? true : undefined;
 
   try {
-    const webAppReport = (await audit(url, desktop, validation, context)) as Report;
+    const webAppReport = (await audit(
+      url,
+      desktop,
+      validation,
+      context
+    )) as Report;
     if (!webAppReport || webAppReport.error) {
       throw new Error(webAppReport?.error || 'UnexpectedError');
     }
@@ -51,7 +60,7 @@ const httpTrigger: AzureFunction = async function (
     analyticsInfo.platformIdVersion =
       req.headers['platform-identifier-version'];
     analyticsInfo.correlationId = req.headers['correlation-id'];
-    analyticsInfo.properties = req.query.ref ? { referrer: req.query.ref } : { };
+    analyticsInfo.properties = req.query.ref ? { referrer: req.query.ref } : {};
     await uploadToAppInsights(webAppReport, analyticsInfo);
 
     context.res = {
@@ -84,12 +93,14 @@ const httpTrigger: AzureFunction = async function (
   }
 };
 
-const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<string | null> } => {
+const lighthouse = (
+  params: string[]
+): { child: ChildProcess; promise: Promise<string | null> } => {
   const child = spawn(
-    `node`, 
-    [`${__dirname}/lighthouse/lighthouse.js`, ...params], 
+    `node`,
+    [`${__dirname}/lighthouse/lighthouse.js`, ...params],
     {
-      stdio: 'pipe'
+      stdio: 'pipe',
     }
   ) as ChildProcess;
 
@@ -99,7 +110,7 @@ const lighthouse = (params: string[]): { child: ChildProcess; promise: Promise<s
     child,
     promise: new Promise(resolveFunc => {
       child.stdout?.on('data', chunk => {
-        output+=chunk;
+        output += chunk;
       });
 
       child.on('exit', code => {
@@ -124,26 +135,27 @@ const audit = async (
   validation?: boolean,
   context?: Context
 ): Promise<Report | null> => {
-
-
-  let rawResult: { audits?: unknown, artifacts?: { Manifest: { raw: string, url: string }, ServiceWorker: { url: string }} } = {};
+  let rawResult: {
+    audits?: unknown;
+    artifacts?: {
+      Manifest: { raw: string; url: string };
+      ServiceWorker: { url: string };
+    };
+  } = {};
   let spawnResult:
     | { child: ChildProcess; promise: Promise<String | null> }
     | undefined;
   let timeoutError = false;
 
   try {
-
-    spawnResult = lighthouse(
-      [url, desktop ? 'desktop' : 'mobile']
-    );
+    spawnResult = lighthouse([url, desktop ? 'desktop' : 'mobile']);
 
     const spawnTimeout = setTimeout(() => {
       killProcess(spawnResult?.child?.pid);
       timeoutError = true;
     }, SPAWN_TIMEOUT);
 
-     // @ts-ignore
+    // @ts-ignore
     let reportRaw = await spawnResult.promise;
     clearTimeout(spawnTimeout);
 
@@ -152,16 +164,16 @@ const audit = async (
   } catch (error) {
     context?.log.warn(error);
     killProcess(spawnResult?.child?.pid);
-  } 
+  }
 
   const audits = rawResult?.audits || null;
   const artifacts_lh = rawResult?.artifacts || null;
   if (!audits || timeoutError) {
     context?.log.warn(rawResult);
     return {
-      error: timeoutError? 'TimeoutError' : 'AuditFailed',
+      error: timeoutError ? 'TimeoutError' : 'AuditFailed',
     };
-  } 
+  }
 
   const artifacts: {
     WebAppManifest?: {
@@ -178,7 +190,7 @@ const audit = async (
   let swFeatures: AnalyzeServiceWorkerResponse | null = null;
 
   const processServiceWorker = async () => {
-    if (audits['service-worker-audit']?.details?.scriptUrl ) {
+    if (audits['service-worker-audit']?.details?.scriptUrl) {
       artifacts.ServiceWorker = {
         url: audits['service-worker-audit']?.details?.scriptUrl,
       };
@@ -193,19 +205,172 @@ const audit = async (
     }
   };
 
+  const validateIconsMetadata = async (
+    manifest: Manifest,
+    manifestUrl: string
+  ): Promise<Validation | null> => {
+    const icons = manifest.icons ?? [];
+    if (icons.length === 0) {
+      return null;
+    }
+
+    try {
+      const iconsData = icons.map(icon => ({
+        src: icon.src,
+        url: new URL(icon.src, manifestUrl).toString(),
+        type: icon.type,
+        sizes: icon.sizes,
+      }));
+
+      const results = await Promise.all(
+        iconsData.map(async icon => {
+          try {
+            let res = await fetch(icon.url, { method: 'HEAD' });
+            if (!res.ok) {
+              res = await fetch(icon.url, { method: 'GET' });
+            }
+            return {
+              ...icon,
+              exists: res.ok,
+            };
+          } catch {
+            return {
+              ...icon,
+              exists: false,
+            };
+          }
+        })
+      );
+
+      const isValid = results.every(icon => icon.exists);
+      const missingIcons = results
+        .filter(icon => !icon.exists)
+        .map(icon => icon.src);
+      const validation: Validation = {
+        member: 'icons',
+        category: 'required',
+        displayString: 'Manifest icons exist',
+        errorString: isValid
+          ? ''
+          : `Couldn't fetch the following icons: ${missingIcons.join(', ')}`,
+        infoString:
+          'The icons member specifies an array of objects representing image files that can serve as application icons for different contexts.',
+        docsLink: 'https://docs.pwabuilder.com/#/builder/manifest?id=icons',
+        quickFix: false,
+        valid: isValid,
+      };
+
+      return validation;
+    } catch (error) {
+      return {
+        member: 'icons',
+        category: 'required',
+        displayString: 'Manifest icons exist',
+        errorString: `Error validating icons: ${(error as Error).message}`,
+        infoString:
+          'The icons member specifies an array of objects representing image files that can serve as application icons for different contexts.',
+        docsLink: 'https://docs.pwabuilder.com/#/builder/manifest?id=icons',
+        quickFix: false,
+        valid: false,
+      };
+    }
+  };
+
+  const validateScreenshotsMetadata = async (
+    manifest: Manifest,
+    manifestUrl: string
+  ): Promise<Validation | null> => {
+    const screenshots = manifest.screenshots ?? [];
+    if (screenshots.length === 0) {
+      return null;
+    }
+
+    try {
+      const screenshotsData = screenshots.map(screenshot => ({
+        src: screenshot.src,
+        url: new URL(screenshot.src, manifestUrl).toString(),
+        type: screenshot.type,
+        sizes: screenshot.sizes,
+        platform: screenshot.platform,
+      }));
+
+      const results = await Promise.all(
+        screenshotsData.map(async screenshot => {
+          try {
+            let res = await fetch(screenshot.url, { method: 'HEAD' });
+            if (!res.ok) {
+              res = await fetch(screenshot.url, { method: 'GET' });
+            }
+            return {
+              ...screenshot,
+              exists: res.ok,
+            };
+          } catch {
+            return {
+              ...screenshot,
+              exists: false,
+            };
+          }
+        })
+      );
+
+      const isValid = results.every(screenshot => screenshot.exists);
+      const missingScreenshots = results
+        .filter(screenshot => !screenshot.exists)
+        .map(screenshot => screenshot.src);
+
+      const validation: Validation = {
+        member: 'screenshots',
+        category: 'required',
+        displayString: 'Manifest screenshots exist',
+        errorString: isValid
+          ? ''
+          : `Couldn't fetch the following screenshots: ${missingScreenshots.join(
+              ', '
+            )}`,
+        infoString:
+          'The screenshots member defines an array of screenshots intended to showcase the application.',
+        docsLink:
+          'https://docs.pwabuilder.com/#/builder/manifest?id=screenshots',
+        quickFix: false,
+        valid: isValid,
+      };
+
+      return validation;
+    } catch (error) {
+      return {
+        member: 'screenshots',
+        category: 'required',
+        displayString: 'Manifest screenshots exist',
+        errorString: `Error validating screenshots: ${
+          (error as Error).message
+        }`,
+        infoString:
+          'The screenshots member defines an array of screenshots intended to showcase the application.',
+        docsLink:
+          'https://docs.pwabuilder.com/#/builder/manifest?id=screenshots',
+        quickFix: false,
+        valid: false,
+      };
+    }
+  };
+
   const processManifest = async () => {
-    if (artifacts_lh?.Manifest?.url && artifacts_lh?.Manifest?.raw) { 
+    if (artifacts_lh?.Manifest?.url && artifacts_lh?.Manifest?.raw) {
       try {
         artifacts.WebAppManifest = {
           url: artifacts_lh?.Manifest?.url,
           raw: artifacts_lh?.Manifest?.raw,
           json: JSON.parse(artifacts_lh?.Manifest?.raw),
-        }
+        };
         if (validation)
-          audits['installable-manifest'].details.validation = await validateManifest(artifacts.WebAppManifest.json as Manifest, true);
+          audits['installable-manifest'].details.validation =
+            await validateManifest(
+              artifacts.WebAppManifest.json as Manifest,
+              true
+            );
         return;
-      }
-      catch (error) {}
+      } catch (error) {}
     }
     if (audits['installable-manifest']?.details?.debugData?.manifestUrl) {
       artifacts.WebAppManifest = {
@@ -221,7 +386,8 @@ const audit = async (
           artifacts.WebAppManifest.raw = results.raw;
           artifacts.WebAppManifest.json = results.json;
           if (validation)
-            audits['installable-manifest'].details.validation = await validateManifest(results.json as Manifest, true);
+            audits['installable-manifest'].details.validation =
+              await validateManifest(results.json as Manifest, true);
         }
       }
     } else {
@@ -229,7 +395,51 @@ const audit = async (
     }
   };
 
-  await Promise.allSettled([processServiceWorker(), processManifest()]);
+  const processImages = async () => {
+    if (artifacts_lh?.Manifest?.url && artifacts_lh?.Manifest?.raw) {
+      try {
+        artifacts.WebAppManifest = {
+          url: artifacts_lh?.Manifest?.url,
+          raw: artifacts_lh?.Manifest?.raw,
+          json: JSON.parse(artifacts_lh?.Manifest?.raw),
+        };
+
+        const iconsValidation = await validateIconsMetadata(
+          artifacts.WebAppManifest.json as Manifest,
+          artifacts_lh?.Manifest?.url
+        );
+        const screenshotsValidation = await validateScreenshotsMetadata(
+          artifacts.WebAppManifest.json as Manifest,
+          artifacts_lh?.Manifest?.url
+        );
+
+        audits['images-audit'] = audits['images-audit'] || { details: {} };
+
+        if (iconsValidation !== null) {
+          audits['images-audit'].details.iconsValidation = iconsValidation;
+        }
+        if (screenshotsValidation !== null) {
+          audits['images-audit'].details.screenshotsValidation =
+            screenshotsValidation;
+        }
+        if (iconsValidation !== null && screenshotsValidation !== null) {
+          audits['images-audit'].score =
+            (iconsValidation?.valid ?? false) &&
+            (screenshotsValidation?.valid ?? false);
+        } else {
+          audits['images-audit'].score = false
+        }
+
+        return;
+      } catch (error) {}
+    }
+  };
+
+  await Promise.allSettled([
+    processServiceWorker(),
+    processManifest(),
+    processImages(),
+  ]);
 
   const report = {
     audits: {
@@ -241,7 +451,8 @@ const audit = async (
           url:
             audits['installable-manifest']?.details?.debugData?.manifestUrl ||
             undefined,
-            validation: audits['installable-manifest']?.details?.validation || undefined
+          validation:
+            audits['installable-manifest']?.details?.validation || undefined,
         },
       },
       serviceWorker: {
@@ -256,7 +467,15 @@ const audit = async (
         },
       },
       offlineSupport: {
-        score: audits['offline-audit']?.score ? true : false
+        score: audits['offline-audit']?.score ? true : false,
+      },
+      images: {
+        score: audits['images-audit']?.score,
+        details: {
+          iconsValidation: audits['images-audit']?.details?.iconsValidation,
+          screenshotsValidation:
+            audits['images-audit']?.details?.screenshotsValidation,
+        },
       },
       // maskableIcon: { score: audits['maskable-icon']?.score ? true : false },
       // splashScreen: { score: audits['splash-screen']?.score ? true : false },
