@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import { checkParams } from '../utils/checkParams.js';
 import { userAgents } from 'lighthouse/core/config/constants.js';
 import puppeteer from 'puppeteer';
+import { isLoopback } from '../utils/url-util.js';
 
 const USER_AGENT = `${userAgents.desktop} PWABuilderHttpAgent`;
 const SKIP_RESOURCES = [ 'stylesheet', 'font', 'image', 'imageset', 'media', 'ping', 'manifest']
@@ -20,10 +21,18 @@ const httpTrigger: AzureFunction = async function (
   }
 
   let site = req?.query?.site;
+  if (isLoopback(site)) {
+      context.res = {
+        status: 400,
+        body: {
+          error: { message: 'Localhost and loopback addresses are not allowed' }
+        }
+      };
+      context.log.error(`FetchWebManifest: Rejected localhost/loopback URL: ${site}`);
+      return;
+  }
 
-  context.log(
-    `FindServiceWorker: function is processing a request for site: ${site}`
-  );
+  context.log(`FindServiceWorker: function is processing a request for site: ${site}`);
 
   try {
     let link: string | null | undefined = null;

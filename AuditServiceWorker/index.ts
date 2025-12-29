@@ -1,6 +1,7 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { checkParams } from '../utils/checkParams.js';
 import { analyzeServiceWorker } from '../utils/analyzeServiceWorker.js';
+import { isLoopback } from '../utils/url-util.js';
 
 
 const httpTrigger: AzureFunction = async function (
@@ -17,9 +18,19 @@ const httpTrigger: AzureFunction = async function (
 
   const url = req?.query?.url;
 
-  context.log(
-    `AuditServiceWorker: function is processing a request for url: ${url}`
-  );
+  // Check for localhost/loopback URLs
+  if (isLoopback(url)) {
+      context.res = {
+        status: 400,
+        body: {
+          error: { message: 'Localhost and loopback addresses are not allowed' }
+        }
+      };
+      context.log.error(`AuditServiceWorker: Rejected localhost/loopback URL: ${url}`);
+      return;
+  }
+
+  context.log(`AuditServiceWorker: function is processing a request for url: ${url}`);
 
   try {
 

@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { checkParams } from '../utils/checkParams.js';
 import { getManifestTwoWays } from '../utils/getManifest.js';
 import testManifest from '../utils/testManifest.js';
+import { isLoopback } from '../utils/url-util.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -16,6 +17,19 @@ const httpTrigger: AzureFunction = async function (
   }
 
   const site = req?.query?.site;
+
+  // Check for localhost/loopback URLs
+  if (isLoopback(site)) {
+      context.res = {
+        status: 400,
+        body: {
+          error: { message: 'Localhost and loopback addresses are not allowed' }
+        }
+      };
+      context.log.error(`FetchWebManifest: Rejected localhost/loopback URL: ${site}`);
+      return;
+  }
+  
   const maniObject = req?.body?.manifest;
   const maniUrl = req?.body?.maniurl;
 

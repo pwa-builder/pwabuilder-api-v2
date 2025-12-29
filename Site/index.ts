@@ -10,6 +10,7 @@ import { Manifest, ManifestFormat, ManifestInfo } from '../utils/interfaces.js';
 import { checkParams } from '../utils/checkParams.js';
 
 import pkg from 'pwabuilder-lib';
+import { isLoopback } from '../utils/url-util.js';
 const { manifestTools } = pkg;
 
 const httpTrigger: AzureFunction = async function (
@@ -27,11 +28,23 @@ const httpTrigger: AzureFunction = async function (
   context.log.info(
     `Site function is processing a request for site: ${req.query.site}`
   );
+  
+  const url = req?.query?.site as string;
+
+  if (isLoopback(url)) {
+    context.res = {
+      status: 400,
+      body: {
+        error: { message: 'Localhost and loopback addresses are not allowed' }
+      }
+    };
+    context.log.error(`Site: Rejected localhost/loopback URL: ${url}`);
+    return;
+  }
 
   try {
     let manifestUrl: string;
     let manifest: Manifest | null = null;
-    const url = req?.query?.site as string;
 
     // Handle File
     if (req.method === 'POST' && ifSupportedFile(req)) {

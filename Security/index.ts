@@ -2,6 +2,7 @@ import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { checkParams } from '../utils/checkParams.js';
 import loadPage, { LoadedPage, closeBrowser } from '../utils/loadPage.js';
 import { logHttpsResult } from '../utils/urlLogger.js';
+import { isLoopback } from '../utils/url-util.js';
 
 const httpTrigger: AzureFunction = async function (
   context: Context,
@@ -19,6 +20,17 @@ const httpTrigger: AzureFunction = async function (
   );
 
   const site = req?.query?.site as string;
+  if (isLoopback(site)) {
+      context.res = {
+        status: 400,
+        body: {
+          error: { message: 'Localhost and loopback addresses are not allowed' }
+        }
+      };
+      context.log.error(`Security: Rejected localhost/loopback URL: ${site}`);
+      return;
+  }
+
   let siteData: LoadedPage | undefined;
   const startTime = new Date();
 

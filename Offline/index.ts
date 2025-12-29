@@ -5,6 +5,7 @@ import lighthouse from 'lighthouse';
 import { closeBrowser, getBrowser } from "../utils/loadPage.js";
 import { logOfflineResult } from "../utils/urlLogger.js";
 import { checkParams } from '../utils/checkParams.js';
+import { isLoopback } from "../utils/url-util.js";
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
 
@@ -18,6 +19,16 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
   context.log.info(`Offline function is processing a request for site: ${req.query.site}`);
 
   const url = req?.query?.site as string;
+  if (isLoopback(url)) {
+      context.res = {
+        status: 400,
+        body: {
+          error: { message: 'Localhost and loopback addresses are not allowed' }
+        }
+      };
+      context.log.error(`Offline: Rejected localhost/loopback URL: ${url}`);
+      return;
+  }
 
   const currentBrowser = await getBrowser(context);
 

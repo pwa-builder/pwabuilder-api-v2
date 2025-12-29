@@ -11,6 +11,7 @@ import { getManifestByLink } from '../utils/getManifestByLink.js';
  * Workaround for https://github.com/jsdom/jsdom/issues/2005
  */
 import { implementation } from 'jsdom/lib/jsdom/living/nodes/HTMLStyleElement-impl.js';
+import { isLoopback } from '../utils/url-util.js';
 
 implementation.prototype._updateAStyleBlock = () => {};
 
@@ -31,6 +32,17 @@ const httpTrigger: AzureFunction = async function (
   }
 
   const site = req?.query?.site;
+
+  if (isLoopback(site)) {
+      context.res = {
+        status: 400,
+        body: {
+          error: { message: 'Localhost and loopback addresses are not allowed' }
+        }
+      };
+      context.log.error(`FetchWebManifest: Rejected localhost/loopback URL: ${site}`);
+      return;
+  }
 
   context.log(
     `FindWebManifest: function is processing a request for site: ${site}`
