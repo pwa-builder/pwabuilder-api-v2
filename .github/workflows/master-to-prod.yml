@@ -21,14 +21,12 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v4
 
-    - name: 'Login via Azure CLI'
+    - name: Login with Azure CLI
       uses: azure/login@v2
       with:
-          auth-type: IDENTITY
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BECF5140E58D4E4DAF8C3ECDD90CB3D3 }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
+        client-id: ${{ secrets.AZURE_APP_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           
     - name: Setup Node ${{ env.NODE_VERSION }} Environment
       uses: actions/setup-node@v4
