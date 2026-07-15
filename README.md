@@ -1,3 +1,7 @@
+# Deprecated
+
+This repo has been deprecated, and its functionality rolled into [PWABuilder's C# backend](https://github.com/pwa-builder/PWABuilder/tree/main/apps/pwabuilder).
+
 Please use our [main repository for any issues/bugs/features suggestion](https://github.com/pwa-builder/PWABuilder/issues/new/choose).
 
 # pwabuilder-tests
